@@ -134,6 +134,7 @@ A minimal geometric logo (`/public/logo.svg`) consisting of two smaller orange t
 - Use monospaced fonts for metadata, numbers, and UI labels.
 - Make the Kairos Orange "pop" by keeping everything else desaturated.
 - Keep all border-radius settings strictly at `0px`.
+- ONLY use Material Design Icons (Sharp Variant) for any iconography throughout the application to maintain sharp, geometric, and curve-free structures.
 
 ### Don't
 - Do not use gradients (except perhaps a subtle radial glow behind the hero media).
@@ -141,6 +142,7 @@ A minimal geometric logo (`/public/logo.svg`) consisting of two smaller orange t
 - Do not use any rounded corners or pill-shaped buttons.
 - Do not use playful, rounded, or heavily styled typography.
 - Do not use lifestyle photography. 
+- Do not use any icon library or variant that contains rounded, soft-cornered paths or contours.
 
 ---
 
