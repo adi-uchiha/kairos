@@ -307,7 +307,7 @@ export function Hero() {
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.85')}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
           >
-            Start Building Your Stack →
+            Try AI Architect →
           </Link>
           <Link
             href="#how-it-works"
@@ -435,7 +435,7 @@ export function Hero() {
                   borderRadius: 0,
                 }}
               >
-                <span style={{ fontSize: 11, fontWeight: 500 }}>Hobby (SaaS)</span>
+                <span style={{ fontSize: 11, fontWeight: 500 }}>Managed SaaS</span>
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                   <img src="/images/tech/supabase.svg" style={{ width: 10, height: 10, objectFit: 'contain' }} alt="Supabase" />
                   <img src="/images/tech/clerk.svg" style={{ width: 10, height: 10, objectFit: 'contain' }} alt="Clerk" />

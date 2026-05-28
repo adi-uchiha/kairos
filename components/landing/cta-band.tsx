@@ -21,7 +21,7 @@ export function CtaBand() {
             style={{ display: 'inline-block', background: '#ff5500', color: '#fff', fontWeight: 500, fontSize: 15, padding: '14px 32px', borderRadius: 0, letterSpacing: '-0.01em', transition: 'opacity 0.15s' }}
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.85')}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}>
-            Start Your Stack →
+            Try AI Architect →
           </Link>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#3f3f46', marginTop: 20 }}>
             Free · No account needed · 5 min

@@ -116,7 +116,7 @@ The AI's message bubble. No chat bubble "tail". Just a sharp-cornered block (`0p
 
 ### **`hero-media` (ReactFlow Engine)**
 The interactive node-based system architecture diagram built with `@xyflow/react`. Features custom sharp-cornered node cards displaying official tech SVG icons (e.g., Hono, Next.js, Cloudflare, React, Supabase) and straight connection paths. Includes a bottom toolbar representing target profiles:
-- **Hobby (SaaS)**: Labeled with Supabase, Clerk, and Redis icons.
+- **Managed SaaS**: Labeled with Supabase, Clerk, and Redis icons.
 - **AWS**: Labeled with the AWS cloud icon.
 - **GCP**: Labeled with the Google Cloud icon.
 
