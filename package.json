@@ -20,7 +20,7 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.99.0",
+    "@ai-sdk/google": "^3.0.80",
     "@base-ui/react": "^1.5.0",
     "@better-fetch/fetch": "^1.1.21",
     "@hookform/resolvers": "^5.4.0",
