@@ -85,7 +85,7 @@ export default function AuthPage() {
   if (isPending) {
     return (
       <div
-        className="min-h-screen flex flex-col items-center justify-center font-mono text-xs uppercase tracking-widest text-zinc-500"
+        className="min-h-screen flex flex-col items-center justify-center font-mono text-xs uppercase tracking-widest text-zinc-500 animate-fade-in"
         style={{ background: 'var(--bg)' }}
       >
         <div className="flex items-center gap-2">
@@ -101,66 +101,71 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-2 bg-white dark:bg-zinc-950 font-sans">
-      {/* Left Column: Branding / Testimonial (Desktop Only) */}
-      <div className="relative hidden bg-zinc-900 lg:block dark:bg-zinc-900/40">
-        <div className="flex h-full flex-col justify-between p-10 text-white">
+    <div
+      className="min-h-screen flex items-center justify-center p-4 md:p-8 font-sans relative z-10"
+      style={{ background: 'var(--bg)' }}
+    >
+      {/* Centered Auth Card Split Layout */}
+      <div
+        className="w-full max-w-[800px] grid grid-cols-1 md:grid-cols-2 border border-[var(--border)] bg-[var(--surface)] shadow-2xl overflow-hidden"
+        style={{ borderRadius: 0 }}
+      >
+        {/* Left Column: Branding / Testimonial (Desktop Only) */}
+        <div className="relative hidden md:flex flex-col justify-between p-8 bg-zinc-900 text-zinc-200 border-r border-zinc-800 dark:bg-zinc-900/40">
           {/* Logo / Brand */}
-          <div className="flex items-center gap-2 font-medium">
-            <svg width="24" height="21" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6">
+          <Link href="/" className="flex items-center gap-2 text-white">
+            <svg width="20" height="18" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
               <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
               <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
               <path d="M1671 1H739L0 741L738 1482H1671L933 741L1671 1Z" fill="#FF5500" />
             </svg>
-            <span className="font-semibold text-lg tracking-tight">Kairos</span>
-          </div>
+            <span className="font-semibold text-base tracking-tight">Kairos</span>
+          </Link>
 
           {/* Testimonial Quote */}
           <blockquote className="space-y-2">
-            <p className="text-lg leading-relaxed text-zinc-100">
+            <p className="text-sm leading-relaxed text-zinc-100">
               &ldquo;Kairos completely removed the decision fatigue of choosing our SaaS tech stack. Within minutes, we had a production-ready blueprint mapped out with clear, actionable scaling recommendations.&rdquo;
             </p>
-            <footer className="text-sm font-mono text-zinc-400">
+            <footer className="text-xs font-mono text-zinc-400">
               — Solo Developer, Creator of Kairos
             </footer>
           </blockquote>
         </div>
-      </div>
 
-      {/* Right Column: Form Container */}
-      <div className="flex flex-col gap-4 p-6 md:p-10 bg-white dark:bg-zinc-950 justify-between min-h-screen">
-        {/* Top Header / Switcher */}
-        <div className="flex justify-between items-center lg:justify-end">
-          {/* Logo visible only on mobile/tablet */}
-          <Link href="/" className="flex items-center gap-2 font-medium text-zinc-900 dark:text-zinc-50 lg:hidden">
-            <svg width="20" height="18" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
-              <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
-              <path d="M1671 1H739L0 741L738 1482H1671L933 741L1671 1Z" fill="#FF5500" />
-            </svg>
-            <span className="font-semibold">Kairos</span>
-          </Link>
+        {/* Right Column: Form Container */}
+        <div className="p-8 flex flex-col justify-between bg-white dark:bg-zinc-950 min-h-[500px]">
+          {/* Top Header / Switcher */}
+          <div className="flex justify-between items-center md:justify-end mb-4">
+            {/* Logo visible only on mobile/tablet */}
+            <Link href="/" className="flex items-center gap-2 font-medium text-zinc-900 dark:text-zinc-50 md:hidden">
+              <svg width="20" height="18" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
+                <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
+                <path d="M1671 1H739L0 741L738 1482H1671L933 741L1671 1Z" fill="#FF5500" />
+              </svg>
+              <span className="font-semibold text-sm">Kairos</span>
+            </Link>
 
-          <button
-            onClick={() => {
-              setFormMode(formMode === 'signin' ? 'signup' : 'signin');
-              setError('');
-            }}
-            className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline cursor-pointer bg-transparent border-0"
-          >
-            {formMode === 'signin' ? 'Create an account' : 'Sign in'}
-          </button>
-        </div>
+            <button
+              onClick={() => {
+                setFormMode(formMode === 'signin' ? 'signup' : 'signin');
+                setError('');
+              }}
+              className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline cursor-pointer bg-transparent border-0"
+            >
+              {formMode === 'signin' ? 'Create an account' : 'Sign in'}
+            </button>
+          </div>
 
-        {/* Centered Auth Card */}
-        <div className="flex flex-1 items-center justify-center py-10">
-          <div className="w-full max-w-[350px] space-y-6">
+          {/* Form Content Area */}
+          <div className="space-y-6">
             {/* Title / Subtitle */}
-            <div className="flex flex-col gap-2 text-center">
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+            <div className="flex flex-col gap-1.5 text-center md:text-left">
+              <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
                 {formMode === 'signin' ? 'Login to your account' : 'Create an account'}
               </h1>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 {formMode === 'signin'
                   ? 'Enter your email below to login to your account'
                   : 'Enter your details below to create your account'}
@@ -172,14 +177,14 @@ export default function AuthPage() {
               <button
                 onClick={() => handleSocialSignIn('github')}
                 disabled={loading || socialLoading !== null}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-zinc-900 dark:text-zinc-100 cursor-pointer bg-white dark:bg-zinc-950"
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-zinc-900 dark:text-zinc-100 cursor-pointer bg-transparent"
                 style={{ borderRadius: 0 }}
               >
                 {socialLoading === 'github' ? (
-                  <span className="w-4 h-4 border-2 border-t-transparent border-current rounded-full animate-spin" />
+                  <span className="w-3.5 h-3.5 border-2 border-t-transparent border-current rounded-full animate-spin" />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src="/images/tech/github.svg" className="w-4 h-4 dark:invert" alt="" />
+                  <img src="/images/tech/github.svg" className="w-3.5 h-3.5 dark:invert" alt="" />
                 )}
                 Continue with GitHub
               </button>
@@ -187,21 +192,21 @@ export default function AuthPage() {
               <button
                 onClick={() => handleSocialSignIn('google')}
                 disabled={loading || socialLoading !== null}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-sm font-medium border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-zinc-900 dark:text-zinc-100 cursor-pointer bg-white dark:bg-zinc-950"
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-zinc-900 dark:text-zinc-100 cursor-pointer bg-transparent"
                 style={{ borderRadius: 0 }}
               >
                 {socialLoading === 'google' ? (
-                  <span className="w-4 h-4 border-2 border-t-transparent border-current rounded-full animate-spin" />
+                  <span className="w-3.5 h-3.5 border-2 border-t-transparent border-current rounded-full animate-spin" />
                 ) : (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src="/images/tech/google.svg" className="w-4 h-4" alt="" />
+                  <img src="/images/tech/google.svg" className="w-3.5 h-3.5" alt="" />
                 )}
                 Continue with Google
               </button>
             </div>
 
             {/* OR Divider */}
-            <div className="relative flex items-center justify-center">
+            <div className="relative flex items-center justify-center py-1">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
               </div>
@@ -211,15 +216,18 @@ export default function AuthPage() {
             </div>
 
             {/* Credentials Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3.5">
               {error && (
-                <div className="p-3 border border-red-200 bg-red-50 text-red-600 text-xs dark:bg-red-950/20 dark:border-red-900/30 dark:text-red-400" style={{ borderRadius: 0 }}>
+                <div
+                  className="p-2.5 border border-red-200 bg-red-50 text-red-600 text-xs dark:bg-red-950/20 dark:border-red-900/30 dark:text-red-400"
+                  style={{ borderRadius: 0 }}
+                >
                   {error}
                 </div>
               )}
 
               {formMode === 'signup' && (
-                <div className="grid gap-1.5">
+                <div className="grid gap-1">
                   <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                     Name
                   </label>
@@ -229,13 +237,13 @@ export default function AuthPage() {
                     placeholder="John Doe"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-transparent border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-100 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:outline-none transition-all"
+                    className="w-full bg-transparent border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-100 focus:outline-none transition-all"
                     style={{ borderRadius: 0 }}
                   />
                 </div>
               )}
 
-              <div className="grid gap-1.5">
+              <div className="grid gap-1">
                 <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                   Email
                 </label>
@@ -245,12 +253,12 @@ export default function AuthPage() {
                   placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-100 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:outline-none transition-all"
+                  className="w-full bg-transparent border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-100 focus:outline-none transition-all"
                   style={{ borderRadius: 0 }}
                 />
               </div>
 
-              <div className="grid gap-1.5">
+              <div className="grid gap-1">
                 <div className="flex justify-between items-center">
                   <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                     Password
@@ -258,7 +266,7 @@ export default function AuthPage() {
                   {formMode === 'signin' && (
                     <a
                       href="#"
-                      className="text-xs text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:underline"
+                      className="text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:underline"
                     >
                       Forgot your password?
                     </a>
@@ -270,7 +278,7 @@ export default function AuthPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-transparent border border-zinc-200 dark:border-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-100 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:outline-none transition-all"
+                  className="w-full bg-transparent border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-100 focus:outline-none transition-all"
                   style={{ borderRadius: 0 }}
                 />
               </div>
@@ -278,11 +286,11 @@ export default function AuthPage() {
               <button
                 type="submit"
                 disabled={loading || socialLoading !== null}
-                className="w-full py-2 px-4 mt-2 text-sm font-semibold text-white bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 px-4 mt-2 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 style={{ borderRadius: 0 }}
               >
                 {loading ? (
-                  <span className="w-4 h-4 border-2 border-t-transparent border-current rounded-full animate-spin" />
+                  <span className="w-3.5 h-3.5 border-2 border-t-transparent border-current rounded-full animate-spin" />
                 ) : formMode === 'signin' ? (
                   'Login'
                 ) : (
@@ -291,8 +299,8 @@ export default function AuthPage() {
               </button>
             </form>
 
-            {/* Switcher text link under form */}
-            <div className="text-center pt-2">
+            {/* Mobile Switcher link under form */}
+            <div className="text-center pt-1.5">
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 {formMode === 'signin' ? "Don't have an account? " : "Already have an account? "}
                 <button
@@ -307,18 +315,18 @@ export default function AuthPage() {
               </span>
             </div>
           </div>
-        </div>
 
-        {/* Disclaimer / Consent Footer */}
-        <div className="text-center text-xs text-zinc-500 dark:text-zinc-400 max-w-[320px] mx-auto leading-normal">
-          By clicking continue, you agree to our{' '}
-          <a href="#" className="underline hover:text-zinc-800 dark:hover:text-zinc-200">
-            Terms of Service
-          </a>{' '}
-          and{' '}
-          <a href="#" className="underline hover:text-zinc-800 dark:hover:text-zinc-200">
-            Privacy Policy
-          </a>.
+          {/* Disclaimer / Consent Footer */}
+          <div className="text-center text-[10px] text-zinc-400 dark:text-zinc-500 max-w-[280px] mx-auto pt-4 border-t border-zinc-100 dark:border-zinc-900 mt-4 leading-normal">
+            By clicking continue, you agree to our{' '}
+            <a href="#" className="underline hover:text-zinc-800 dark:hover:text-zinc-200">
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href="#" className="underline hover:text-zinc-800 dark:hover:text-zinc-200">
+              Privacy Policy
+            </a>.
+          </div>
         </div>
       </div>
     </div>
