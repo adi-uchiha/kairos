@@ -1,92 +1,64 @@
 /**
- * Gemini Streaming Client
+ * Gemini Streaming Client — Direct REST Implementation
  *
- * Wraps the Vercel AI SDK's `streamText` with key rotation + automatic retry.
+ * Bypasses the Vercel AI SDK entirely for streaming to get full, reliable
+ * control over key rotation.
+ *
+ * WHY NOT THE VERCEL AI SDK:
+ *   streamText() lazily starts the fetch. By the time a 429 is detectable
+ *   (via fullStream error events), we have already committed a 200 response
+ *   to the client and Next.js throws "failed to pipe response".
+ *
+ * HOW THIS WORKS:
+ *   fetch() resolves with HTTP headers (incl. status code) BEFORE the body
+ *   is read. So response.status === 429 is checked synchronously, before we
+ *   return any stream to the caller. On 429 → mark key → retry with next key.
+ *   On 200 → pipe the SSE body, parsing text chunks and forwarding them.
  *
  * MODEL: gemini-3.1-pro-preview (Gemini 3.1 High)
  *
  * RETRY LOGIC:
- *   On 429 or quota errors  → marks current key, acquires next, retries immediately
- *   On 500/503 transient    → retries with any key (no penalty)
- *   Max retries             → MAX_RETRIES (defaults to total key count + 1)
- *
- * STREAMING:
- *   Returns a `ReadableStream` compatible with Next.js App Router streaming
- *   responses via `StreamingTextResponse` or `toTextStreamResponse()`.
+ *   429 / quota  → marks current key rate-limited, acquires next, retries immediately
+ *   500/503      → brief backoff, retry without penalising key
+ *   Max attempts → MAX_RETRIES (10)
  */
 
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { streamText } from 'ai';
 import { geminiRegistry } from './registry';
 import type { ManagedKey } from './types';
 
-// Local message type — structurally compatible with streamText's CoreMessage
+// Local message type
 type ChatMessage = {
   role: 'user' | 'assistant' | 'system';
   content: string;
 };
 
-// The model we always use: Gemini 3.1 High (Pro preview)
 const MODEL = 'gemini-3.1-pro-preview';
-
-// Maximum total attempts across all keys before giving up
+const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse`;
 const MAX_RETRIES = 10;
-
-/**
- * Determine if an error is a rate-limit / quota error (429 / RESOURCE_EXHAUSTED).
- */
-function isRateLimitError(error: unknown): boolean {
-  const msg = errorToString(error);
-  return (
-    msg.includes('429') ||
-    msg.includes('RESOURCE_EXHAUSTED') ||
-    msg.includes('quota') ||
-    msg.includes('rate limit')
-  );
-}
-
-/**
- * Determine if an error indicates the key's daily quota is fully used.
- */
-function isQuotaExhaustedError(error: unknown): boolean {
-  const msg = errorToString(error);
-  // Daily quota errors typically include "quota" + "exceeded" or "RESOURCE_EXHAUSTED"
-  return (
-    (msg.includes('RESOURCE_EXHAUSTED') || msg.includes('quota exceeded')) &&
-    !msg.includes('per-minute')
-  );
-}
-
-/**
- * Determine if an error is a transient server error (retry without penalizing key).
- */
-function isTransientError(error: unknown): boolean {
-  const msg = errorToString(error);
-  return (
-    msg.includes('500') ||
-    msg.includes('503') ||
-    msg.includes('Service Unavailable') ||
-    msg.includes('overloaded')
-  );
-}
 
 function errorToString(error: unknown): string {
   if (typeof error === 'string') return error;
-  if (error instanceof Error) return error.message + ' ' + String(error);
+  if (error instanceof Error) return error.message;
   return JSON.stringify(error);
 }
 
+function isTransientError(error: unknown): boolean {
+  const msg = errorToString(error).toLowerCase();
+  return msg.includes('500') || msg.includes('503') || msg.includes('overloaded') || msg.includes('network');
+}
+
 /**
- * Streams a chat response from Gemini 3.1 High with automatic key rotation.
+ * Streams a Gemini response using the direct REST API with automatic key rotation.
  *
- * @param messages - Full conversation history in AI SDK CoreMessage format
- * @param systemPrompt - The phase-aware system prompt to inject
- * @returns A ReadableStream of text chunks (SSE-compatible)
+ * @param messages  Full conversation history
+ * @param systemPrompt  Phase-aware system prompt
+ * @param onFinish  Optional callback fired with the full accumulated text when streaming ends
+ * @returns  A ReadableStream<string> of text chunks
  */
 export async function streamGeminiChat(
   messages: ChatMessage[],
   systemPrompt: string,
-  onFinish?: (event: any) => void | Promise<void>
+  onFinish?: (event: { text: string }) => void | Promise<void>
 ): Promise<ReadableStream<string>> {
   let attempt = 0;
   let lastKey: ManagedKey | null = null;
@@ -98,104 +70,146 @@ export async function streamGeminiChat(
     try {
       currentKey = geminiRegistry.acquireKey();
     } catch (registryError) {
-      // All keys exhausted/rate-limited — surface immediately
+      // All keys exhausted — surface immediately
       throw registryError;
     }
 
     lastKey = currentKey;
 
     try {
-      // Create a per-request Google provider instance with this key
-      const google = createGoogleGenerativeAI({
-        apiKey: currentKey.key,
+      const url = `${BASE_URL}&key=${encodeURIComponent(currentKey.key)}`;
+
+      // Build the Google AI REST request body.
+      // System prompt goes in systemInstruction, not the contents array.
+      const requestBody = {
+        contents: messages
+          .filter((m) => m.role !== 'system')
+          .map((m) => ({
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: m.content }],
+          })),
+        ...(systemPrompt && {
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+        }),
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+        },
+      };
+
+      // ── FETCH ────────────────────────────────────────────────────────────
+      // fetch() resolves when HTTP HEADERS arrive — before the body is read.
+      // This means response.status is available NOW, not after streaming starts.
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
       });
 
-      const result = streamText({
-        model: google(MODEL),
-        system: systemPrompt,
-        messages,
-        // Reasonable defaults for a conversational AI
-        maxOutputTokens: 8192,
-        temperature: 0.7,
-        maxRetries: 0, // Fail fast on rate-limiting so we can rotate keys immediately
-        onFinish,
-      });
+      // ── 429 CHECK — before returning anything to the caller ───────────────
+      if (response.status === 429) {
+        // Consume body to free the connection
+        await response.text().catch(() => {});
+        geminiRegistry.markRateLimited(currentKey);
+        console.warn(
+          `[GeminiClient] Key ${currentKey.label} rate-limited (attempt ${attempt}). Rotating to next key...`
+        );
+        continue; // back to top of while loop — acquires a new key
+      }
 
-      // Read from fullStream (not textStream) because textStream silently closes on 429
-      // while fullStream emits an explicit { type: 'error' } event we can catch and throw.
-      const fullReader = result.fullStream.getReader();
-      const firstPart = await fullReader.read();
-
-      // If the very first event is an error, surface it so our catch block can rotate the key.
-      if (!firstPart.done && firstPart.value?.type === 'error') {
-        fullReader.releaseLock();
-        throw firstPart.value.error;
+      if (!response.ok) {
+        const bodyText = await response.text().catch(() => `HTTP ${response.status}`);
+        throw new Error(`Google AI API error ${response.status}: ${bodyText}`);
       }
 
       console.log(
-        `[GeminiClient] Streaming started successfully with key ${currentKey.label} (attempt ${attempt})`
+        `[GeminiClient] Streaming started with key ${currentKey.label} (attempt ${attempt})`
       );
 
-      // Reconstruct a text-only ReadableStream from the remaining fullStream events
+      // ── SSE PIPE ─────────────────────────────────────────────────────────
+      // Parse the Server-Sent Events body and emit text chunks.
+      const responseBody = response.body!;
+      let fullText = '';
+
       return new ReadableStream<string>({
         async start(controller) {
-          // Emit the first event if it's a text chunk
-          if (!firstPart.done && firstPart.value?.type === 'text-delta') {
-            controller.enqueue(firstPart.value.text);
+          const reader = responseBody.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          function processLine(line: string) {
+            if (!line.startsWith('data: ')) return;
+            const data = line.slice(6).trim();
+            if (!data || data === '[DONE]') return;
+
+            try {
+              const json = JSON.parse(data);
+              // Google AI response structure:
+              // { candidates: [{ content: { parts: [{ text: "..." }] } }] }
+              const text: string | undefined =
+                json?.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (text) {
+                fullText += text;
+                controller.enqueue(text);
+              }
+            } catch {
+              // Skip malformed SSE chunks (e.g. keep-alive comments)
+            }
           }
 
           try {
             while (true) {
-              const { value, done } = await fullReader.read();
+              const { value, done } = await reader.read();
               if (done) break;
-              if (value.type === 'text-delta') {
-                controller.enqueue(value.text);
-              } else if (value.type === 'error') {
-                // Surface mid-stream errors to the client
-                controller.error(value.error);
-                return;
+
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n');
+              buffer = lines.pop() ?? ''; // keep the incomplete trailing line
+
+              for (const line of lines) {
+                processLine(line);
               }
-              // Ignore: reasoning, tool-call, tool-result, finish, step-start, etc.
             }
+
+            // Flush any remaining buffer content
+            if (buffer) processLine(buffer);
+
             controller.close();
-          } catch (streamError) {
-            controller.error(streamError);
+
+            // Fire onFinish with the complete accumulated text
+            if (onFinish) {
+              try {
+                await onFinish({ text: fullText });
+              } catch (finishErr) {
+                console.error('[GeminiClient] onFinish error:', finishErr);
+              }
+            }
+          } catch (streamErr) {
+            controller.error(streamErr);
           } finally {
-            fullReader.releaseLock();
+            reader.releaseLock();
           }
         },
       });
     } catch (error) {
       console.error(
-        `[GeminiClient] Error on key ${lastKey.label} (attempt ${attempt}):`,
+        `[GeminiClient] Error on key ${lastKey?.label} (attempt ${attempt}):`,
         errorToString(error)
       );
 
-      if (isQuotaExhaustedError(error)) {
-        geminiRegistry.markExhausted(lastKey);
-        // Immediately retry with next key
-        continue;
-      }
-
-      if (isRateLimitError(error)) {
-        geminiRegistry.markRateLimited(lastKey);
-        // Immediately retry with next key
-        continue;
-      }
-
       if (isTransientError(error)) {
-        // Don't penalize the key; just retry
-        console.warn(`[GeminiClient] Transient error on ${lastKey.label}. Retrying...`);
-        await new Promise((r) => setTimeout(r, 1000 * attempt)); // brief backoff
+        const delayMs = 1000 * attempt;
+        console.warn(`[GeminiClient] Transient error. Backing off ${delayMs}ms before retry...`);
+        await new Promise((r) => setTimeout(r, delayMs));
         continue;
       }
 
-      // Unknown error — rethrow immediately
+      // Unknown / unrecoverable error — rethrow
       throw error;
     }
   }
 
   throw new Error(
-    `[GeminiClient] Failed after ${MAX_RETRIES} attempts. All keys may be exhausted or rate-limited.`
+    `[GeminiClient] All ${MAX_RETRIES} attempts failed. All Gemini keys may be exhausted or rate-limited.`
   );
 }
