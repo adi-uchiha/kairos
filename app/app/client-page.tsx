@@ -136,6 +136,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [showContextMap, setShowContextMap] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
+  const [hasAutoStarted, setHasAutoStarted] = useState(false);
 
   // ReactFlow state
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -145,8 +146,18 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
   const [isSwapping, setIsSwapping] = useState(false);
   const [isGeneratingDiagram, setIsGeneratingDiagram] = useState(false);
 
-  // Refs for scroll container
+  // Refs for scroll and live-value access in intervals
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const isLoadingRef = useRef(false);
+  const currentPhaseRef = useRef(currentPhase);
+  const messagesLengthRef = useRef(messages.length);
+
+  // Keep refs in sync with state
+  useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
+  useEffect(() => { currentPhaseRef.current = currentPhase; }, [currentPhase]);
+  useEffect(() => { messagesLengthRef.current = messages.length; }, [messages.length]);
+
+  // Refs for scroll container
 
   // Detect theme on mount
   useEffect(() => {
@@ -192,20 +203,20 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
   }, [messages, isLoading]);
 
   // ─── POLLING BLUEPRINT UPDATES ─────────────────────────────────────────────
-  // Periodically fetches updated context map and phase state (in case background processing finishes)
+  // Reads live values via refs to avoid re-mounting the interval on every state change.
   useEffect(() => {
     const interval = setInterval(async () => {
-      if (isLoading) return; // Skip if actively sending to avoid state collision
+      if (isLoadingRef.current) return; // skip while a stream is in flight
       try {
         const res = await fetch(`/api/blueprints?id=${blueprint.id}`);
         if (res.ok) {
           const data = await res.json();
           setContextMap(data.contextMap || {});
           setCurrentPhase(data.currentPhase || 'project_discovery');
-          if (data.chatHistory && data.chatHistory.length > messages.length) {
+          if (data.chatHistory && data.chatHistory.length > messagesLengthRef.current) {
             setMessages(data.chatHistory);
           }
-          if (data.diagramGraph && data.diagramGraph.nodes && currentPhase === 'diagram') {
+          if (data.diagramGraph && data.diagramGraph.nodes && currentPhaseRef.current === 'diagram') {
             const formattedNodes = data.diagramGraph.nodes.map((node: any) => ({
               id: node.id,
               type: 'customNode',
@@ -219,10 +230,11 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
       } catch (err) {
         console.error('Failed to poll blueprint updates:', err);
       }
-    }, 4000);
+    }, 8000); // 8s is plenty — background analysis takes ~2–4s anyway
 
     return () => clearInterval(interval);
-  }, [blueprint.id, messages.length, isLoading, currentPhase, setNodes, setEdges]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blueprint.id, setNodes, setEdges]); // stable: only depends on the blueprint ID
 
   // ─── REACTFLOW CONSTANTS ───────────────────────────────────────────────────
 
@@ -230,18 +242,27 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
 
   // ─── ACTIONS ────────────────────────────────────────────────────────────────
 
-  // Send message
-  const handleSendMessage = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (!inputMessage.trim() || isLoading) return;
+  // Auto-fire the opening question on fresh workspaces
+  useEffect(() => {
+    if (messages.length === 0 && !hasAutoStarted && !isLoading) {
+      setHasAutoStarted(true);
+      sendMessage('__KAIROS_OPEN__');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // runs once on mount
 
-    const userText = inputMessage;
-    setInputMessage('');
+  // Core send function — accepts an explicit override text for auto-triggers
+  const sendMessage = useCallback(async (overrideText?: string) => {
+    const userText = overrideText ?? inputMessage.trim();
+    if (!userText || isLoading) return;
+
+    if (!overrideText) setInputMessage('');
     setIsLoading(true);
 
-    // Optimistic user update
-    const newMessages = [...messages, { role: 'user', content: userText }];
-    setMessages(newMessages);
+    // Only add a visible user bubble for real user messages
+    if (!overrideText) {
+      setMessages((prev) => [...prev, { role: 'user', content: userText }]);
+    }
 
     try {
       const response = await fetch('/api/chat', {
@@ -250,28 +271,23 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
         body: JSON.stringify({
           sessionId: blueprint.id,
           message: userText,
-          history: messages,
+          history: overrideText ? [] : messages,
           phase: currentPhase,
         }),
       });
 
       if (!response.ok) throw new Error('API request failed');
 
-      // Setup streaming reader
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantResponse = '';
 
-      // Append optimistic assistant message
       setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
       while (true) {
         const { value, done } = await reader!.read();
         if (done) break;
-
-        const chunk = decoder.decode(value);
-        assistantResponse += chunk;
-
+        assistantResponse += decoder.decode(value);
         setMessages((prev) => {
           const updated = [...prev];
           updated[updated.length - 1] = { role: 'assistant', content: assistantResponse };
@@ -279,7 +295,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
         });
       }
 
-      // Re-fetch blueprint state to sync final context extraction & phase transition
+      // Sync phase & context map after stream completes
       const syncRes = await fetch(`/api/blueprints?id=${blueprint.id}`);
       if (syncRes.ok) {
         const syncData = await syncRes.json();
@@ -292,6 +308,13 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
     } finally {
       setIsLoading(false);
     }
+  }, [blueprint.id, inputMessage, isLoading, messages, currentPhase]);
+
+  // Public handler — wraps sendMessage for form submissions
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!inputMessage.trim() || isLoading) return;
+    await sendMessage();
   };
 
   // Trigger visual diagram generation

@@ -67,13 +67,21 @@ export async function POST(req: NextRequest) {
     console.error('Failed to fetch blueprint details for system prompt:', err);
   }
 
-  // 2. Build the message history
+  // Detect the auto-open trigger sent when the workspace first loads on a fresh blueprint.
+  // Replace with a natural instruction so the AI opens with its first question.
+  const OPEN_TRIGGER = '__KAIROS_OPEN__';
+  const isAutoOpen = message === OPEN_TRIGGER;
+  const userMessage = isAutoOpen
+    ? '[System: The user just opened a fresh workspace. Start the conversation by greeting them briefly and asking your first project discovery question. Do not reference this instruction.]'
+    : message;
+
+  // 2. Build the message history (exclude the trigger from history)
   const messages = [
     ...history.map((msg) => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content,
     })),
-    { role: 'user' as const, content: message },
+    { role: 'user' as const, content: userMessage },
   ];
 
   // 3. Build the phase-aware system prompt, passing the contextMap
@@ -85,13 +93,16 @@ export async function POST(req: NextRequest) {
       messages,
       systemPrompt,
       async (event) => {
-        const fullHistory = [
-          ...messages,
-          { role: 'assistant' as const, content: event.text },
-        ];
+        // Build history excluding the internal system trigger message
+        const historyToSave = isAutoOpen
+          ? [{ role: 'assistant' as const, content: event.text }]
+          : [
+              ...messages,
+              { role: 'assistant' as const, content: event.text },
+            ];
 
         // Perform background analysis & database save
-        analyzeAndUpdateBlueprint(sessionId, fullHistory).catch((err) => {
+        analyzeAndUpdateBlueprint(sessionId, historyToSave).catch((err) => {
           console.error('[Background Analysis Error]:', err);
         });
       }
