@@ -3,17 +3,21 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
+
 
 const navLinks = [
   { label: 'How it works', href: '#how-it-works' },
   { label: 'Features', href: '#features' },
   { label: 'Pricing', href: '#pricing' },
-  { label: 'GitHub', href: 'https://github.com', target: '_blank' },
+  { label: 'GitHub', href: 'https://github.com/adi-uchiha/kairos', target: '_blank' },
 ];
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
+  const { data: session } = authClient.useSession();
+
 
   useEffect(() => {
     // Detect theme on mount
@@ -121,14 +125,14 @@ export function Navbar() {
           </button>
 
           <Link
-            href="/sign-in"
+            href={session ? '/dashboard' : '/auth'}
             style={{ fontSize: 14, color: 'var(--text-muted)' }}
             className="hidden-mobile"
           >
-            Sign In
+            {session ? 'Dashboard' : 'Sign In'}
           </Link>
           <Link
-            href="/app"
+            href={session ? '/dashboard' : '/auth'}
             style={{
               fontSize: 13,
               fontWeight: 500,
@@ -142,7 +146,7 @@ export function Navbar() {
             onMouseEnter={(e) => ((e.target as HTMLElement).style.opacity = '0.85')}
             onMouseLeave={(e) => ((e.target as HTMLElement).style.opacity = '1')}
           >
-            Get Started →
+            {session ? 'Dashboard →' : 'Get Started →'}
           </Link>
           <button
             style={{
@@ -183,11 +187,11 @@ export function Navbar() {
             </Link>
           ))}
           <Link
-            href="/sign-in"
+            href={session ? '/dashboard' : '/auth'}
             style={{ fontSize: 15, color: 'var(--text-muted)' }}
             onClick={() => setOpen(false)}
           >
-            Sign In
+            {session ? 'Dashboard' : 'Sign In'}
           </Link>
         </div>
       )}

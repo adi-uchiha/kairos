@@ -11,7 +11,7 @@ const STEPS = [
   {
     num: '02',
     title: 'Define Your Scale',
-    body: 'Share realistic user numbers. Kairos assigns a scale tier — Nano, Micro, Small, Medium, or Large — and anchors every decision to it.',
+    body: 'Share realistic user numbers. Kairos assigns a scale tier (Nano, Micro, Small, Medium, or Large) and anchors every decision to it.',
   },
   {
     num: '03',

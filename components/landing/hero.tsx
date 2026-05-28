@@ -228,26 +228,25 @@ export function Hero() {
           style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: 8,
-            borderBottom: '1px solid var(--orange-border)',
-            paddingBottom: 6,
+            border: '1px solid var(--orange-border)',
+            background: 'var(--orange-wash)',
+            padding: '4px 10px',
             marginBottom: 28,
+            borderRadius: 0,
           }}
         >
           <span
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
+              fontSize: 11,
+              fontWeight: 500,
               color: '#ff5500',
               display: 'flex',
               alignItems: 'center',
               gap: 6,
             }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="#ff5500">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="#ff5500">
               <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z" />
             </svg>
             Kairos Free Alpha
@@ -286,7 +285,7 @@ export function Hero() {
             margin: '0 auto 40px',
           }}
         >
-          Kairos interviews you about your product, your scale, and your skills — then delivers a
+          Kairos interviews you about your product, your scale, and your skills, then delivers a
           precise, opinionated tech stack with an interactive architecture diagram you can actually
           edit.
         </motion.p>
@@ -372,9 +371,16 @@ export function Hero() {
             transition: 'background-color 0.2s, border-color 0.2s',
           }}
         >
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#ff5500', letterSpacing: '0.07em' }}>
-            ✦ INTERACTIVE ARCHITECTURE CANVAS (REACTFLOW ENGINE)
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <svg width="14" height="12" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
+              <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
+              <path d="M1671 1H739L0 741L738 1482H1671L933 741L1671 1Z" fill="#FF5500" />
+            </svg>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#ff5500', letterSpacing: '0.07em' }}>
+              System Blueprint
+            </span>
+          </div>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>
             SYSTEM GENERATED // VERSION 1.0.4
           </span>
@@ -394,6 +400,7 @@ export function Hero() {
             nodesDraggable={true}
             nodesConnectable={false}
             elementsSelectable={false}
+            proOptions={{ hideAttribution: true }}
           />
           
           {/* Overlay state chips - placed safely on the left side to avoid overlapping any nodes */}

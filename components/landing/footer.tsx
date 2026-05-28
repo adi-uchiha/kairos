@@ -3,10 +3,7 @@
 import Link from 'next/link';
 
 const links = [
-  { label: 'Docs', href: '/docs' },
-  { label: 'Philosophy', href: '/docs/philosophy' },
-  { label: 'GitHub', href: 'https://github.com', target: '_blank' },
-  { label: 'Changelog', href: '/changelog' },
+  { label: 'GitHub', href: 'https://github.com/adi-uchiha/kairos', target: '_blank' },
 ];
 
 export function Footer() {

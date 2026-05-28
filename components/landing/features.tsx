@@ -195,7 +195,7 @@ export function Features() {
               <div>
                 <h3 style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.02em', color: 'var(--text-primary)', marginBottom: 8 }}>Opinionated by Default</h3>
                 <p style={{ fontSize: 14, color: 'var(--text-muted)', maxWidth: 480 }}>
-                  Kairos doesn&apos;t show you a menu. It picks. Then explains exactly why — so you can push back if needed.
+                  Kairos doesn&apos;t show you a menu. It picks. Then explains exactly why, so you can push back if needed.
                 </p>
               </div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#ff5500', letterSpacing: '0.05em', border: '1px solid var(--orange-border)', padding: '8px 16px', borderRadius: 0, background: 'var(--orange-wash)' }}>
