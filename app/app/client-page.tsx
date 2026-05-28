@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
+import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
 
 // ─── TYPES & SCHEMA ──────────────────────────────────────────────────────────
 
@@ -555,9 +556,15 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                             ? 'bg-[var(--surface-hover)] border-[var(--border)] text-[var(--text-primary)]'
                             : 'bg-[var(--surface)] border-[var(--orange-border)] text-[var(--text-primary)]'
                         }`}
-                        style={{ whiteSpace: 'pre-wrap', borderRadius: 0 }}
+                        style={{ borderRadius: 0 }}
                       >
-                        {msg.content}
+                        {isUser ? (
+                          // User messages: plain pre-wrap (they're raw text)
+                          <span style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
+                        ) : (
+                          // AI messages: full markdown rendering
+                          <MarkdownRenderer content={msg.content} />
+                        )}
                       </div>
                     </div>
                   );
@@ -605,21 +612,41 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                     </button>
                   </div>
                 ) : (
-                  <form onSubmit={handleSendMessage} className="flex gap-2">
-                    <input
-                      type="text"
+                  <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
+                    <textarea
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
-                      placeholder="Ask or reply to Kairos..."
+                      onKeyDown={(e) => {
+                        // Enter sends; Shift+Enter inserts a newline
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      placeholder="Ask or reply to Kairos... (Shift+Enter for new line)"
                       disabled={isLoading}
-                      className="flex-1 bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[14px] focus:outline-none focus:border-[#FF5500]"
-                      style={{ borderRadius: 0 }}
+                      rows={1}
+                      className="flex-1 bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[14px] focus:outline-none focus:border-[#FF5500] resize-none"
+                      style={{
+                        borderRadius: 0,
+                        minHeight: '48px',
+                        maxHeight: '160px',
+                        overflowY: 'auto',
+                        lineHeight: '1.5',
+                        // Auto-grow: handled by JS below via style.height
+                        height: 'auto',
+                      }}
+                      onInput={(e) => {
+                        const el = e.currentTarget;
+                        el.style.height = 'auto';
+                        el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+                      }}
                     />
                     <button
                       type="submit"
                       disabled={isLoading}
                       className="px-5 border border-[var(--border)] bg-[var(--surface-hover)] hover:border-[#FF5500] hover:text-[#FF5500] transition-all flex items-center justify-center"
-                      style={{ borderRadius: 0, cursor: 'pointer' }}
+                      style={{ borderRadius: 0, cursor: 'pointer', height: '48px', flexShrink: 0 }}
                     >
                       <Send size={15} />
                     </button>
