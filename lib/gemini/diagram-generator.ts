@@ -86,7 +86,8 @@ Generate a clean architecture graph following the system prompt rules. Output JS
     prompt,
   });
 
-  const graph = JSON.parse(response.text);
+  const rawText = response.text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  const graph = JSON.parse(rawText);
 
   // Save the generated graph to the database
   await db

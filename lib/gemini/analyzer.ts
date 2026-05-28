@@ -78,7 +78,9 @@ Analyze the history and return the updated context map and the suggested next ph
       prompt,
     });
 
-    const data = JSON.parse(response.text);
+    // Strip markdown code fences if the model wrapped the JSON in ```json ... ```
+    const rawText = response.text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    const data = JSON.parse(rawText);
 
     if (data.contextMap && data.suggestedPhase) {
       // If phase transitioned to recommendation and we don't have a diagram graph yet, we can generate one.

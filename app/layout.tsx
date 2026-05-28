@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from 'next';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/sonner';
