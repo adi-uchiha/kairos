@@ -26,6 +26,8 @@ export default async function AppPage({
 
   const { id } = await searchParams;
 
+  let redirectUrl: string | null = null;
+
   // If no blueprint ID is passed, create a default one and redirect
   if (!id) {
     const newId = crypto.randomUUID();
@@ -58,18 +60,22 @@ export default async function AppPage({
         } as any,
         diagramGraph: { nodes: [], edges: [] } as any,
       });
-      redirect(`/app?id=${newId}`);
+      redirectUrl = `/app?id=${newId}`;
     } catch (error) {
       console.error('Failed to auto-create blueprint:', error);
-      redirect('/dashboard');
+      redirectUrl = '/dashboard';
     }
+  }
+
+  if (redirectUrl) {
+    redirect(redirectUrl);
   }
 
   // Fetch target blueprint
   const bpResult = await db
     .select()
     .from(blueprints)
-    .where(eq(blueprints.id, id))
+    .where(eq(blueprints.id, id as string))
     .limit(1);
 
   if (bpResult.length === 0 || bpResult[0].userId !== session.user.id) {

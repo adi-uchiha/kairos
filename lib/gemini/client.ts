@@ -87,7 +87,7 @@ export async function streamGeminiChat(
   messages: ChatMessage[],
   systemPrompt: string,
   onFinish?: (event: any) => void | Promise<void>
-): Promise<ReturnType<typeof streamText>> {
+): Promise<ReadableStream<string>> {
   let attempt = 0;
   let lastKey: ManagedKey | null = null;
 
@@ -117,14 +117,41 @@ export async function streamGeminiChat(
         // Reasonable defaults for a conversational AI
         maxOutputTokens: 8192,
         temperature: 0.7,
+        maxRetries: 0, // Fail fast on rate-limiting so we can rotate keys immediately
         onFinish,
       });
 
+      // To catch rate-limit / authorization errors early, try to read the first chunk of the stream.
+      // This forces the API call to execute now rather than lazily.
+      const reader = result.textStream.getReader();
+      const firstChunk = await reader.read();
+
       // If we get here, streaming started successfully
       console.log(
-        `[GeminiClient] Streaming started with key ${currentKey.label} (attempt ${attempt})`
+        `[GeminiClient] Streaming started successfully with key ${currentKey.label} (attempt ${attempt})`
       );
-      return result;
+
+      // Reconstruct the ReadableStream to yield the first chunk and pipe the rest
+      return new ReadableStream<string>({
+        async start(controller) {
+          if (!firstChunk.done && firstChunk.value !== undefined) {
+            controller.enqueue(firstChunk.value);
+          }
+
+          try {
+            while (true) {
+              const { value, done } = await reader.read();
+              if (done) break;
+              controller.enqueue(value);
+            }
+            controller.close();
+          } catch (streamError) {
+            controller.error(streamError);
+          } finally {
+            reader.releaseLock();
+          }
+        },
+      });
     } catch (error) {
       console.error(
         `[GeminiClient] Error on key ${lastKey.label} (attempt ${attempt}):`,

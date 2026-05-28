@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
 
   // 4. Stream from Gemini with automatic key rotation
   try {
-    const streamResult = await streamGeminiChat(
+    const stream = await streamGeminiChat(
       messages,
       systemPrompt,
       async (event) => {
@@ -97,7 +97,11 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    return streamResult.toTextStreamResponse();
+    return new Response(stream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+      },
+    });
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Unknown LLM error';
 
