@@ -5,6 +5,7 @@ import { ANALYZER_MODEL } from './config';
 import { db } from '@/db';
 import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
+import { generateDiagramForBlueprint } from './diagram-generator';
 
 const EXTRACTION_SYSTEM_PROMPT = `You are a system context extractor. Your job is to read a chat history between a user and an architect, and output an updated context map in JSON format.
 You must update the fields based on what the user has revealed so far. Do not guess or make up details not present in the text.
@@ -37,10 +38,14 @@ Rules for Phase Transition:
 4. Transition from 'constraints' to 'recommendation' when constraints are known (even if none).
 5. Transition from 'recommendation' to 'diagram' when the user asks to generate the diagram.
 
+Determine if the visual diagram needs to be updated or regenerated. 
+Set "regenerateDiagram" to true if the latest messages contain a request from the user (or agreement from the architect) to add, remove, swap, connect, or modify any tools, components, services, or architecture connections in the visual diagram graph. Otherwise, set it to false.
+
 Your output must be JSON only matching this schema:
 {
   "contextMap": { ... },
-  "suggestedPhase": "current_or_next_phase_name"
+  "suggestedPhase": "current_or_next_phase_name",
+  "regenerateDiagram": boolean
 }`;
 
 export async function analyzeAndUpdateBlueprint(
@@ -69,7 +74,7 @@ ${JSON.stringify(blueprint.contextMap, null, 2)}
 Here is the full conversation history:
 ${transcript}
 
-Analyze the history and return the updated context map and the suggested next phase.`;
+Analyze the history and return the updated context map, the suggested next phase, and whether to regenerate the diagram.`;
 
     // 3. Call LLM using registry keys (safe rotation)
     const currentKey = geminiRegistry.acquireKey();
@@ -106,6 +111,19 @@ Analyze the history and return the updated context map and the suggested next ph
         .where(eq(blueprints.id, blueprintId));
 
       console.log(`[Analyzer] Updated blueprint ${blueprintId}: phase=${nextPhase}`);
+
+      if (
+        data.regenerateDiagram &&
+        (blueprint.currentPhase === 'diagram' || blueprint.currentPhase === 'followup')
+      ) {
+        console.log(`[Analyzer] Detected diagram change request, regenerating diagram graph...`);
+        try {
+          await generateDiagramForBlueprint(blueprintId);
+          console.log(`[Analyzer] Successfully regenerated diagram graph for ${blueprintId}`);
+        } catch (diagError) {
+          console.error('[Analyzer] Failed to regenerate diagram graph:', diagError);
+        }
+      }
     }
   } catch (error) {
     console.error(`[Analyzer] Failed to analyze blueprint ${blueprintId}:`, error);

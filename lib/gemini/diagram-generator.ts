@@ -89,11 +89,13 @@ Generate a clean architecture graph following the system prompt rules. Output JS
   const graph = JSON.parse(rawText);
 
   // Save the generated graph to the database
+  const nextPhase = blueprint.currentPhase === 'followup' ? 'followup' : 'diagram';
+
   await db
     .update(blueprints)
     .set({
       diagramGraph: graph as any,
-      currentPhase: 'diagram',
+      currentPhase: nextPhase,
       updatedAt: new Date(),
     })
     .where(eq(blueprints.id, blueprintId));
