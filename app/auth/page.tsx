@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 type FormMode = 'signin' | 'signup';
 
@@ -106,9 +110,8 @@ export default function AuthPage() {
       style={{ background: 'var(--bg)' }}
     >
       {/* Centered Auth Card Split Layout */}
-      <div
-        className="w-full max-w-[800px] grid grid-cols-1 md:grid-cols-2 border border-[var(--border)] bg-[var(--surface)] shadow-2xl overflow-hidden"
-        style={{ borderRadius: 0 }}
+      <Card
+        className="w-full max-w-[800px] grid grid-cols-1 md:grid-cols-2 p-0 gap-0 border border-border bg-card shadow-2xl overflow-hidden rounded-none ring-0"
       >
         {/* Left Column: Branding / Testimonial (Desktop Only) */}
         <div className="relative hidden md:flex flex-col justify-between p-8 bg-zinc-900 text-zinc-200 border-r border-zinc-800 dark:bg-zinc-900/40">
@@ -134,11 +137,11 @@ export default function AuthPage() {
         </div>
 
         {/* Right Column: Form Container */}
-        <div className="p-8 flex flex-col justify-between bg-white dark:bg-zinc-950 min-h-[500px]">
+        <div className="p-8 flex flex-col justify-between bg-card text-card-foreground min-h-[500px]">
           {/* Top Header / Switcher */}
           <div className="flex justify-between items-center md:justify-end mb-4">
             {/* Logo visible only on mobile/tablet */}
-            <Link href="/" className="flex items-center gap-2 font-medium text-zinc-900 dark:text-zinc-50 md:hidden">
+            <Link href="/" className="flex items-center gap-2 font-medium text-foreground md:hidden">
               <svg width="20" height="18" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
                 <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
@@ -147,25 +150,27 @@ export default function AuthPage() {
               <span className="font-semibold text-sm">Kairos</span>
             </Link>
 
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 setFormMode(formMode === 'signin' ? 'signup' : 'signin');
                 setError('');
               }}
-              className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline cursor-pointer bg-transparent border-0"
+              className="text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer"
             >
               {formMode === 'signin' ? 'Create an account' : 'Sign in'}
-            </button>
+            </Button>
           </div>
 
           {/* Form Content Area */}
           <div className="space-y-6">
             {/* Title / Subtitle */}
             <div className="flex flex-col gap-1.5 text-center md:text-left">
-              <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              <h1 className="text-xl font-bold tracking-tight text-foreground">
                 {formMode === 'signin' ? 'Login to your account' : 'Create an account'}
               </h1>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs text-muted-foreground">
                 {formMode === 'signin'
                   ? 'Enter your email below to login to your account'
                   : 'Enter your details below to create your account'}
@@ -174,11 +179,11 @@ export default function AuthPage() {
 
             {/* Social Buttons */}
             <div className="grid gap-2">
-              <button
+              <Button
+                variant="outline"
                 onClick={() => handleSocialSignIn('github')}
                 disabled={loading || socialLoading !== null}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-zinc-900 dark:text-zinc-100 cursor-pointer bg-transparent"
-                style={{ borderRadius: 0 }}
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium cursor-pointer"
               >
                 {socialLoading === 'github' ? (
                   <span className="w-3.5 h-3.5 border-2 border-t-transparent border-current rounded-full animate-spin" />
@@ -187,13 +192,13 @@ export default function AuthPage() {
                   <img src="/images/tech/github.svg" className="w-3.5 h-3.5 dark:invert" alt="" />
                 )}
                 Continue with GitHub
-              </button>
+              </Button>
 
-              <button
+              <Button
+                variant="outline"
                 onClick={() => handleSocialSignIn('google')}
                 disabled={loading || socialLoading !== null}
-                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-zinc-900 dark:text-zinc-100 cursor-pointer bg-transparent"
-                style={{ borderRadius: 0 }}
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium cursor-pointer"
               >
                 {socialLoading === 'google' ? (
                   <span className="w-3.5 h-3.5 border-2 border-t-transparent border-current rounded-full animate-spin" />
@@ -202,15 +207,15 @@ export default function AuthPage() {
                   <img src="/images/tech/google.svg" className="w-3.5 h-3.5" alt="" />
                 )}
                 Continue with Google
-              </button>
+              </Button>
             </div>
 
             {/* OR Divider */}
             <div className="relative flex items-center justify-center py-1">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+                <div className="w-full border-t border-border" />
               </div>
-              <span className="relative px-3 bg-white dark:bg-zinc-950 text-[10px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+              <span className="relative px-3 bg-card text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                 Or continue with
               </span>
             </div>
@@ -219,8 +224,7 @@ export default function AuthPage() {
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {error && (
                 <div
-                  className="p-2.5 border border-red-200 bg-red-50 text-red-600 text-xs dark:bg-red-950/20 dark:border-red-900/30 dark:text-red-400"
-                  style={{ borderRadius: 0 }}
+                  className="p-2.5 border border-destructive/20 bg-destructive/10 text-destructive text-xs rounded-none"
                 >
                   {error}
                 </div>
@@ -228,66 +232,62 @@ export default function AuthPage() {
 
               {formMode === 'signup' && (
                 <div className="grid gap-1">
-                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  <Label className="text-xs font-semibold text-foreground">
                     Name
-                  </label>
-                  <input
+                  </Label>
+                  <Input
                     type="text"
                     required
                     placeholder="John Doe"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-transparent border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-100 focus:outline-none transition-all"
-                    style={{ borderRadius: 0 }}
+                    className="rounded-none bg-transparent"
                   />
                 </div>
               )}
 
               <div className="grid gap-1">
-                <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                <Label className="text-xs font-semibold text-foreground">
                   Email
-                </label>
-                <input
+                </Label>
+                <Input
                   type="email"
                   required
                   placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-transparent border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-100 focus:outline-none transition-all"
-                  style={{ borderRadius: 0 }}
+                  className="rounded-none bg-transparent"
                 />
               </div>
 
               <div className="grid gap-1">
                 <div className="flex justify-between items-center">
-                  <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                  <Label className="text-xs font-semibold text-foreground">
                     Password
-                  </label>
+                  </Label>
                   {formMode === 'signin' && (
                     <a
                       href="#"
-                      className="text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:underline"
+                      className="text-[10px] text-muted-foreground hover:text-foreground hover:underline"
                     >
                       Forgot your password?
                     </a>
                   )}
                 </div>
-                <input
+                <Input
                   type="password"
                   required
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-transparent border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:border-zinc-900 dark:focus:border-zinc-100 focus:outline-none transition-all"
-                  style={{ borderRadius: 0 }}
+                  className="rounded-none bg-transparent"
                 />
               </div>
 
-              <button
+              <Button
                 type="submit"
                 disabled={loading || socialLoading !== null}
-                className="w-full py-2 px-4 mt-2 text-xs font-semibold text-white bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                style={{ borderRadius: 0 }}
+                className="w-full mt-2 text-xs font-semibold cursor-pointer"
               >
                 {loading ? (
                   <span className="w-3.5 h-3.5 border-2 border-t-transparent border-current rounded-full animate-spin" />
@@ -296,39 +296,41 @@ export default function AuthPage() {
                 ) : (
                   'Sign up'
                 )}
-              </button>
+              </Button>
             </form>
 
             {/* Mobile Switcher link under form */}
             <div className="text-center pt-1.5">
-              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="text-xs text-muted-foreground">
                 {formMode === 'signin' ? "Don't have an account? " : "Already have an account? "}
-                <button
+                <Button
+                  variant="link"
+                  size="xs"
                   onClick={() => {
                     setFormMode(formMode === 'signin' ? 'signup' : 'signin');
                     setError('');
                   }}
-                  className="font-semibold text-zinc-900 dark:text-zinc-50 hover:underline cursor-pointer bg-transparent border-0 p-0"
+                  className="font-semibold text-foreground hover:underline cursor-pointer p-0 h-auto"
                 >
                   {formMode === 'signin' ? 'Sign up' : 'Sign in'}
-                </button>
+                </Button>
               </span>
             </div>
           </div>
 
           {/* Disclaimer / Consent Footer */}
-          <div className="text-center text-[10px] text-zinc-400 dark:text-zinc-500 max-w-[280px] mx-auto pt-4 border-t border-zinc-100 dark:border-zinc-900 mt-4 leading-normal">
+          <div className="text-center text-[10px] text-muted-foreground max-w-[280px] mx-auto pt-4 border-t border-border mt-4 leading-normal">
             By clicking continue, you agree to our{' '}
-            <a href="#" className="underline hover:text-zinc-800 dark:hover:text-zinc-200">
+            <a href="#" className="underline hover:text-foreground">
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="#" className="underline hover:text-zinc-800 dark:hover:text-zinc-200">
+            <a href="#" className="underline hover:text-foreground">
               Privacy Policy
             </a>.
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
