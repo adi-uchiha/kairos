@@ -106,18 +106,75 @@ export default function AuthPage() {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-4 md:p-8 font-sans relative z-10"
+      className="min-h-screen flex items-center justify-center p-4 md:p-8 font-sans relative overflow-hidden"
       style={{ background: 'var(--bg)' }}
     >
+      {/* Subtle radial glow matching landing page */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '15%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: 800,
+          height: 600,
+          background: 'radial-gradient(circle, rgba(255,85,0,0.04) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Grid background lines matching landing page */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '100%',
+          maxWidth: 1200,
+          backgroundImage:
+            'linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+          opacity: 0.45,
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Side lines matching landing page */}
+      <div className="aesthetic-side-lines" />
+
       {/* Centered Auth Card Split Layout */}
-      <Card
-        className="w-full max-w-[800px] grid grid-cols-1 md:grid-cols-2 p-0 gap-0 border border-border bg-card shadow-2xl overflow-hidden rounded-none ring-0"
-      >
+      <Card className="w-full max-w-[800px] grid grid-cols-1 md:grid-cols-2 p-0 gap-0 border border-border bg-card shadow-2xl overflow-hidden rounded-none ring-0 relative z-10">
         {/* Left Column: Branding / Testimonial (Desktop Only) */}
-        <div className="relative hidden md:flex flex-col justify-between p-8 bg-zinc-900 text-zinc-200 border-r border-zinc-800 dark:bg-zinc-900/40">
+        <div className="relative hidden md:flex flex-col justify-between p-8 text-zinc-800 dark:text-zinc-200 border-r border-border overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+          {/* Background Image (Covering the entire left portion with color preserved) */}
+          <div className="absolute inset-0 z-0 select-none pointer-events-none">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/Kairos_Background.png"
+              alt="Kairos Theme Background"
+              className="w-full h-full object-cover grayscale opacity-90 transition-all duration-700 hover:scale-105"
+            />
+            {/* Soft gradient overlay to enhance logo readability at the top */}
+            <div className="absolute top-0 left-0 right-0 h-[80px] bg-gradient-to-b from-zinc-50 to-transparent dark:from-zinc-950" />
+            {/* Soft gradient overlay to enhance text readability at the bottom */}
+            <div className="absolute bottom-0 left-0 right-0 h-[140px] bg-gradient-to-t from-zinc-50 to-transparent dark:from-zinc-950" />
+          </div>
+
           {/* Logo / Brand */}
-          <Link href="/" className="flex items-center gap-2 text-white">
-            <svg width="20" height="18" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5">
+          <Link
+            href="/"
+            className="relative z-10 flex items-center gap-2 text-zinc-900 dark:text-white"
+          >
+            <svg
+              width="20"
+              height="18"
+              viewBox="0 0 1671 1483"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5"
+            >
               <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
               <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
               <path d="M1671 1H739L0 741L738 1482H1671L933 741L1671 1Z" fill="#FF5500" />
@@ -125,15 +182,21 @@ export default function AuthPage() {
             <span className="font-semibold text-base tracking-tight">Kairos</span>
           </Link>
 
-          {/* Testimonial Quote */}
-          <blockquote className="space-y-2">
-            <p className="text-sm leading-relaxed text-zinc-100">
-              &ldquo;Kairos completely removed the decision fatigue of choosing our SaaS tech stack. Within minutes, we had a production-ready blueprint mapped out with clear, actionable scaling recommendations.&rdquo;
+          {/* Dictionary Entry & Aesthetic Text */}
+          <div className="relative z-10 space-y-3 text-left mt-auto pt-12">
+            <div className="flex items-baseline gap-2">
+              <span className="font-semibold text-lg text-zinc-900 dark:text-white font-mono tracking-tight">
+                kai·ros
+              </span>
+              <span className="text-xs text-zinc-500 font-mono">/ˈkīräs/</span>
+            </div>
+
+            <p className="text-xs leading-relaxed text-zinc-700 dark:text-zinc-300">
+              An ancient Greek word meaning &ldquo;opportunity,&rdquo; &ldquo;season,&rdquo; or
+              &ldquo;fitting time&rdquo; &mdash; the singular moment that demands action and refuses
+              to wait.
             </p>
-            <footer className="text-xs font-mono text-zinc-400">
-              — Solo Developer, Creator of Kairos
-            </footer>
-          </blockquote>
+          </div>
         </div>
 
         {/* Right Column: Form Container */}
@@ -141,8 +204,17 @@ export default function AuthPage() {
           {/* Top Header / Switcher */}
           <div className="flex justify-between items-center md:justify-end mb-4">
             {/* Logo visible only on mobile/tablet */}
-            <Link href="/" className="flex items-center gap-2 font-medium text-foreground md:hidden">
-              <svg width="20" height="18" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <Link
+              href="/"
+              className="flex items-center gap-2 font-medium text-foreground md:hidden"
+            >
+              <svg
+                width="20"
+                height="18"
+                viewBox="0 0 1671 1483"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
                 <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
                 <path d="M1671 1H739L0 741L738 1482H1671L933 741L1671 1Z" fill="#FF5500" />
@@ -223,18 +295,14 @@ export default function AuthPage() {
             {/* Credentials Form */}
             <form onSubmit={handleSubmit} className="space-y-3.5">
               {error && (
-                <div
-                  className="p-2.5 border border-destructive/20 bg-destructive/10 text-destructive text-xs rounded-none"
-                >
+                <div className="p-2.5 border border-destructive/20 bg-destructive/10 text-destructive text-xs rounded-none">
                   {error}
                 </div>
               )}
 
               {formMode === 'signup' && (
                 <div className="grid gap-1">
-                  <Label className="text-xs font-semibold text-foreground">
-                    Name
-                  </Label>
+                  <Label className="text-xs font-semibold text-foreground">Name</Label>
                   <Input
                     type="text"
                     required
@@ -247,9 +315,7 @@ export default function AuthPage() {
               )}
 
               <div className="grid gap-1">
-                <Label className="text-xs font-semibold text-foreground">
-                  Email
-                </Label>
+                <Label className="text-xs font-semibold text-foreground">Email</Label>
                 <Input
                   type="email"
                   required
@@ -262,9 +328,7 @@ export default function AuthPage() {
 
               <div className="grid gap-1">
                 <div className="flex justify-between items-center">
-                  <Label className="text-xs font-semibold text-foreground">
-                    Password
-                  </Label>
+                  <Label className="text-xs font-semibold text-foreground">Password</Label>
                   {formMode === 'signin' && (
                     <a
                       href="#"
@@ -302,7 +366,7 @@ export default function AuthPage() {
             {/* Mobile Switcher link under form */}
             <div className="text-center pt-1.5">
               <span className="text-xs text-muted-foreground">
-                {formMode === 'signin' ? "Don't have an account? " : "Already have an account? "}
+                {formMode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
                 <Button
                   variant="link"
                   size="xs"
@@ -321,13 +385,14 @@ export default function AuthPage() {
           {/* Disclaimer / Consent Footer */}
           <div className="text-center text-[10px] text-muted-foreground max-w-[280px] mx-auto pt-4 border-t border-border mt-4 leading-normal">
             By clicking continue, you agree to our{' '}
-            <a href="#" className="underline hover:text-foreground">
+            <Link href="/terms" className="underline hover:text-foreground">
               Terms of Service
-            </a>{' '}
+            </Link>{' '}
             and{' '}
-            <a href="#" className="underline hover:text-foreground">
+            <Link href="/privacy" className="underline hover:text-foreground">
               Privacy Policy
-            </a>.
+            </Link>
+            .
           </div>
         </div>
       </Card>

@@ -33,13 +33,14 @@ export const blueprints = pgTable(
     currentPhase: text('current_phase').notNull().default('discovery'),
     chatHistory: jsonb('chat_history').$type<ChatMessage[]>().notNull().default([]),
     contextMap: jsonb('context_map').$type<ContextMap>().notNull().default({}),
-    diagramGraph: jsonb('diagram_graph').$type<DiagramGraph>().notNull().default({ nodes: [], edges: [] }),
+    diagramGraph: jsonb('diagram_graph')
+      .$type<DiagramGraph>()
+      .notNull()
+      .default({ nodes: [], edges: [] }),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },
   (table) => {
-    return [
-      index('blueprints_user_id_idx').on(table.userId),
-    ];
+    return [index('blueprints_user_id_idx').on(table.userId)];
   }
 );

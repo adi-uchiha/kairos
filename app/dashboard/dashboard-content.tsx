@@ -37,15 +37,26 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
       <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-[1200px] border-l border-r border-[var(--border)] pointer-events-none opacity-20 dark:opacity-30" />
 
       {/* Header */}
-      <header className="border-b border-[var(--border)] relative z-10" style={{ background: 'var(--bg)' }}>
+      <header
+        className="border-b border-[var(--border)] relative z-10"
+        style={{ background: 'var(--bg)' }}
+      >
         <div className="max-w-[1200px] mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <svg width="24" height="21" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              width="24"
+              height="21"
+              viewBox="0 0 1671 1483"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
               <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
               <path d="M1671 1H739L0 741L738 1482H1671L933 741L1671 1Z" fill="#FF5500" />
             </svg>
-            <span className="font-semibold text-base tracking-tight text-[var(--text-primary)]">Kairos</span>
+            <span className="font-semibold text-base tracking-tight text-[var(--text-primary)]">
+              Kairos
+            </span>
           </Link>
 
           <div className="flex items-center gap-4">
@@ -76,7 +87,8 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
               Welcome back, {user.name || 'Developer'}
             </h1>
             <p className="text-[var(--text-muted)] text-sm max-w-2xl">
-              Access your architecture blueprints, view recommended infrastructure configurations, and initiate new AI system designs.
+              Access your architecture blueprints, view recommended infrastructure configurations,
+              and initiate new AI system designs.
             </p>
           </div>
 
@@ -86,7 +98,9 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
             </div>
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 bg-green-500 rounded-none" />
-              <span className="text-sm font-semibold text-[var(--text-primary)]">Developer Plan (Active)</span>
+              <span className="text-sm font-semibold text-[var(--text-primary)]">
+                Developer Plan (Active)
+              </span>
             </div>
             <div className="text-xs text-[var(--text-muted)] font-mono">
               BLUEPRINTS: {initialBlueprints.length} / UNLIMITED
@@ -115,9 +129,12 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
                 !
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-sm font-semibold text-[var(--text-primary)]">No Active Blueprints</h3>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">
+                  No Active Blueprints
+                </h3>
                 <p className="text-xs text-[var(--text-muted)] max-w-sm mx-auto">
-                  You haven&apos;t generated any architecture layouts yet. Click below to start an interactive chatbot mapping session.
+                  You haven&apos;t generated any architecture layouts yet. Click below to start an
+                  interactive chatbot mapping session.
                 </p>
               </div>
               <Link

@@ -75,24 +75,28 @@ PHASE_FOLLOWUP  ◄─── (loops on user questions; can re-enter PHASE_DIAGRA
 A phase is considered **complete** when the context map fields for that phase are populated with non-empty, non-trivial values. The LLM evaluates this after each user message.
 
 **Project Discovery complete when:**
+
 - `product_category` is identified
 - `core_user_workflow` is described
 - `primary_user_persona` is identified
 - `data_model_nature` has at least one signal (relational, document, time-series, real-time)
 
 **Scale Discovery complete when:**
+
 - `expected_users_month_1` has a numeric estimate (even a rough one)
 - `expected_users_month_6` has a numeric estimate
 - `launch_timeline` is identified
 - `scale_tier` is assigned (Nano / Micro / Small / Medium / Large)
 
 **Builder Context complete when:**
+
 - `team_size` is known
 - `primary_language_or_framework` is identified
 - `budget_constraint` is classified (bootstrapped / pre-revenue / funded / enterprise)
 - `devops_tolerance` is rated (1–5)
 
 **Constraints complete when:**
+
 - `existing_tools` is populated (empty list is valid if user says "none")
 - `compliance_requirements` is populated (empty list is valid)
 
@@ -105,53 +109,59 @@ The context map is the internal data structure that accumulates information from
 ```typescript
 interface ContextMap {
   // Phase 1: Project Discovery
-  product_category: string | null;            // e.g. "B2B SaaS", "consumer app", "internal tool"
-  core_user_workflow: string | null;          // e.g. "users upload files, AI processes them, results are emailed"
-  primary_user_persona: string | null;        // e.g. "non-technical small business owners"
-  data_model_nature: DataModelNature[];       // ["relational", "document", "real-time", "time-series", "file-heavy"]
+  product_category: string | null; // e.g. "B2B SaaS", "consumer app", "internal tool"
+  core_user_workflow: string | null; // e.g. "users upload files, AI processes them, results are emailed"
+  primary_user_persona: string | null; // e.g. "non-technical small business owners"
+  data_model_nature: DataModelNature[]; // ["relational", "document", "real-time", "time-series", "file-heavy"]
   has_realtime_requirement: boolean | null;
   has_ai_ml_component: boolean | null;
 
   // Phase 2: Scale & Timeline
   expected_users_month_1: number | null;
   expected_users_month_6: number | null;
-  launch_timeline_weeks: number | null;       // e.g. 8 = "2 months"
-  scale_tier: ScaleTier | null;              // "nano" | "micro" | "small" | "medium" | "large"
+  launch_timeline_weeks: number | null; // e.g. 8 = "2 months"
+  scale_tier: ScaleTier | null; // "nano" | "micro" | "small" | "medium" | "large"
 
   // Phase 3: Builder Context
-  team_size: number | null;                  // 1 = solo
-  primary_language: string | null;           // e.g. "TypeScript", "Python", "Go"
-  familiar_frameworks: string[];             // e.g. ["React", "Next.js"]
+  team_size: number | null; // 1 = solo
+  primary_language: string | null; // e.g. "TypeScript", "Python", "Go"
+  familiar_frameworks: string[]; // e.g. ["React", "Next.js"]
   budget_constraint: BudgetConstraint | null; // "bootstrapped" | "pre-revenue" | "funded" | "enterprise"
-  devops_tolerance: number | null;           // 1 (hates infra) to 5 (comfortable with cloud)
+  devops_tolerance: number | null; // 1 (hates infra) to 5 (comfortable with cloud)
 
   // Phase 4: Constraints
-  existing_tools: string[];                  // e.g. ["Firebase", "Stripe"]
-  compliance_requirements: string[];         // e.g. ["GDPR", "HIPAA"]
-  non_negotiables: string[];                 // e.g. ["must use AWS", "no vendor lock-in"]
+  existing_tools: string[]; // e.g. ["Firebase", "Stripe"]
+  compliance_requirements: string[]; // e.g. ["GDPR", "HIPAA"]
+  non_negotiables: string[]; // e.g. ["must use AWS", "no vendor lock-in"]
 
   // Phase 5: Diagram Output
-  diagram_graph: ArchitectureDiagramGraph | null;  // Structured node/edge JSON generated after recommendation
+  diagram_graph: ArchitectureDiagramGraph | null; // Structured node/edge JSON generated after recommendation
 
   // Metadata
   session_id: string;
   current_phase: ConversationPhase;
-  created_at: string;                        // ISO timestamp
-  last_updated_at: string;                   // ISO timestamp
+  created_at: string; // ISO timestamp
+  last_updated_at: string; // ISO timestamp
 }
 
-type ScaleTier = "nano" | "micro" | "small" | "medium" | "large";
-type BudgetConstraint = "bootstrapped" | "pre-revenue" | "funded" | "enterprise";
-type DataModelNature = "relational" | "document" | "real-time" | "time-series" | "file-heavy" | "graph";
+type ScaleTier = 'nano' | 'micro' | 'small' | 'medium' | 'large';
+type BudgetConstraint = 'bootstrapped' | 'pre-revenue' | 'funded' | 'enterprise';
+type DataModelNature =
+  | 'relational'
+  | 'document'
+  | 'real-time'
+  | 'time-series'
+  | 'file-heavy'
+  | 'graph';
 type ConversationPhase =
-  | "idle"
-  | "project_discovery"
-  | "scale_discovery"
-  | "builder_context"
-  | "constraints"
-  | "recommendation"
-  | "diagram"
-  | "followup";
+  | 'idle'
+  | 'project_discovery'
+  | 'scale_discovery'
+  | 'builder_context'
+  | 'constraints'
+  | 'recommendation'
+  | 'diagram'
+  | 'followup';
 ```
 
 ---
@@ -160,15 +170,16 @@ type ConversationPhase =
 
 The AI maps user-stated scale expectations to a tier using this decision table:
 
-| Month-1 Users | Month-6 Users | Assigned Tier |
-|---------------|---------------|---------------|
-| 0–50 | 0–500 | **Nano** |
-| 50–500 | 500–5,000 | **Micro** |
-| 500–5,000 | 5,000–50,000 | **Small** |
-| 5,000–50,000 | 50,000–500,000 | **Medium** |
-| 50,000+ | 500,000+ | **Large** |
+| Month-1 Users | Month-6 Users  | Assigned Tier |
+| ------------- | -------------- | ------------- |
+| 0–50          | 0–500          | **Nano**      |
+| 50–500        | 500–5,000      | **Micro**     |
+| 500–5,000     | 5,000–50,000   | **Small**     |
+| 5,000–50,000  | 50,000–500,000 | **Medium**    |
+| 50,000+       | 500,000+       | **Large**     |
 
 **Special rules:**
+
 - If user mentions investor backing or viral potential, bump tier one level up.
 - If user is explicitly building an MVP to validate, default to **Nano** regardless of stated scale.
 - If user says "I don't know," assign **Nano** and state why.
@@ -298,7 +309,7 @@ Your purpose is to help solo developers and small teams make confident,
 context-aware decisions about their technology stack and system architecture.
 
 You are opinionated, direct, and honest. You give real answers, not menus.
-You think like a senior engineer who has shipped production systems — not a 
+You think like a senior engineer who has shipped production systems — not a
 consultant, not a textbook author.
 
 Key rules you MUST always follow:
@@ -318,9 +329,10 @@ Current session phase: {CURRENT_PHASE}
 Each phase appends a specific instruction block:
 
 **PHASE_PROJECT_DISCOVERY injection:**
+
 ```
 You are currently in the PROJECT DISCOVERY phase.
-Your goal is to understand what this product does, who it serves, and how 
+Your goal is to understand what this product does, who it serves, and how
 the data flows through it.
 
 Ask warm, open-ended questions. Do not ask more than 3–4 at once.
@@ -330,12 +342,13 @@ Do NOT ask about scale, team size, or budget yet.
 Do NOT make any technology recommendations yet.
 
 When you believe you have enough context to fill these fields:
-product_category, core_user_workflow, primary_user_persona, 
+product_category, core_user_workflow, primary_user_persona,
 data_model_nature, has_realtime_requirement
 ...transition to the SCALE_DISCOVERY phase naturally.
 ```
 
 **PHASE_SCALE_DISCOVERY injection:**
+
 ```
 You are currently in the SCALE DISCOVERY phase.
 You now know: {CONTEXT_MAP_SUMMARY}
@@ -346,12 +359,13 @@ Cover: users in month 1, users in month 6, launch timeline.
 
 Do NOT make any technology recommendations yet.
 
-When complete, assign a scale tier (nano/micro/small/medium/large) and 
+When complete, assign a scale tier (nano/micro/small/medium/large) and
 briefly explain to the user which tier you've assigned them and why.
 Then transition to BUILDER_CONTEXT.
 ```
 
 **PHASE_BUILDER_CONTEXT injection:**
+
 ```
 You are currently in the BUILDER CONTEXT phase.
 You know: {CONTEXT_MAP_SUMMARY}
@@ -363,23 +377,25 @@ Do NOT make technology recommendations yet.
 ```
 
 **PHASE_CONSTRAINTS injection:**
+
 ```
 You are currently in the CONSTRAINTS phase.
 You know: {CONTEXT_MAP_SUMMARY}
 
-Ask if there are any non-negotiables: existing tools already in use, 
+Ask if there are any non-negotiables: existing tools already in use,
 compliance requirements (GDPR, HIPAA), or firm technology mandates.
 If none, that's fine — just note it.
 ```
 
 **PHASE_RECOMMENDATION injection:**
+
 ```
 You are now in the RECOMMENDATION phase.
 Here is the complete context map for this user:
 
 {FULL_CONTEXT_MAP_JSON}
 
-Generate a complete tech stack and architecture recommendation using the 
+Generate a complete tech stack and architecture recommendation using the
 decision trees in your training. Follow the output structure exactly:
 1. Stack at a Glance (table)
 2. Why This Stack (brief rationale)
@@ -399,14 +415,17 @@ End by inviting follow-up questions.
 ### 7.1 Endpoints
 
 #### POST `/api/session`
+
 Creates a new Kairos session.
 
 **Request:**
+
 ```json
 {}
 ```
 
 **Response:**
+
 ```json
 {
   "session_id": "sess_abc123",
@@ -418,9 +437,11 @@ Creates a new Kairos session.
 ---
 
 #### POST `/api/chat`
+
 Sends a user message and receives an AI response.
 
 **Request:**
+
 ```json
 {
   "session_id": "sess_abc123",
@@ -429,6 +450,7 @@ Sends a user message and receives an AI response.
 ```
 
 **Response:**
+
 ```json
 {
   "session_id": "sess_abc123",
@@ -442,9 +464,11 @@ Sends a user message and receives an AI response.
 ---
 
 #### GET `/api/session/:session_id`
+
 Retrieves the current state of a session, including the context map and conversation history.
 
 **Response:**
+
 ```json
 {
   "session_id": "sess_abc123",
@@ -460,16 +484,19 @@ Retrieves the current state of a session, including the context map and conversa
 ---
 
 #### POST `/api/session/:session_id/export`
+
 Exports the final recommendation as a structured JSON or Markdown document.
 
 **Request:**
+
 ```json
 {
-  "format": "markdown"  // or "json"
+  "format": "markdown" // or "json"
 }
 ```
 
 **Response:**
+
 ```json
 {
   "content": "# Your Kairos Recommendation\n\n..."
@@ -482,34 +509,38 @@ Exports the final recommendation as a structured JSON or Markdown document.
 
 ### 8.1 Tech Stack (for the Kairos UI itself)
 
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-| Framework | **Vite + React** | Fast, lightweight, ideal for a chat UI |
-| Routing | **TanStack Router** | Type-safe, file-based |
-| Styling | **CSS Modules + custom tokens** | No utility class bloat for this scale |
-| Icons | **Phosphor Icons** (`@phosphor-icons/react`, suffixed versions only) | Consistent, beautiful |
-| Fonts | **Inter** (Google Fonts) | Clean, modern, readable |
-| State | **TanStack Query** for server state, **Zustand** for local session state | Clean separation |
+| Layer     | Choice                                                                   | Rationale                              |
+| --------- | ------------------------------------------------------------------------ | -------------------------------------- |
+| Framework | **Vite + React**                                                         | Fast, lightweight, ideal for a chat UI |
+| Routing   | **TanStack Router**                                                      | Type-safe, file-based                  |
+| Styling   | **CSS Modules + custom tokens**                                          | No utility class bloat for this scale  |
+| Icons     | **Phosphor Icons** (`@phosphor-icons/react`, suffixed versions only)     | Consistent, beautiful                  |
+| Fonts     | **Inter** (Google Fonts)                                                 | Clean, modern, readable                |
+| State     | **TanStack Query** for server state, **Zustand** for local session state | Clean separation                       |
 
 ### 8.2 UI Screens
 
 #### Screen 1: Landing / Session Start
+
 - Full-screen hero with product name and one-liner
 - Single CTA: "Start Building Your Stack →"
 - Brief 3-step explainer (Discover → Analyze → Recommend)
 
 #### Screen 2: Chat Interface
+
 - Left panel: Conversation progress indicator (phases as steps)
 - Center: Chat messages (user right-aligned, AI left-aligned with avatar)
 - Bottom: Input field with send button
 - Right panel (collapsed by default): Live context map view (shows what the AI has learned so far)
 
 #### Screen 3: Recommendation View
+
 - Rendered in the chat stream, but also available as a full-screen formatted document
 - Exportable as Markdown
 - Share button (copies URL to recommendation if session sharing is enabled)
 
 #### Screen 4: Visual Architecture Diagram
+
 - Full-screen canvas, black background, replaces the chat UI once generated
 - ReactFlow-powered node graph, pannable and zoomable
 - Floating toolbar: Export PNG, Export JSON, Share URL, Layers toggle
@@ -529,7 +560,7 @@ Exports the final recommendation as a structured JSON or Markdown document.
   --color-text-primary: #f0f0f3;
   --color-text-secondary: #8b8b9a;
   --color-text-muted: #4a4a5a;
-  --color-accent: #7c6af7;           /* Purple — AI/intelligence */
+  --color-accent: #7c6af7; /* Purple — AI/intelligence */
   --color-accent-glow: rgba(124, 106, 247, 0.15);
   --color-success: #4ade80;
   --color-warning: #fbbf24;
@@ -555,17 +586,17 @@ Exports the final recommendation as a structured JSON or Markdown document.
 
 Dogfooding the product's own philosophy at **Micro scale** (solo project):
 
-| Category | Choice | Why |
-|----------|--------|-----|
-| Frontend | Vite + React | Fast DX, SPA is fine for this |
-| Hosting (FE) | Vercel | Free tier, instant deploys |
-| Backend | Node.js + Hono | Fast, edge-compatible, TypeScript native |
-| Hosting (BE) | Railway | Simple, ~$5/mo, no Docker complexity |
-| LLM | Anthropic Claude API | Best conversational reasoning |
-| Sessions | Redis (Upstash) | Serverless, free tier, session KV store |
-| Auth | Clerk | Optional; only needed if saving sessions per user |
-| Email | Resend | For session export emails if desired |
-| Analytics | PostHog | Free tier, self-hostable |
+| Category     | Choice               | Why                                               |
+| ------------ | -------------------- | ------------------------------------------------- |
+| Frontend     | Vite + React         | Fast DX, SPA is fine for this                     |
+| Hosting (FE) | Vercel               | Free tier, instant deploys                        |
+| Backend      | Node.js + Hono       | Fast, edge-compatible, TypeScript native          |
+| Hosting (BE) | Railway              | Simple, ~$5/mo, no Docker complexity              |
+| LLM          | Anthropic Claude API | Best conversational reasoning                     |
+| Sessions     | Redis (Upstash)      | Serverless, free tier, session KV store           |
+| Auth         | Clerk                | Optional; only needed if saving sessions per user |
+| Email        | Resend               | For session export emails if desired              |
+| Analytics    | PostHog              | Free tier, self-hostable                          |
 
 ---
 
@@ -575,16 +606,16 @@ Dogfooding the product's own philosophy at **Micro scale** (solo project):
 
 Test scenarios that MUST pass:
 
-| Scenario | Expected Behavior |
-|----------|------------------|
-| User tries to get recommendation immediately | AI redirects to discovery warmly |
-| User says "I don't know" for scale | AI assigns Nano, explains why |
-| User mentions existing tools (e.g., Firebase) | Final recommendation incorporates Firebase |
-| User has HIPAA compliance requirement | Recommendation excludes non-compliant services |
-| User is solo with low devops tolerance | No Kubernetes, no self-hosted anything |
-| User says Go is their primary language | Backend recommendation uses Go |
-| User is funded and expects 100K users | Recommendation uses cloud infrastructure |
-| User asks "why not X?" post-recommendation | AI gives direct, contextual comparison |
+| Scenario                                      | Expected Behavior                              |
+| --------------------------------------------- | ---------------------------------------------- |
+| User tries to get recommendation immediately  | AI redirects to discovery warmly               |
+| User says "I don't know" for scale            | AI assigns Nano, explains why                  |
+| User mentions existing tools (e.g., Firebase) | Final recommendation incorporates Firebase     |
+| User has HIPAA compliance requirement         | Recommendation excludes non-compliant services |
+| User is solo with low devops tolerance        | No Kubernetes, no self-hosted anything         |
+| User says Go is their primary language        | Backend recommendation uses Go                 |
+| User is funded and expects 100K users         | Recommendation uses cloud infrastructure       |
+| User asks "why not X?" post-recommendation    | AI gives direct, contextual comparison         |
 
 ### 10.2 Output Quality Tests
 
@@ -596,16 +627,16 @@ Test scenarios that MUST pass:
 
 ## 11. Future Considerations (v2+)
 
-| Feature | Description | Priority |
-|---------|-------------|----------|
-| **Session Sharing** | Generate a shareable URL for a recommendation | High |
-| **Saved Sessions** | User accounts to save and revisit past recommendations | Medium |
-| **CI/CD Module** | Extend recommendations to include CI/CD pipeline suggestions | Medium |
-| **"Quick Mode"** | Skip to scale tier selection with a form, bypass full chat | Low |
-| **Comparison Mode** | "Compare Go vs. Node for my use case" — head-to-head analysis | Medium |
-| **Team Mode** | Allow multiple collaborators to build context map together | Low |
-| **Changelog Alerts** | Notify users when a recommended tool changes pricing or is sunset | High |
-| **Embedding API** | Allow Kairos to be embedded in other developer tools | Low |
+| Feature              | Description                                                       | Priority |
+| -------------------- | ----------------------------------------------------------------- | -------- |
+| **Session Sharing**  | Generate a shareable URL for a recommendation                     | High     |
+| **Saved Sessions**   | User accounts to save and revisit past recommendations            | Medium   |
+| **CI/CD Module**     | Extend recommendations to include CI/CD pipeline suggestions      | Medium   |
+| **"Quick Mode"**     | Skip to scale tier selection with a form, bypass full chat        | Low      |
+| **Comparison Mode**  | "Compare Go vs. Node for my use case" — head-to-head analysis     | Medium   |
+| **Team Mode**        | Allow multiple collaborators to build context map together        | Low      |
+| **Changelog Alerts** | Notify users when a recommended tool changes pricing or is sunset | High     |
+| **Embedding API**    | Allow Kairos to be embedded in other developer tools              | Low      |
 
 ---
 
@@ -622,35 +653,35 @@ interface ArchitectureDiagramGraph {
   metadata: {
     scale_tier: ScaleTier;
     generated_at: string;
-    version: number;             // increments on each swap/edit
+    version: number; // increments on each swap/edit
   };
 }
 
 interface DiagramNode {
-  id: string;                   // e.g. "node_supabase"
-  type: 'service';              // ReactFlow node type
+  id: string; // e.g. "node_supabase"
+  type: 'service'; // ReactFlow node type
   position: { x: number; y: number };
   data: {
-    label: string;              // e.g. "Supabase"
-    category: NodeCategory;     // "frontend" | "backend" | "database" | "auth" | "email" | "storage" | "hosting" | "observability" | "queue" | "cdn"
-    icon_url: string;           // URL to official logo SVG/PNG
-    why: string;                // 1-2 sentence rationale
-    free_tier: string;          // e.g. "500MB DB, 50K auth users/mo"
-    cost_at_scale: string;      // e.g. "~$25/mo at Micro tier"
-    upgrade_signal: string;     // e.g. "Upgrade when you exceed 500MB or need row-level security at scale"
-    alternatives: string[];     // e.g. ["Neon", "PlanetScale", "Railway Postgres"]
-    swap_locked: boolean;       // true if user has explicitly locked this node
+    label: string; // e.g. "Supabase"
+    category: NodeCategory; // "frontend" | "backend" | "database" | "auth" | "email" | "storage" | "hosting" | "observability" | "queue" | "cdn"
+    icon_url: string; // URL to official logo SVG/PNG
+    why: string; // 1-2 sentence rationale
+    free_tier: string; // e.g. "500MB DB, 50K auth users/mo"
+    cost_at_scale: string; // e.g. "~$25/mo at Micro tier"
+    upgrade_signal: string; // e.g. "Upgrade when you exceed 500MB or need row-level security at scale"
+    alternatives: string[]; // e.g. ["Neon", "PlanetScale", "Railway Postgres"]
+    swap_locked: boolean; // true if user has explicitly locked this node
   };
 }
 
 interface DiagramEdge {
   id: string;
-  source: string;               // node id
-  target: string;               // node id
-  label: string;               // e.g. "REST API", "SQL", "SMTP", "WebSocket"
-  animated: boolean;            // true for real-time data flows
+  source: string; // node id
+  target: string; // node id
+  label: string; // e.g. "REST API", "SQL", "SMTP", "WebSocket"
+  animated: boolean; // true for real-time data flows
   data: {
-    description: string;        // longer description of what flows across this edge
+    description: string; // longer description of what flows across this edge
   };
 }
 
@@ -685,9 +716,11 @@ Initial positions are calculated programmatically. Users can drag nodes freely a
 ### 12.3 AI Graph Generation API
 
 #### POST `/api/session/:session_id/diagram`
+
 Triggers diagram generation from the current recommendation context map.
 
 **Response:**
+
 ```json
 {
   "graph": {
@@ -703,9 +736,11 @@ Triggers diagram generation from the current recommendation context map.
 ```
 
 #### POST `/api/session/:session_id/diagram/swap`
+
 Swaps a single node. Kairos re-reasons connected edges and may update adjacent nodes.
 
 **Request:**
+
 ```json
 {
   "node_id": "node_supabase",
@@ -716,12 +751,14 @@ Swaps a single node. Kairos re-reasons connected edges and may update adjacent n
 **Response:** Updated full `ArchitectureDiagramGraph` with `version` incremented.
 
 #### POST `/api/session/:session_id/diagram/ask`
+
 Ask the AI a question about a specific node or the diagram as a whole.
 
 **Request:**
+
 ```json
 {
-  "node_id": "node_supabase",       // null if asking about the full diagram
+  "node_id": "node_supabase", // null if asking about the full diagram
   "question": "What happens if this goes down?"
 }
 ```
@@ -730,19 +767,18 @@ Ask the AI a question about a specific node or the diagram as a whole.
 
 ### 12.4 Diagram Export Formats
 
-| Format | Method | Use case |
-|--------|--------|-----------|
-| PNG | `html-to-image` or ReactFlow's built-in screenshot | Sharing, embedding in docs |
-| JSON | Raw `ArchitectureDiagramGraph` | Import into other tools |
-| SVG | Via html-to-image | High-quality print/presentation |
-| Shareable URL | Session ID embedded in URL | Sharing with collaborators |
+| Format        | Method                                             | Use case                        |
+| ------------- | -------------------------------------------------- | ------------------------------- |
+| PNG           | `html-to-image` or ReactFlow's built-in screenshot | Sharing, embedding in docs      |
+| JSON          | Raw `ArchitectureDiagramGraph`                     | Import into other tools         |
+| SVG           | Via html-to-image                                  | High-quality print/presentation |
+| Shareable URL | Session ID embedded in URL                         | Sharing with collaborators      |
 
 ### 12.5 Technology Choices
 
-| Component | Choice | Why |
-|-----------|--------|-----------|
-| Canvas library | `@xyflow/react` v12 | Industry standard, excellent TS support, handles large graphs |
-| Node icons | `simple-icons` + custom SVG set | Comprehensive coverage of dev tools and cloud services |
-| PNG export | `@xyflow/react` built-in `getViewportForBounds` + `html-to-image` | Reliable cross-browser capture |
-| Graph layout | Custom row-based algorithm (not ELK/Dagre) | Simpler, more predictable for this use case |
-
+| Component      | Choice                                                            | Why                                                           |
+| -------------- | ----------------------------------------------------------------- | ------------------------------------------------------------- |
+| Canvas library | `@xyflow/react` v12                                               | Industry standard, excellent TS support, handles large graphs |
+| Node icons     | `simple-icons` + custom SVG set                                   | Comprehensive coverage of dev tools and cloud services        |
+| PNG export     | `@xyflow/react` built-in `getViewportForBounds` + `html-to-image` | Reliable cross-browser capture                                |
+| Graph layout   | Custom row-based algorithm (not ELK/Dagre)                        | Simpler, more predictable for this use case                   |

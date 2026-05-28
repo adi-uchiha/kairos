@@ -1,6 +1,6 @@
 # Kairos — Philosophy
 
-> *"The right tool, at the right scale, for the right builder."*
+> _"The right tool, at the right scale, for the right builder."_
 
 ---
 
@@ -28,7 +28,7 @@ And yet, most resources online give you the same advice: "it depends." That answ
 
 ### 2.1 Context Is Everything
 
-A tech stack is not universally good or bad. It is *appropriate* or *inappropriate* given:
+A tech stack is not universally good or bad. It is _appropriate_ or _inappropriate_ given:
 
 - The nature of the product (B2B SaaS, consumer app, internal tool, API, etc.)
 - The scale it must handle today and in 6 months
@@ -52,7 +52,7 @@ Kairos has a **default opinion** — a bias toward modern, proven, composable to
 - **Hosting:** Vercel (frontend), Railway/Render (backend), with cloud (AWS/GCP) reserved for scale
 - **Observability:** PostHog for product analytics, Sentry for errors
 
-These opinions can be overridden when the user's context demands it. But they are the *starting point*, not a menu to scroll through.
+These opinions can be overridden when the user's context demands it. But they are the _starting point_, not a menu to scroll through.
 
 ### 2.3 Scale-Aware Recommendations
 
@@ -60,13 +60,13 @@ The biggest mistake developers make is over-engineering for scale they'll never 
 
 Kairos maps recommendations to explicit **scale tiers**:
 
-| Tier | Users | Philosophy |
-|------|-------|------------|
-| **Nano** | 1–500 | Free-tier everything. Ship fast, validate fast. |
-| **Micro** | 500–10K | Managed services. Avoid ops. Pay only for what you use. |
-| **Small** | 10K–100K | Introduce caching, queues, CDN. Start thinking about reliability. |
-| **Medium** | 100K–1M | Cloud infrastructure justified. Horizontal scaling, monitoring. |
-| **Large** | 1M+ | Full cloud-native. Platform engineering, SRE mindset. |
+| Tier       | Users    | Philosophy                                                        |
+| ---------- | -------- | ----------------------------------------------------------------- |
+| **Nano**   | 1–500    | Free-tier everything. Ship fast, validate fast.                   |
+| **Micro**  | 500–10K  | Managed services. Avoid ops. Pay only for what you use.           |
+| **Small**  | 10K–100K | Introduce caching, queues, CDN. Start thinking about reliability. |
+| **Medium** | 100K–1M  | Cloud infrastructure justified. Horizontal scaling, monitoring.   |
+| **Large**  | 1M+      | Full cloud-native. Platform engineering, SRE mindset.             |
 
 ### 2.4 The Solo Dev is the Primary User
 
@@ -125,7 +125,7 @@ This is Kairos's core differentiator. Everything else — the conversation, the 
 ## 3. What Kairos is NOT
 
 - **Not a framework benchmarking tool.** We don't compare benchmark numbers. We reason about fit.
-- **Not a tutorial generator.** We tell you *what* to use and *why*, not *how* to implement it.
+- **Not a tutorial generator.** We tell you _what_ to use and _why_, not _how_ to implement it.
 - **Not vendor-agnostic to a fault.** We will recommend specific products. Vagueness helps no one.
 - **Not a one-size-fits-all oracle.** The discovery phase is non-negotiable. Without context, there are no recommendations.
 - **Not a replacement for engineering judgment.** Kairos is a thinking partner, not an authority. Treat its output as a strong starting point, not a final decree.
@@ -145,6 +145,7 @@ Kairos asks first about the big picture (what is this product?), then progressiv
 ### 4.3 Progressive Disclosure
 
 The output is structured in layers:
+
 1. **Quick Summary** — the TL;DR stack in one table
 2. **Rationale** — why each choice was made
 3. **Visual Architecture Diagram** — an interactive, node-based canvas showing the full system
@@ -171,4 +172,4 @@ If the developer leaves the session holding an interactive, editable architectur
 
 ---
 
-*Built for builders who want to think clearly, move fast, and scale deliberately.*
+_Built for builders who want to think clearly, move fast, and scale deliberately._

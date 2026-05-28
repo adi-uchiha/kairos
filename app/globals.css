@@ -1,37 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-@import "@xyflow/react/dist/style.css";
+@import '@xyflow/react/dist/style.css';
 
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-background: var(--bg);
   --color-foreground: var(--text-primary);
-  
+
   --color-card: var(--surface);
   --color-card-foreground: var(--text-primary);
-  
+
   --color-popover: var(--surface);
   --color-popover-foreground: var(--text-primary);
-  
-  --color-primary: #FF5500;
+
+  --color-primary: #ff5500;
   --color-primary-foreground: #ffffff;
-  
+
   --color-secondary: var(--surface-hover);
   --color-secondary-foreground: var(--text-primary);
-  
+
   --color-muted: var(--surface-hover);
   --color-muted-foreground: var(--text-muted);
-  
+
   --color-accent: var(--surface-hover);
   --color-accent-foreground: var(--text-primary);
-  
+
   --color-destructive: #ef4444;
   --color-destructive-foreground: #ffffff;
-  
+
   --color-border: var(--border);
   --color-input: var(--border);
-  --color-ring: #FF5500;
-  
+  --color-ring: #ff5500;
+
   --radius-lg: 0px;
   --radius-md: 0px;
   --radius-sm: 0px;
@@ -65,35 +65,39 @@ html.dark {
   --orange-border: rgba(255, 85, 0, 0.35);
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-html {
-  scroll-behavior: smooth;
-  background-color: var(--bg);
-  transition: background-color 0.2s, color 0.2s;
-}
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--bg);
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+  }
 
-body {
-  background: var(--bg);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-}
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
 
-::selection {
-  background: var(--orange);
-  color: #fff;
-}
+  ::selection {
+    background: var(--orange);
+    color: #fff;
+  }
 
-a {
-  color: inherit;
-  text-decoration: none;
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 /* ReactFlow Theming overrides */

@@ -6,7 +6,7 @@ const STEPS = [
   {
     num: '01',
     title: 'Describe Your Product',
-    body: 'Tell Kairos what you\'re building, who it\'s for, and what the core workflow looks like. Open-ended questions, no forms to fill.',
+    body: "Tell Kairos what you're building, who it's for, and what the core workflow looks like. Open-ended questions, no forms to fill.",
   },
   {
     num: '02',
@@ -27,7 +27,10 @@ const STEPS = [
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" style={{ padding: '100px 24px', borderTop: '1px solid var(--border)' }}>
+    <section
+      id="how-it-works"
+      style={{ padding: '100px 24px', borderTop: '1px solid var(--border)' }}
+    >
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         {/* Header */}
         <motion.div

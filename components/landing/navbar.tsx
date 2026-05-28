@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { Menu, X, Sun, Moon } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 
-
 const navLinks = [
   { label: 'How it works', href: '#how-it-works' },
   { label: 'Features', href: '#features' },
@@ -17,7 +16,6 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
   const { data: session } = authClient.useSession();
-
 
   useEffect(() => {
     // Detect theme on mount
@@ -67,7 +65,14 @@ export function Navbar() {
         {/* Logo */}
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <KairosLogoMark />
-          <span style={{ fontWeight: 600, fontSize: 17, letterSpacing: '-0.01em', color: 'var(--text-primary)' }}>
+          <span
+            style={{
+              fontWeight: 600,
+              fontSize: 17,
+              letterSpacing: '-0.01em',
+              color: 'var(--text-primary)',
+            }}
+          >
             Kairos
           </span>
         </Link>
@@ -117,11 +122,21 @@ export function Navbar() {
               padding: 4,
               transition: 'color 0.15s',
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = 'var(--text-primary)')}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = 'var(--text-muted)')}
+            onMouseEnter={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = 'var(--text-primary)')
+            }
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = 'var(--text-muted)')
+            }
             aria-label="Toggle theme"
           >
-            {theme === 'dark' ? <Sun size={18} /> : theme === 'light' ? <Moon size={18} /> : <div style={{ width: 18, height: 18 }} />}
+            {theme === 'dark' ? (
+              <Sun size={18} />
+            ) : theme === 'light' ? (
+              <Moon size={18} />
+            ) : (
+              <div style={{ width: 18, height: 18 }} />
+            )}
           </button>
 
           <Link
@@ -208,7 +223,13 @@ export function Navbar() {
 
 function KairosLogoMark() {
   return (
-    <svg width="24" height="21" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      width="24"
+      height="21"
+      viewBox="0 0 1671 1483"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
       <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
       <path d="M1671 1H739L0 741L738 1482H1671L933 741L1671 1Z" fill="#FF5500" />

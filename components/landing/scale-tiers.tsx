@@ -3,11 +3,36 @@
 import { motion } from 'framer-motion';
 
 const TIERS = [
-  { name: 'NANO', users: '1 – 500', approach: 'Free tier everything. Ship fast, validate fast.', example: 'Vercel · Supabase · Clerk · Resend' },
-  { name: 'MICRO', users: '500 – 10K', approach: 'Managed services. Zero ops. Pay only for what you use.', example: 'Railway · Neon · Better Auth · Resend' },
-  { name: 'SMALL', users: '10K – 100K', approach: 'Introduce caching, queues, CDN. Start thinking about reliability.', example: 'Fly.io · RDS · Cloudflare · Inngest' },
-  { name: 'MEDIUM', users: '100K – 1M', approach: 'Cloud infrastructure justified. Horizontal scaling, monitoring.', example: 'Cloud Run · AlloyDB · GCP · Sentry' },
-  { name: 'LARGE', users: '1M+', approach: 'Full cloud-native. Platform engineering, SRE mindset.', example: 'EKS · RDS · CloudFront · Datadog' },
+  {
+    name: 'NANO',
+    users: '1 – 500',
+    approach: 'Free tier everything. Ship fast, validate fast.',
+    example: 'Vercel · Supabase · Clerk · Resend',
+  },
+  {
+    name: 'MICRO',
+    users: '500 – 10K',
+    approach: 'Managed services. Zero ops. Pay only for what you use.',
+    example: 'Railway · Neon · Better Auth · Resend',
+  },
+  {
+    name: 'SMALL',
+    users: '10K – 100K',
+    approach: 'Introduce caching, queues, CDN. Start thinking about reliability.',
+    example: 'Fly.io · RDS · Cloudflare · Inngest',
+  },
+  {
+    name: 'MEDIUM',
+    users: '100K – 1M',
+    approach: 'Cloud infrastructure justified. Horizontal scaling, monitoring.',
+    example: 'Cloud Run · AlloyDB · GCP · Sentry',
+  },
+  {
+    name: 'LARGE',
+    users: '1M+',
+    approach: 'Full cloud-native. Platform engineering, SRE mindset.',
+    example: 'EKS · RDS · CloudFront · Datadog',
+  },
 ];
 
 export function ScaleTiers() {
@@ -108,7 +133,14 @@ export function ScaleTiers() {
               <span style={{ fontSize: 14, color: '#a1a1aa', lineHeight: 1.5 }}>
                 {tier.approach}
               </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: '#52525b', letterSpacing: '0.02em' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 11,
+                  color: '#52525b',
+                  letterSpacing: '0.02em',
+                }}
+              >
                 {tier.example}
               </span>
             </motion.div>

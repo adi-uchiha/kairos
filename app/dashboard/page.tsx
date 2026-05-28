@@ -35,10 +35,5 @@ export default async function DashboardPage() {
     userBlueprints = [];
   }
 
-  return (
-    <DashboardContent
-      user={session.user}
-      initialBlueprints={userBlueprints}
-    />
-  );
+  return <DashboardContent user={session.user} initialBlueprints={userBlueprints} />;
 }
