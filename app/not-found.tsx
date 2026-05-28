@@ -5,6 +5,13 @@ export const metadata = {
   description: 'This page does not exist.',
 };
 
+const hoverStyle = `
+  .not-found-link:hover {
+    border-color: var(--orange) !important;
+    color: var(--orange) !important;
+  }
+`;
+
 export default function NotFound() {
   return (
     <main
@@ -23,6 +30,7 @@ export default function NotFound() {
         overflow: 'hidden',
       }}
     >
+      <style>{hoverStyle}</style>
       {/* Subtle grid background */}
       <div
         aria-hidden
@@ -105,6 +113,7 @@ export default function NotFound() {
         {/* CTA */}
         <Link
           href="/"
+          className="not-found-link"
           style={{
             display: 'inline-flex',
             alignItems: 'center',
@@ -119,14 +128,6 @@ export default function NotFound() {
             cursor: 'pointer',
             transition: 'border-color 0.15s, color 0.15s',
             textDecoration: 'none',
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLElement).style.borderColor = 'var(--orange)';
-            (e.currentTarget as HTMLElement).style.color = 'var(--orange)';
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)';
-            (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)';
           }}
         >
           ← Back to home
