@@ -17,9 +17,9 @@
 
 import { GEMINI_KEYS } from './keys';
 import type { ManagedKey } from './types';
+import { RATE_LIMIT_COOLDOWN_MS } from './config';
 
-// How long to pause a key after a 429 before trying it again (5 minutes)
-const RATE_LIMIT_COOLDOWN_MS = 5 * 60 * 1000;
+
 
 class GeminiKeyRegistry {
   private keys: ManagedKey[];

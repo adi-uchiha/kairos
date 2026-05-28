@@ -1,11 +1,10 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { geminiRegistry } from './registry';
+import { ANALYZER_MODEL } from './config';
 import { db } from '@/db';
 import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
-
-const ANALYZER_MODEL = 'gemini-2.5-flash'; // Fast model for JSON extraction
 
 const EXTRACTION_SYSTEM_PROMPT = `You are a system context extractor. Your job is to read a chat history between a user and an architect, and output an updated context map in JSON format.
 You must update the fields based on what the user has revealed so far. Do not guess or make up details not present in the text.

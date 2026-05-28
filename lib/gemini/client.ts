@@ -25,6 +25,7 @@
 
 import { geminiRegistry } from './registry';
 import type { ManagedKey } from './types';
+import { CHAT_MODEL, MAX_RETRIES } from './config';
 
 // Local message type
 type ChatMessage = {
@@ -32,9 +33,7 @@ type ChatMessage = {
   content: string;
 };
 
-const MODEL = 'gemini-3.1-pro-preview';
-const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:streamGenerateContent?alt=sse`;
-const MAX_RETRIES = 10;
+const BASE_URL = `https://generativelanguage.googleapis.com/v1beta/models/${CHAT_MODEL}:streamGenerateContent?alt=sse`;
 
 function errorToString(error: unknown): string {
   if (typeof error === 'string') return error;

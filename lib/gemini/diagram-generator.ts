@@ -1,11 +1,10 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { geminiRegistry } from './registry';
+import { DIAGRAM_MODEL } from './config';
 import { db } from '@/db';
 import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
-
-const DIAGRAM_MODEL = 'gemini-2.5-flash';
 
 const DIAGRAM_SYSTEM_PROMPT = `You are a system architecture layout designer. Your job is to output a structured JSON graph representing the system architecture.
 You must return a list of nodes and edges matching the exact ReactFlow-compatible schema below.
