@@ -37,6 +37,7 @@ import {
   Info,
 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
+import { toast } from 'sonner';
 
 // ─── TYPES & SCHEMA ──────────────────────────────────────────────────────────
 
@@ -267,7 +268,24 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
         }),
       });
 
-      if (!response.ok) throw new Error('API request failed');
+      if (!response.ok) {
+        // Parse the JSON error body if available
+        let errData: any = {};
+        try { errData = await response.json(); } catch { /* ignore */ }
+
+        if (response.status === 503 || errData?.error === 'service_overloaded') {
+          toast.warning('Kairos is at capacity', {
+            description: 'All API keys are rate-limited right now. Try again in ~30 seconds.',
+            duration: 8000,
+          });
+        } else {
+          toast.error('Something went wrong', {
+            description: errData?.message || `Server returned ${response.status}`,
+            duration: 6000,
+          });
+        }
+        return; // exit early — finally block resets isLoading
+      }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -299,6 +317,18 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
       }
     } catch (err) {
       console.error('Error sending message:', err);
+      toast.error('Message failed to send', {
+        description: 'An unexpected error occurred. Please try again.',
+        duration: 6000,
+      });
+      // Remove the optimistic empty assistant bubble if streaming never started
+      setMessages((prev) => {
+        const last = prev[prev.length - 1];
+        if (last?.role === 'assistant' && last.content === '') {
+          return prev.slice(0, -1);
+        }
+        return prev;
+      });
     } finally {
       setIsLoading(false);
     }
