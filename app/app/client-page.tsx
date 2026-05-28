@@ -563,13 +563,18 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                   );
                 })}
 
-                {isLoading && (
+                {/* Typing indicator — only show during active conversation, not on the empty welcome screen */}
+                {isLoading && messages.length > 0 && messages[messages.length - 1]?.content === '' && (
                   <div className="flex justify-start">
                     <div
-                      className="bg-[var(--surface)] border border-[var(--border)] px-5 py-3 text-[14px] leading-relaxed"
+                      className="bg-[var(--surface)] border border-[var(--orange-border)] px-5 py-3 text-[14px] leading-relaxed"
                       style={{ borderRadius: 0 }}
                     >
-                      <span className="animate-pulse">Thinking...</span>
+                      <span className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-mono">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce" style={{ animationDelay: '0ms' }} />
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce" style={{ animationDelay: '150ms' }} />
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce" style={{ animationDelay: '300ms' }} />
+                      </span>
                     </div>
                   </div>
                 )}
