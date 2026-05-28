@@ -43,7 +43,12 @@ function errorToString(error: unknown): string {
 
 function isTransientError(error: unknown): boolean {
   const msg = errorToString(error).toLowerCase();
-  return msg.includes('500') || msg.includes('503') || msg.includes('overloaded') || msg.includes('network');
+  return (
+    msg.includes('500') ||
+    msg.includes('503') ||
+    msg.includes('overloaded') ||
+    msg.includes('network')
+  );
 }
 
 /**
@@ -145,8 +150,7 @@ export async function streamGeminiChat(
               const json = JSON.parse(data);
               // Google AI response structure:
               // { candidates: [{ content: { parts: [{ text: "..." }] } }] }
-              const text: string | undefined =
-                json?.candidates?.[0]?.content?.parts?.[0]?.text;
+              const text: string | undefined = json?.candidates?.[0]?.content?.parts?.[0]?.text;
               if (text) {
                 fullText += text;
                 controller.enqueue(text);

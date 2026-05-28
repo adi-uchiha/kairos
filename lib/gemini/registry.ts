@@ -19,8 +19,6 @@ import { GEMINI_KEYS } from './keys';
 import type { ManagedKey } from './types';
 import { RATE_LIMIT_COOLDOWN_MS } from './config';
 
-
-
 class GeminiKeyRegistry {
   private keys: ManagedKey[];
   private currentIndex: number = 0;

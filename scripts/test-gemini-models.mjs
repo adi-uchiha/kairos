@@ -34,8 +34,8 @@ async function listAvailableModels() {
     const json = await res.json();
     if (json.models) {
       json.models
-        .filter(m => m.name.includes('gemini'))
-        .forEach(m => console.log(`  ${m.name}  —  ${m.displayName ?? ''}`));
+        .filter((m) => m.name.includes('gemini'))
+        .forEach((m) => console.log(`  ${m.name}  —  ${m.displayName ?? ''}`));
     } else {
       console.log('  (could not list models)', JSON.stringify(json).slice(0, 200));
     }
@@ -65,7 +65,9 @@ async function testModel(modelName) {
     } else if (res.status === 429) {
       const msg = body?.error?.message ?? '';
       const limit = msg.match(/limit: (\d+)/)?.[1] ?? '?';
-      console.log(`  ⚠️  ${modelName.padEnd(40)} 429  limit=${limit}  (rate limited or free-tier limit=0)`);
+      console.log(
+        `  ⚠️  ${modelName.padEnd(40)} 429  limit=${limit}  (rate limited or free-tier limit=0)`
+      );
       return false;
     } else if (res.status === 404) {
       console.log(`  ❌ ${modelName.padEnd(40)} 404  (model not found)`);
@@ -96,7 +98,9 @@ async function testStreamModel(modelName) {
       const { value } = await reader.read();
       reader.cancel();
       const text = new TextDecoder().decode(value);
-      console.log(`  🌊 ${modelName.padEnd(40)} STREAM OK  first chunk: ${text.slice(0, 60).replace(/\n/g, '\\n')}`);
+      console.log(
+        `  🌊 ${modelName.padEnd(40)} STREAM OK  first chunk: ${text.slice(0, 60).replace(/\n/g, '\\n')}`
+      );
       return true;
     } else {
       const body = await res.text();
@@ -132,11 +136,11 @@ async function main() {
   console.log('\n── SUMMARY ───────────────────────────────────────────');
   if (workingStream.length > 0) {
     console.log('✅ Working streaming models:');
-    workingStream.forEach(m => console.log(`   → ${m}`));
+    workingStream.forEach((m) => console.log(`   → ${m}`));
     console.log(`\n💡 Recommended: ${workingStream[0]}`);
   } else if (working.length > 0) {
     console.log('✅ Working non-streaming models:');
-    working.forEach(m => console.log(`   → ${m}`));
+    working.forEach((m) => console.log(`   → ${m}`));
     console.log('\n⚠️  Streaming not working. This key may need billing enabled.');
   } else {
     console.log('❌ No working models found with this key.');

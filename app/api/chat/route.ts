@@ -89,24 +89,17 @@ export async function POST(req: NextRequest) {
 
   // 4. Stream from Gemini with automatic key rotation
   try {
-    const stream = await streamGeminiChat(
-      messages,
-      systemPrompt,
-      async (event) => {
-        // Build history excluding the internal system trigger message
-        const historyToSave = isAutoOpen
-          ? [{ role: 'assistant' as const, content: event.text }]
-          : [
-              ...messages,
-              { role: 'assistant' as const, content: event.text },
-            ];
+    const stream = await streamGeminiChat(messages, systemPrompt, async (event) => {
+      // Build history excluding the internal system trigger message
+      const historyToSave = isAutoOpen
+        ? [{ role: 'assistant' as const, content: event.text }]
+        : [...messages, { role: 'assistant' as const, content: event.text }];
 
-        // Perform background analysis & database save
-        analyzeAndUpdateBlueprint(sessionId, historyToSave).catch((err) => {
-          console.error('[Background Analysis Error]:', err);
-        });
-      }
-    );
+      // Perform background analysis & database save
+      analyzeAndUpdateBlueprint(sessionId, historyToSave).catch((err) => {
+        console.error('[Background Analysis Error]:', err);
+      });
+    });
 
     return new Response(stream, {
       headers: {
@@ -122,16 +115,15 @@ export async function POST(req: NextRequest) {
       return new Response(
         JSON.stringify({
           error: 'service_overloaded',
-          message:
-            'Kairos is currently at capacity. Please try again in a few minutes.',
+          message: 'Kairos is currently at capacity. Please try again in a few minutes.',
         }),
         { status: 503, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    return new Response(
-      JSON.stringify({ error: 'llm_error', message: errorMsg }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: 'llm_error', message: errorMsg }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }

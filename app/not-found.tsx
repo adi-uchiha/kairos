@@ -106,8 +106,8 @@ export default function NotFound() {
             marginBottom: '36px',
           }}
         >
-          This route doesn&apos;t exist. The architecture you&apos;re looking for
-          lives somewhere else.
+          This route doesn&apos;t exist. The architecture you&apos;re looking for lives somewhere
+          else.
         </p>
 
         {/* CTA */}

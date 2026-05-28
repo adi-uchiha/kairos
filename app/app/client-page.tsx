@@ -15,30 +15,34 @@ import {
   type Node,
   type Edge,
 } from '@xyflow/react';
-import {
-  Send,
-  Sparkles,
-  ChevronRight,
-  Compass,
-  Database,
-  Terminal,
-  Settings,
-  Layers,
-  FileText,
-  HelpCircle,
-  LogOut,
-  ChevronLeft,
-  Download,
-  Share2,
-  RefreshCw,
-  X,
-  Sun,
-  Moon,
-  Info,
-} from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
 import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+
+// ─── MATERIAL SHARP ICON HELPER ──────────────────────────────────────────────
+
+interface MaterialIconProps {
+  name: string;
+  className?: string;
+  size?: number;
+  style?: React.CSSProperties;
+}
+
+function MaterialIcon({ name, className = '', size = 18, style = {} }: MaterialIconProps) {
+  return (
+    <span
+      className={`material-icons-sharp select-none flex items-center justify-center ${className}`}
+      style={{
+        fontSize: `${size}px`,
+        width: `${size}px`,
+        height: `${size}px`,
+        ...style,
+      }}
+    >
+      {name}
+    </span>
+  );
+}
 
 // ─── TYPES & SCHEMA ──────────────────────────────────────────────────────────
 
@@ -132,9 +136,46 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
 
   // Dynamic state
   const [messages, setMessages] = useState<any[]>(blueprint.chatHistory || []);
-  const [currentPhase, setCurrentPhase] = useState<string>(blueprint.currentPhase || 'project_discovery');
+  const [currentPhase, setCurrentPhase] = useState<string>(
+    blueprint.currentPhase || 'project_discovery'
+  );
+  const [activeTab, setActiveTab] = useState<string>(blueprint.currentPhase || 'project_discovery');
   const [contextMap, setContextMap] = useState<any>(blueprint.contextMap || {});
   const [inputMessage, setInputMessage] = useState('');
+
+  // Blueprint name states and handler
+  const [blueprintName, setBlueprintName] = useState(blueprint.name || 'Untitled Blueprint');
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editNameInput, setEditNameInput] = useState(blueprint.name || 'Untitled Blueprint');
+  const [isSavingName, setIsSavingName] = useState(false);
+
+  const handleSaveBlueprintName = async () => {
+    const trimmed = editNameInput.trim();
+    if (!trimmed) {
+      toast.error('Blueprint name cannot be empty');
+      return;
+    }
+    setIsSavingName(true);
+    try {
+      const res = await fetch('/api/blueprints', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: blueprint.id, name: trimmed }),
+      });
+      if (res.ok) {
+        setBlueprintName(trimmed);
+        setIsEditingName(false);
+        toast.success('Blueprint name updated successfully');
+      } else {
+        toast.error('Failed to update blueprint name');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('An error occurred while updating the blueprint name');
+    } finally {
+      setIsSavingName(false);
+    }
+  };
   const [isLoading, setIsLoading] = useState(false);
   const [showContextMap, setShowContextMap] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark' | null>(null);
@@ -155,9 +196,15 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
   const messagesLengthRef = useRef(messages.length);
 
   // Keep refs in sync with state
-  useEffect(() => { isLoadingRef.current = isLoading; }, [isLoading]);
-  useEffect(() => { currentPhaseRef.current = currentPhase; }, [currentPhase]);
-  useEffect(() => { messagesLengthRef.current = messages.length; }, [messages.length]);
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+  useEffect(() => {
+    currentPhaseRef.current = currentPhase;
+  }, [currentPhase]);
+  useEffect(() => {
+    messagesLengthRef.current = messages.length;
+  }, [messages.length]);
 
   // Refs for scroll container
 
@@ -176,13 +223,13 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
 
   // Phases mapping for sidebar navigation
   const phases = [
-    { id: 'project_discovery', label: 'Discovery', icon: Compass },
-    { id: 'scale_discovery', label: 'Scale & Growth', icon: Database },
-    { id: 'builder_context', label: 'Builder Context', icon: Terminal },
-    { id: 'constraints', label: 'Constraints', icon: Settings },
-    { id: 'recommendation', label: 'Recommendation', icon: FileText },
-    { id: 'diagram', label: 'Visual Diagram', icon: Layers },
-    { id: 'followup', label: 'Follow-up', icon: HelpCircle },
+    { id: 'project_discovery', label: 'Discovery', icon: 'explore' },
+    { id: 'scale_discovery', label: 'Scale & Growth', icon: 'storage' },
+    { id: 'builder_context', label: 'Builder Context', icon: 'terminal' },
+    { id: 'constraints', label: 'Constraints', icon: 'settings' },
+    { id: 'recommendation', label: 'Recommendation', icon: 'description' },
+    { id: 'diagram', label: 'Visual Diagram', icon: 'layers' },
+    { id: 'followup', label: 'Follow-up', icon: 'help' },
   ];
 
   // Map nodes and edges when diagramGraph updates
@@ -214,11 +261,20 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
         if (res.ok) {
           const data = await res.json();
           setContextMap(data.contextMap || {});
-          setCurrentPhase(data.currentPhase || 'project_discovery');
+
+          if (data.currentPhase && data.currentPhase !== currentPhaseRef.current) {
+            setCurrentPhase(data.currentPhase);
+            setActiveTab(data.currentPhase); // Auto-advance user's view to new phase!
+          }
+
           if (data.chatHistory && data.chatHistory.length > messagesLengthRef.current) {
             setMessages(data.chatHistory);
           }
-          if (data.diagramGraph && data.diagramGraph.nodes && currentPhaseRef.current === 'diagram') {
+          if (
+            data.diagramGraph &&
+            data.diagramGraph.nodes &&
+            (currentPhaseRef.current === 'diagram' || currentPhaseRef.current === 'followup')
+          ) {
             const formattedNodes = data.diagramGraph.nodes.map((node: any) => ({
               id: node.id,
               type: 'customNode',
@@ -235,7 +291,6 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
     }, 8000); // 8s is plenty — background analysis takes ~2–4s anyway
 
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [blueprint.id, setNodes, setEdges]); // stable: only depends on the blueprint ID
 
   // ─── REACTFLOW CONSTANTS ───────────────────────────────────────────────────
@@ -245,95 +300,102 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
   // ─── ACTIONS ────────────────────────────────────────────────────────────────
 
   // Core send function — accepts an explicit override text for auto-triggers
-  const sendMessage = useCallback(async (overrideText?: string) => {
-    const userText = overrideText ?? inputMessage.trim();
-    if (!userText || isLoading) return;
+  const sendMessage = useCallback(
+    async (overrideText?: string) => {
+      const userText = overrideText ?? inputMessage.trim();
+      if (!userText || isLoading) return;
 
-    if (!overrideText) setInputMessage('');
-    setIsLoading(true);
+      if (!overrideText) setInputMessage('');
+      setIsLoading(true);
 
-    // Only add a visible user bubble for real user messages
-    if (!overrideText) {
-      setMessages((prev) => [...prev, { role: 'user', content: userText }]);
-    }
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          sessionId: blueprint.id,
-          message: userText,
-          history: overrideText ? [] : messages,
-          phase: currentPhase,
-        }),
-      });
-
-      if (!response.ok) {
-        // Parse the JSON error body if available
-        let errData: any = {};
-        try { errData = await response.json(); } catch { /* ignore */ }
-
-        if (response.status === 503 || errData?.error === 'service_overloaded') {
-          toast.warning('Kairos is at capacity', {
-            description: 'All API keys are rate-limited right now. Try again in ~30 seconds.',
-            duration: 8000,
-          });
-        } else {
-          toast.error('Something went wrong', {
-            description: errData?.message || `Server returned ${response.status}`,
-            duration: 6000,
-          });
-        }
-        return; // exit early — finally block resets isLoading
+      // Only add a visible user bubble for real user messages
+      if (!overrideText) {
+        setMessages((prev) => [...prev, { role: 'user', content: userText }]);
       }
 
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let assistantResponse = '';
-
-      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
-
-      while (true) {
-        const { value, done } = await reader!.read();
-        if (done) break;
-        assistantResponse += decoder.decode(value);
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1] = { role: 'assistant', content: assistantResponse };
-          return updated;
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: blueprint.id,
+            message: userText,
+            history: overrideText ? [] : messages,
+            phase: currentPhase,
+          }),
         });
-      }
 
-      // Only sync contextMap and phase — do NOT overwrite messages from DB here.
-      // The background analyzeAndUpdateBlueprint write is async and likely hasn't
-      // completed yet, so reading chatHistory now would return stale empty data
-      // and reset the messages the user is already seeing.
-      const syncRes = await fetch(`/api/blueprints?id=${blueprint.id}`);
-      if (syncRes.ok) {
-        const syncData = await syncRes.json();
-        setContextMap(syncData.contextMap || {});
-        setCurrentPhase(syncData.currentPhase || 'project_discovery');
-        // messages intentionally NOT synced here — polling will handle eventual consistency
-      }
-    } catch (err) {
-      console.error('Error sending message:', err);
-      toast.error('Message failed to send', {
-        description: 'An unexpected error occurred. Please try again.',
-        duration: 6000,
-      });
-      // Remove the optimistic empty assistant bubble if streaming never started
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === 'assistant' && last.content === '') {
-          return prev.slice(0, -1);
+        if (!response.ok) {
+          // Parse the JSON error body if available
+          let errData: any = {};
+          try {
+            errData = await response.json();
+          } catch {
+            /* ignore */
+          }
+
+          if (response.status === 503 || errData?.error === 'service_overloaded') {
+            toast.warning('Kairos is at capacity', {
+              description: 'All API keys are rate-limited right now. Try again in ~30 seconds.',
+              duration: 8000,
+            });
+          } else {
+            toast.error('Something went wrong', {
+              description: errData?.message || `Server returned ${response.status}`,
+              duration: 6000,
+            });
+          }
+          return; // exit early — finally block resets isLoading
         }
-        return prev;
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [blueprint.id, inputMessage, isLoading, messages, currentPhase]);
+
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let assistantResponse = '';
+
+        setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
+
+        while (true) {
+          const { value, done } = await reader!.read();
+          if (done) break;
+          assistantResponse += decoder.decode(value);
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { role: 'assistant', content: assistantResponse };
+            return updated;
+          });
+        }
+
+        // Only sync contextMap and phase — do NOT overwrite messages from DB here.
+        // The background analyzeAndUpdateBlueprint write is async and likely hasn't
+        // completed yet, so reading chatHistory now would return stale empty data
+        // and reset the messages the user is already seeing.
+        const syncRes = await fetch(`/api/blueprints?id=${blueprint.id}`);
+        if (syncRes.ok) {
+          const syncData = await syncRes.json();
+          setContextMap(syncData.contextMap || {});
+          setCurrentPhase(syncData.currentPhase || 'project_discovery');
+          // messages intentionally NOT synced here — polling will handle eventual consistency
+        }
+      } catch (err) {
+        console.error('Error sending message:', err);
+        toast.error('Message failed to send', {
+          description: 'An unexpected error occurred. Please try again.',
+          duration: 6000,
+        });
+        // Remove the optimistic empty assistant bubble if streaming never started
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === 'assistant' && last.content === '') {
+            return prev.slice(0, -1);
+          }
+          return prev;
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [blueprint.id, inputMessage, isLoading, messages, currentPhase]
+  );
 
   // Auto-fire the opening question on fresh workspaces (runs once on mount)
   useEffect(() => {
@@ -341,7 +403,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
       setHasAutoStarted(true);
       sendMessage('__KAIROS_OPEN__');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Public handler — wraps sendMessage for form submissions
@@ -372,6 +434,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
         setNodes(formattedNodes);
         setEdges(data.graph.edges || []);
         setCurrentPhase('diagram');
+        setActiveTab('diagram');
       }
     } catch (err) {
       console.error('Failed to generate diagram:', err);
@@ -424,7 +487,9 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
 
   // Export functions
   const handleExportJSON = () => {
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify({ nodes, edges }, null, 2));
+    const dataStr =
+      'data:text/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify({ nodes, edges }, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
     downloadAnchor.setAttribute('download', `${blueprint.name || 'architecture'}.json`);
@@ -432,10 +497,6 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
     downloadAnchor.click();
     downloadAnchor.remove();
   };
-
-  // Check current phase layout settings
-  const isRecommendationPhase = currentPhase === 'recommendation';
-  const isDiagramPhase = currentPhase === 'diagram' || currentPhase === 'followup';
 
   return (
     <div
@@ -446,14 +507,64 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
       <header className="h-14 border-b border-[var(--border)] flex items-center justify-between px-6 shrink-0 relative z-30">
         <div className="flex items-center gap-3">
           <Link href="/dashboard" className="p-1 hover:bg-[var(--surface-hover)] transition-all">
-            <ChevronLeft size={18} />
+            <MaterialIcon name="chevron_left" size={18} />
           </Link>
           <span className="font-mono text-xs text-[#FF5500] uppercase tracking-wider hidden sm:inline">
             [ Workspace ]
           </span>
-          <span className="font-semibold text-sm border-l border-[var(--border)] pl-3 hidden sm:inline">
-            {blueprint.name}
-          </span>
+          {isEditingName ? (
+            <div className="flex items-center gap-1.5 border-l border-[var(--border)] pl-3">
+              <input
+                type="text"
+                value={editNameInput}
+                onChange={(e) => setEditNameInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveBlueprintName();
+                  if (e.key === 'Escape') {
+                    setEditNameInput(blueprintName);
+                    setIsEditingName(false);
+                  }
+                }}
+                disabled={isSavingName}
+                className="bg-[var(--surface-hover)] border border-[var(--border)] px-2 py-0.5 text-xs font-semibold focus:outline-none focus:border-[#FF5500]"
+                style={{ borderRadius: 0 }}
+                autoFocus
+              />
+              <button
+                onClick={handleSaveBlueprintName}
+                disabled={isSavingName}
+                className="p-1 hover:text-[#FF5500] transition-colors"
+                title="Save name"
+              >
+                <MaterialIcon name="check" size={14} />
+              </button>
+              <button
+                onClick={() => {
+                  setEditNameInput(blueprintName);
+                  setIsEditingName(false);
+                }}
+                disabled={isSavingName}
+                className="p-1 hover:text-red-500 transition-colors"
+                title="Cancel"
+              >
+                <MaterialIcon name="close" size={14} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 border-l border-[var(--border)] pl-3">
+              <span className="font-semibold text-sm">{blueprintName}</span>
+              <button
+                onClick={() => {
+                  setEditNameInput(blueprintName);
+                  setIsEditingName(true);
+                }}
+                className="p-1 text-[var(--text-muted)] hover:text-[#FF5500] transition-colors"
+                title="Edit name"
+              >
+                <MaterialIcon name="edit" size={12} />
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-4">
@@ -463,7 +574,13 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
             className="flex items-center justify-center p-1 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
-            {theme === 'dark' ? <Sun size={18} /> : theme === 'light' ? <Moon size={18} /> : <div style={{ width: 18, height: 18 }} />}
+            {theme === 'dark' ? (
+              <MaterialIcon name="light_mode" size={18} />
+            ) : theme === 'light' ? (
+              <MaterialIcon name="dark_mode" size={18} />
+            ) : (
+              <div style={{ width: 18, height: 18 }} />
+            )}
           </button>
 
           <button
@@ -471,7 +588,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
             className="flex items-center gap-1.5 px-3 py-1 text-xs border border-[var(--border)] hover:bg-[var(--surface-hover)] transition-all"
             style={{ borderRadius: 0 }}
           >
-            <Info size={14} />
+            <MaterialIcon name="info" size={14} />
             <span>CONTEXT</span>
           </button>
         </div>
@@ -487,24 +604,35 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
             </div>
             <nav className="flex flex-col gap-1">
               {phases.map((p, idx) => {
-                const isCurrent = currentPhase === p.id;
-                const isPassed = phases.findIndex((ph) => ph.id === currentPhase) > idx;
-                const Icon = p.icon;
-
+                const isCurrent = activeTab === p.id;
+                const isUnlocked = (() => {
+                  if (currentPhase === 'diagram' || currentPhase === 'followup') {
+                    return true;
+                  }
+                  const currentPhaseIdx = phases.findIndex((ph) => ph.id === currentPhase);
+                  return idx <= currentPhaseIdx;
+                })();
                 return (
-                  <div
+                  <button
                     key={p.id}
-                    className={`flex items-center gap-3 px-3 py-2 text-sm transition-all ${
+                    disabled={!isUnlocked}
+                    onClick={() => isUnlocked && setActiveTab(p.id)}
+                    className={`flex items-center gap-3 px-3 py-2 text-sm transition-all text-left w-full border-none bg-transparent ${
                       isCurrent
-                        ? 'bg-[var(--orange-wash)] text-[#FF5500] border-l-2 border-[#FF5500]'
-                        : isPassed
-                          ? 'text-[var(--text-primary)]'
-                          : 'text-[var(--text-muted)]'
+                        ? 'bg-[var(--orange-wash)] text-[#FF5500] border-l-2 border-[#FF5500] font-semibold'
+                        : isUnlocked
+                          ? 'text-[var(--text-primary)] hover:bg-[var(--surface-hover)] cursor-pointer font-medium'
+                          : 'text-[var(--text-muted)] cursor-not-allowed opacity-50 font-normal'
                     }`}
+                    style={{ borderRadius: 0 }}
                   >
-                    <Icon size={16} className={isCurrent ? 'text-[#FF5500]' : ''} />
-                    <span className="font-medium">{p.label}</span>
-                  </div>
+                    <MaterialIcon
+                      name={p.icon}
+                      size={16}
+                      className={isCurrent ? 'text-[#FF5500]' : 'text-[var(--text-muted)]'}
+                    />
+                    <span>{p.label}</span>
+                  </button>
                 );
               })}
             </nav>
@@ -517,25 +645,45 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
 
         {/* CENTER CONTENT */}
         <main className="flex-1 flex overflow-hidden relative">
-          {/* ─── TEXT CHAT LAYOUT ─── */}
-          {!isDiagramPhase && (
-            <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Left Chat Pane: visible if we are NOT in full-screen diagram mode */}
+          {activeTab !== 'diagram' && (
+            <div
+              className={`flex flex-col overflow-hidden ${activeTab === 'followup' ? 'w-[40%] border-r border-[var(--border)] bg-[var(--bg)]' : 'flex-1'}`}
+            >
               {/* CHAT LOG */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {messages.length === 0 && (
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4 max-w-sm mx-auto">
-                    <Sparkles size={32} className={`text-[#FF5500] ${hasAutoStarted ? 'animate-pulse' : ''}`} />
+                    <MaterialIcon
+                      name="auto_awesome"
+                      size={32}
+                      className={`text-[#FF5500] ${hasAutoStarted ? 'animate-pulse' : ''}`}
+                    />
                     <h2 className="text-base font-semibold">Welcome to Kairos Architect</h2>
                     <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                      Let&apos;s start by defining your product idea. Answer a few discovery questions to construct your stack map.
+                      Let&apos;s start by defining your product idea. Answer a few discovery
+                      questions to construct your stack map.
                     </p>
                     {hasAutoStarted ? (
-                      <p className="text-xs text-[#FF5500] font-mono animate-pulse">Kairos is thinking...</p>
+                      <p className="text-xs text-[#FF5500] font-mono animate-pulse">
+                        Kairos is thinking...
+                      </p>
                     ) : (
                       <button
-                        onClick={() => { setHasAutoStarted(true); sendMessage('__KAIROS_OPEN__'); }}
+                        onClick={() => {
+                          setHasAutoStarted(true);
+                          sendMessage('__KAIROS_OPEN__');
+                        }}
                         disabled={isLoading}
-                        style={{ background: '#FF5500', color: '#fff', border: 'none', padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                        style={{
+                          background: '#FF5500',
+                          color: '#fff',
+                          border: 'none',
+                          padding: '8px 16px',
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                        }}
                       >
                         BEGIN DISCOVERY
                       </button>
@@ -546,10 +694,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                 {messages.map((msg, index) => {
                   const isUser = msg.role === 'user';
                   return (
-                    <div
-                      key={index}
-                      className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
-                    >
+                    <div key={index} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
                       <div
                         className={`max-w-[85%] px-5 py-3 text-[14px] leading-relaxed border ${
                           isUser
@@ -571,41 +716,58 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                 })}
 
                 {/* Typing indicator — only show during active conversation, not on the empty welcome screen */}
-                {isLoading && messages.length > 0 && messages[messages.length - 1]?.content === '' && (
-                  <div className="flex justify-start">
-                    <div
-                      className="bg-[var(--surface)] border border-[var(--orange-border)] px-5 py-3 text-[14px] leading-relaxed"
-                      style={{ borderRadius: 0 }}
-                    >
-                      <span className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-mono">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </span>
+                {isLoading &&
+                  messages.length > 0 &&
+                  messages[messages.length - 1]?.content === '' && (
+                    <div className="flex justify-start">
+                      <div
+                        className="bg-[var(--surface)] border border-[var(--orange-border)] px-5 py-3 text-[14px] leading-relaxed"
+                        style={{ borderRadius: 0 }}
+                      >
+                        <span className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-mono">
+                          <span
+                            className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
+                            style={{ animationDelay: '0ms' }}
+                          />
+                          <span
+                            className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
+                            style={{ animationDelay: '150ms' }}
+                          />
+                          <span
+                            className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
+                            style={{ animationDelay: '300ms' }}
+                          />
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
                 <div ref={chatEndRef} />
               </div>
 
               {/* CHAT INPUT BAR */}
               <div className="p-4 border-t border-[var(--border)] shrink-0 bg-[var(--bg)]">
-                {isRecommendationPhase ? (
+                {activeTab === 'recommendation' ? (
                   <div className="flex justify-center p-2">
                     <button
                       onClick={handleGenerateDiagram}
                       disabled={isGeneratingDiagram}
                       className="py-3 px-6 text-xs font-semibold uppercase tracking-wider text-white hover:opacity-95 transition-all flex items-center gap-2"
-                      style={{ borderRadius: 0, background: '#FF5500', width: '100%', justifyItems: 'center', justifyContent: 'center' }}
+                      style={{
+                        borderRadius: 0,
+                        background: '#FF5500',
+                        width: '100%',
+                        justifyItems: 'center',
+                        justifyContent: 'center',
+                      }}
                     >
                       {isGeneratingDiagram ? (
                         <>
-                          <RefreshCw size={14} className="animate-spin" />
+                          <MaterialIcon name="sync" size={14} className="animate-spin" />
                           <span>Generating Canvas...</span>
                         </>
                       ) : (
                         <>
-                          <Sparkles size={14} />
+                          <MaterialIcon name="auto_awesome" size={14} />
                           <span>Generate Visual Architecture Diagram</span>
                         </>
                       )}
@@ -623,7 +785,11 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                           handleSendMessage();
                         }
                       }}
-                      placeholder="Ask or reply to Kairos... (Shift+Enter for new line)"
+                      placeholder={
+                        activeTab === 'followup'
+                          ? 'Ask follow-up questions about this architecture...'
+                          : 'Ask or reply to Kairos... (Shift+Enter for new line)'
+                      }
                       disabled={isLoading}
                       rows={1}
                       className="flex-1 bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[14px] focus:outline-none focus:border-[#FF5500] resize-none"
@@ -633,7 +799,6 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                         maxHeight: '160px',
                         overflowY: 'auto',
                         lineHeight: '1.5',
-                        // Auto-grow: handled by JS below via style.height
                         height: 'auto',
                       }}
                       onInput={(e) => {
@@ -648,7 +813,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                       className="px-5 border border-[var(--border)] bg-[var(--surface-hover)] hover:border-[#FF5500] hover:text-[#FF5500] transition-all flex items-center justify-center"
                       style={{ borderRadius: 0, cursor: 'pointer', height: '48px', flexShrink: 0 }}
                     >
-                      <Send size={15} />
+                      <MaterialIcon name="send" size={15} />
                     </button>
                   </form>
                 )}
@@ -656,8 +821,8 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
             </div>
           )}
 
-          {/* ─── VISUAL DIAGRAM CANVAS LAYOUT ─── */}
-          {isDiagramPhase && (
+          {/* Right Diagram Canvas: visible if activeTab is 'diagram' or 'followup' */}
+          {(activeTab === 'diagram' || activeTab === 'followup') && (
             <div className="flex-1 flex flex-col overflow-hidden relative">
               <div className="flex-1 relative">
                 <ReactFlow
@@ -670,7 +835,13 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                   fitView
                 >
                   <Background color="var(--border)" gap={16} size={1} />
-                  <Controls style={{ borderRadius: 0, border: '1px solid var(--border)', background: 'var(--surface)' }} />
+                  <Controls
+                    style={{
+                      borderRadius: 0,
+                      border: '1px solid var(--border)',
+                      background: 'var(--surface)',
+                    }}
+                  />
                 </ReactFlow>
 
                 {/* Flow Floating Toolbar */}
@@ -681,7 +852,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                     style={{ borderRadius: 0 }}
                     title="Export JSON representation"
                   >
-                    <Download size={14} />
+                    <MaterialIcon name="download" size={14} />
                     <span className="hidden sm:inline">JSON</span>
                   </button>
                   <button
@@ -692,7 +863,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                     className="p-2 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition-all flex items-center gap-1.5 text-xs font-semibold"
                     style={{ borderRadius: 0 }}
                   >
-                    <Share2 size={14} />
+                    <MaterialIcon name="share" size={14} />
                     <span className="hidden sm:inline">SHARE</span>
                   </button>
                 </div>
@@ -712,7 +883,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                           onClick={() => setSelectedNode(null)}
                           className="p-1 hover:bg-[var(--surface-hover)]"
                         >
-                          <X size={15} />
+                          <MaterialIcon name="close" size={15} />
                         </button>
                       </div>
 
@@ -725,20 +896,34 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
 
                       <div className="space-y-4 text-xs">
                         <div className="space-y-1">
-                          <span className="text-[var(--text-muted)] font-mono uppercase text-[9px]">Why Chosen</span>
+                          <span className="text-[var(--text-muted)] font-mono uppercase text-[9px]">
+                            Why Chosen
+                          </span>
                           <p className="leading-relaxed">{selectedNode.data.why}</p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[var(--text-muted)] font-mono uppercase text-[9px]">Free Tier Limits</span>
-                          <p className="leading-relaxed">{selectedNode.data.free_tier || 'None / Not Applicable'}</p>
+                          <span className="text-[var(--text-muted)] font-mono uppercase text-[9px]">
+                            Free Tier Limits
+                          </span>
+                          <p className="leading-relaxed">
+                            {selectedNode.data.free_tier || 'None / Not Applicable'}
+                          </p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[var(--text-muted)] font-mono uppercase text-[9px]">Cost at Scale</span>
-                          <p className="leading-relaxed">{selectedNode.data.cost_at_scale || 'N/A'}</p>
+                          <span className="text-[var(--text-muted)] font-mono uppercase text-[9px]">
+                            Cost at Scale
+                          </span>
+                          <p className="leading-relaxed">
+                            {selectedNode.data.cost_at_scale || 'N/A'}
+                          </p>
                         </div>
                         <div className="space-y-1">
-                          <span className="text-[var(--text-muted)] font-mono uppercase text-[9px]">Upgrade Trigger</span>
-                          <p className="leading-relaxed">{selectedNode.data.upgrade_signal || 'Grow past free limits'}</p>
+                          <span className="text-[var(--text-muted)] font-mono uppercase text-[9px]">
+                            Upgrade Trigger
+                          </span>
+                          <p className="leading-relaxed">
+                            {selectedNode.data.upgrade_signal || 'Grow past free limits'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -756,33 +941,37 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                 )}
               </div>
 
-              {/* persistent chat bar at bottom of diagram */}
-              <div className="p-4 border-t border-[var(--border)] shrink-0 bg-[var(--bg)] relative z-10 flex flex-col gap-3">
-                {/* Chat Log Snippet inside Canvas if messages exist */}
-                <div className="flex gap-2 max-w-full">
-                  <input
-                    type="text"
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="Ask questions about this diagram (e.g. 'what if database goes down?')..."
-                    className="flex-1 bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[14px] focus:outline-none focus:border-[#FF5500]"
-                    style={{ borderRadius: 0 }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        // Redirect user to text stream popup or log dialog question
+              {/* persistent chat bar at bottom of diagram — only visible in full-screen diagram mode */}
+              {activeTab === 'diagram' && (
+                <div className="p-4 border-t border-[var(--border)] shrink-0 bg-[var(--bg)] relative z-10 flex flex-col gap-3">
+                  <div className="flex gap-2 max-w-full">
+                    <input
+                      type="text"
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      placeholder="Ask questions about this diagram (e.g. 'what if database goes down?')..."
+                      className="flex-1 bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[14px] focus:outline-none focus:border-[#FF5500]"
+                      style={{ borderRadius: 0 }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setActiveTab('followup');
+                          handleSendMessage();
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        setActiveTab('followup');
                         handleSendMessage();
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={() => handleSendMessage()}
-                    className="px-5 border border-[var(--border)] bg-[var(--surface-hover)] hover:border-[#FF5500] hover:text-[#FF5500] transition-all flex items-center justify-center"
-                    style={{ borderRadius: 0, cursor: 'pointer' }}
-                  >
-                    <Send size={15} />
-                  </button>
+                      }}
+                      className="px-5 border border-[var(--border)] bg-[var(--surface-hover)] hover:border-[#FF5500] hover:text-[#FF5500] transition-all flex items-center justify-center"
+                      style={{ borderRadius: 0, cursor: 'pointer' }}
+                    >
+                      <MaterialIcon name="send" size={15} />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </main>
@@ -798,13 +987,17 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                 onClick={() => setShowContextMap(false)}
                 className="p-1 hover:bg-[var(--surface-hover)] text-[var(--text-muted)]"
               >
-                <X size={16} />
+                <MaterialIcon name="close" size={16} />
               </button>
             </div>
 
             <div className="space-y-5 text-xs flex-1">
               {Object.entries(contextMap).map(([key, value]) => {
-                if (value === null || value === undefined || (Array.isArray(value) && value.length === 0)) {
+                if (
+                  value === null ||
+                  value === undefined ||
+                  (Array.isArray(value) && value.length === 0)
+                ) {
                   return null;
                 }
 
@@ -850,14 +1043,19 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
               <h4 className="text-sm font-semibold uppercase tracking-wider">
                 Swap {selectedNode.data.label}
               </h4>
-              <button onClick={() => setShowSwapModal(false)} className="p-1 hover:bg-[var(--surface-hover)]">
-                <X size={15} />
+              <button
+                onClick={() => setShowSwapModal(false)}
+                className="p-1 hover:bg-[var(--surface-hover)]"
+              >
+                <MaterialIcon name="close" size={15} />
               </button>
             </div>
 
             <div className="space-y-2">
               <p className="text-xs text-[var(--text-muted)] mb-4">
-                Select an alternative service to substitute for {selectedNode.data.label}. The system will automatically re-reason connected database, client pipelines, and outbound triggers.
+                Select an alternative service to substitute for {selectedNode.data.label}. The
+                system will automatically re-reason connected database, client pipelines, and
+                outbound triggers.
               </p>
 
               {(selectedNode.data.alternatives || []).length === 0 ? (
@@ -875,7 +1073,7 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                       style={{ borderRadius: 0 }}
                     >
                       <span>{alt}</span>
-                      <ChevronRight size={12} />
+                      <MaterialIcon name="chevron_right" size={12} />
                     </button>
                   ))}
                 </div>

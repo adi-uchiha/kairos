@@ -185,11 +185,15 @@ export function KAIROS_SYSTEM_PROMPT(phase?: string, contextMap?: Record<string,
         summaryLines.push(`- ${key}: ${JSON.stringify(value)}`);
       }
     }
-    const summaryStr = summaryLines.length > 0 ? summaryLines.join('\n') : 'No context gathered yet.';
+    const summaryStr =
+      summaryLines.length > 0 ? summaryLines.join('\n') : 'No context gathered yet.';
     phaseInstruction = phaseInstruction.replace(/{CONTEXT_MAP_SUMMARY}/g, summaryStr);
   } else {
     phaseInstruction = phaseInstruction.replace(/{FULL_CONTEXT_MAP_JSON}/g, '{}');
-    phaseInstruction = phaseInstruction.replace(/{CONTEXT_MAP_SUMMARY}/g, 'No context gathered yet.');
+    phaseInstruction = phaseInstruction.replace(
+      /{CONTEXT_MAP_SUMMARY}/g,
+      'No context gathered yet.'
+    );
   }
 
   return `${BASE_PROMPT}\n${phaseInstruction}`;

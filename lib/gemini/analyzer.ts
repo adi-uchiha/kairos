@@ -43,7 +43,10 @@ Your output must be JSON only matching this schema:
   "suggestedPhase": "current_or_next_phase_name"
 }`;
 
-export async function analyzeAndUpdateBlueprint(blueprintId: string, fullHistory: { role: string; content: string }[]) {
+export async function analyzeAndUpdateBlueprint(
+  blueprintId: string,
+  fullHistory: { role: string; content: string }[]
+) {
   try {
     // 1. Fetch current blueprint state
     const result = await db
@@ -79,23 +82,30 @@ Analyze the history and return the updated context map and the suggested next ph
     });
 
     // Strip markdown code fences if the model wrapped the JSON in ```json ... ```
-    const rawText = response.text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    const rawText = response.text
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '');
     const data = JSON.parse(rawText);
 
     if (data.contextMap && data.suggestedPhase) {
-      // If phase transitioned to recommendation and we don't have a diagram graph yet, we can generate one.
-      // We will handle diagram generation in a separate phase, but let's update DB first.
+      // Prevent downgrading the phase once the user has entered diagram/followup mode
+      let nextPhase = data.suggestedPhase;
+      if (blueprint.currentPhase === 'diagram' || blueprint.currentPhase === 'followup') {
+        nextPhase = blueprint.currentPhase;
+      }
+
       await db
         .update(blueprints)
         .set({
           contextMap: data.contextMap as any,
-          currentPhase: data.suggestedPhase,
+          currentPhase: nextPhase,
           chatHistory: fullHistory as never,
           updatedAt: new Date(),
         })
         .where(eq(blueprints.id, blueprintId));
 
-      console.log(`[Analyzer] Updated blueprint ${blueprintId}: phase=${data.suggestedPhase}`);
+      console.log(`[Analyzer] Updated blueprint ${blueprintId}: phase=${nextPhase}`);
     }
   } catch (error) {
     console.error(`[Analyzer] Failed to analyze blueprint ${blueprintId}:`, error);

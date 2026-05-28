@@ -220,9 +220,7 @@ function buildComponents(compact: boolean): Components {
       <thead style={{ borderBottom: `1px solid ${ORANGE}` }}>{children}</thead>
     ),
     tbody: ({ children }) => <tbody>{children}</tbody>,
-    tr: ({ children }) => (
-      <tr style={{ borderBottom: '1px solid var(--border)' }}>{children}</tr>
-    ),
+    tr: ({ children }) => <tr style={{ borderBottom: '1px solid var(--border)' }}>{children}</tr>,
     th: ({ children }) => (
       <th
         style={{

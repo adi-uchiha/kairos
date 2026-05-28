@@ -23,11 +23,7 @@ export async function GET(req: NextRequest) {
 
   try {
     if (id) {
-      const result = await db
-        .select()
-        .from(blueprints)
-        .where(eq(blueprints.id, id))
-        .limit(1);
+      const result = await db.select().from(blueprints).where(eq(blueprints.id, id)).limit(1);
 
       if (result.length === 0) {
         return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -128,11 +124,7 @@ export async function PUT(req: NextRequest) {
     }
 
     // Verify ownership
-    const existing = await db
-      .select()
-      .from(blueprints)
-      .where(eq(blueprints.id, id))
-      .limit(1);
+    const existing = await db.select().from(blueprints).where(eq(blueprints.id, id)).limit(1);
 
     if (existing.length === 0) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -180,11 +172,7 @@ export async function DELETE(req: NextRequest) {
 
   try {
     // Verify ownership
-    const existing = await db
-      .select()
-      .from(blueprints)
-      .where(eq(blueprints.id, id))
-      .limit(1);
+    const existing = await db.select().from(blueprints).where(eq(blueprints.id, id)).limit(1);
 
     if (existing.length === 0) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 });

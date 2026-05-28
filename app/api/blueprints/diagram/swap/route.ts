@@ -66,7 +66,11 @@ Please perform the swap and output the updated JSON.`;
       prompt,
     });
 
-    const updatedGraph = JSON.parse(response.text);
+    const rawText = response.text
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '');
+    const updatedGraph = JSON.parse(rawText);
 
     // Save back to DB
     await db

@@ -58,11 +58,7 @@ JSON Output Schema:
 Ensure all nodes are properly connected. Edges must flow logically (e.g. CDN -> Frontend -> Backend -> Database).`;
 
 export async function generateDiagramForBlueprint(blueprintId: string): Promise<any> {
-  const result = await db
-    .select()
-    .from(blueprints)
-    .where(eq(blueprints.id, blueprintId))
-    .limit(1);
+  const result = await db.select().from(blueprints).where(eq(blueprints.id, blueprintId)).limit(1);
 
   if (result.length === 0) throw new Error('Blueprint not found');
   const blueprint = result[0];
@@ -86,7 +82,10 @@ Generate a clean architecture graph following the system prompt rules. Output JS
     prompt,
   });
 
-  const rawText = response.text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+  const rawText = response.text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```$/, '');
   const graph = JSON.parse(rawText);
 
   // Save the generated graph to the database
