@@ -121,34 +121,47 @@ export async function streamGeminiChat(
         onFinish,
       });
 
-      // To catch rate-limit / authorization errors early, try to read the first chunk of the stream.
-      // This forces the API call to execute now rather than lazily.
-      const reader = result.textStream.getReader();
-      const firstChunk = await reader.read();
+      // Read from fullStream (not textStream) because textStream silently closes on 429
+      // while fullStream emits an explicit { type: 'error' } event we can catch and throw.
+      const fullReader = result.fullStream.getReader();
+      const firstPart = await fullReader.read();
 
-      // If we get here, streaming started successfully
+      // If the very first event is an error, surface it so our catch block can rotate the key.
+      if (!firstPart.done && firstPart.value?.type === 'error') {
+        fullReader.releaseLock();
+        throw firstPart.value.error;
+      }
+
       console.log(
         `[GeminiClient] Streaming started successfully with key ${currentKey.label} (attempt ${attempt})`
       );
 
-      // Reconstruct the ReadableStream to yield the first chunk and pipe the rest
+      // Reconstruct a text-only ReadableStream from the remaining fullStream events
       return new ReadableStream<string>({
         async start(controller) {
-          if (!firstChunk.done && firstChunk.value !== undefined) {
-            controller.enqueue(firstChunk.value);
+          // Emit the first event if it's a text chunk
+          if (!firstPart.done && firstPart.value?.type === 'text-delta') {
+            controller.enqueue(firstPart.value.text);
           }
 
           try {
             while (true) {
-              const { value, done } = await reader.read();
+              const { value, done } = await fullReader.read();
               if (done) break;
-              controller.enqueue(value);
+              if (value.type === 'text-delta') {
+                controller.enqueue(value.text);
+              } else if (value.type === 'error') {
+                // Surface mid-stream errors to the client
+                controller.error(value.error);
+                return;
+              }
+              // Ignore: reasoning, tool-call, tool-result, finish, step-start, etc.
             }
             controller.close();
           } catch (streamError) {
             controller.error(streamError);
           } finally {
-            reader.releaseLock();
+            fullReader.releaseLock();
           }
         },
       });
