@@ -242,15 +242,6 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
 
   // ─── ACTIONS ────────────────────────────────────────────────────────────────
 
-  // Auto-fire the opening question on fresh workspaces
-  useEffect(() => {
-    if (messages.length === 0 && !hasAutoStarted && !isLoading) {
-      setHasAutoStarted(true);
-      sendMessage('__KAIROS_OPEN__');
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // runs once on mount
-
   // Core send function — accepts an explicit override text for auto-triggers
   const sendMessage = useCallback(async (overrideText?: string) => {
     const userText = overrideText ?? inputMessage.trim();
@@ -295,13 +286,16 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
         });
       }
 
-      // Sync phase & context map after stream completes
+      // Only sync contextMap and phase — do NOT overwrite messages from DB here.
+      // The background analyzeAndUpdateBlueprint write is async and likely hasn't
+      // completed yet, so reading chatHistory now would return stale empty data
+      // and reset the messages the user is already seeing.
       const syncRes = await fetch(`/api/blueprints?id=${blueprint.id}`);
       if (syncRes.ok) {
         const syncData = await syncRes.json();
         setContextMap(syncData.contextMap || {});
         setCurrentPhase(syncData.currentPhase || 'project_discovery');
-        setMessages(syncData.chatHistory || []);
+        // messages intentionally NOT synced here — polling will handle eventual consistency
       }
     } catch (err) {
       console.error('Error sending message:', err);
@@ -309,6 +303,15 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
       setIsLoading(false);
     }
   }, [blueprint.id, inputMessage, isLoading, messages, currentPhase]);
+
+  // Auto-fire the opening question on fresh workspaces (runs once on mount)
+  useEffect(() => {
+    if (messages.length === 0 && !hasAutoStarted && !isLoading) {
+      setHasAutoStarted(true);
+      sendMessage('__KAIROS_OPEN__');
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Public handler — wraps sendMessage for form submissions
   const handleSendMessage = async (e?: React.FormEvent) => {
@@ -460,16 +463,16 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
                 return (
                   <div
                     key={p.id}
-                    className={`flex items-center gap-3 px-3 py-2 text-xs transition-all ${
+                    className={`flex items-center gap-3 px-3 py-2 text-sm transition-all ${
                       isCurrent
                         ? 'bg-[var(--orange-wash)] text-[#FF5500] border-l-2 border-[#FF5500]'
                         : isPassed
-                          ? 'text-[var(--text-primary)] opacity-80'
-                          : 'text-[var(--text-muted)] opacity-50'
+                          ? 'text-[var(--text-primary)]'
+                          : 'text-[var(--text-muted)]'
                     }`}
                   >
-                    <Icon size={14} className={isCurrent ? 'text-[#FF5500]' : ''} />
-                    <span className="font-semibold">{p.label}</span>
+                    <Icon size={16} className={isCurrent ? 'text-[#FF5500]' : ''} />
+                    <span className="font-medium">{p.label}</span>
                   </div>
                 );
               })}
@@ -490,17 +493,22 @@ export function ClientAppPage({ blueprint, user }: ClientAppPageProps) {
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {messages.length === 0 && (
                   <div className="h-full flex flex-col items-center justify-center text-center space-y-4 max-w-sm mx-auto">
-                    <Sparkles size={32} className="text-[#FF5500]" />
+                    <Sparkles size={32} className={`text-[#FF5500] ${hasAutoStarted ? 'animate-pulse' : ''}`} />
                     <h2 className="text-base font-semibold">Welcome to Kairos Architect</h2>
                     <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                       Let&apos;s start by defining your product idea. Answer a few discovery questions to construct your stack map.
                     </p>
-                    <button
-                      onClick={() => handleSendMessage()}
-                      style={{ background: '#FF5500', color: '#fff', border: 'none', padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      BEGIN DISCOVERY
-                    </button>
+                    {hasAutoStarted ? (
+                      <p className="text-xs text-[#FF5500] font-mono animate-pulse">Kairos is thinking...</p>
+                    ) : (
+                      <button
+                        onClick={() => { setHasAutoStarted(true); sendMessage('__KAIROS_OPEN__'); }}
+                        disabled={isLoading}
+                        style={{ background: '#FF5500', color: '#fff', border: 'none', padding: '8px 16px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        BEGIN DISCOVERY
+                      </button>
+                    )}
                   </div>
                 )}
 
