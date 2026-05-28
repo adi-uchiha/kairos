@@ -1,0 +1,28 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build:next": {
+      "env": [
+        "DATABASE_URL",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_APP_NAME",
+        "ANTHROPIC_API_KEY",
+        "RESEND_API_KEY",
+        "RESEND_FROM_EMAIL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN"
+      ],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+    },
+    "lint:eslint": {
+      "outputs": []
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
