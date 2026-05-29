@@ -152,7 +152,7 @@ export default function AuthPage() {
           <div className="absolute inset-0 z-0 select-none pointer-events-none">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/Kairos_Background.png"
+              src="/images/Kairos_Background.webp"
               alt="Kairos Theme Background"
               className="w-full h-full object-cover grayscale opacity-90 transition-all duration-700 hover:scale-105"
             />
