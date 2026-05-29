@@ -6,56 +6,54 @@ import { db } from '@/db';
 import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
 
-const DIAGRAM_SYSTEM_PROMPT = `You are a system architecture layout designer. Your job is to output a structured JSON graph representing a system architecture.
-You must return a list of nodes and edges matching the exact ReactFlow-compatible schema below.
+// ─── SYSTEM PROMPTS ──────────────────────────────────────────────────────────
 
-AVAILBLE NODE CATEGORIES:
-- user: "End Users", "Mobile App", external client/persona nodes
-- frontend: React, Next.js, Svelte, SolidJS, Qwik, Astro
-- cdn: Cloudflare CDN, CloudFront, Fastly
-- hosting: Vercel, Netlify, Railway, Render, Fly.io
-- gateway: API Gateway, Kong, nginx, Traefik, Caddy
-- backend: Generic backend server
-- runtime: Execution engine: Bun, Node.js, Deno, Go, Rust, Python
-- framework: Hono, Express, Fastify, Gin, Axum, Fiber, FastAPI, Django
-- library: Zod, TanStack Query, tRPC, SWR, React Query — client/server middleware/utility
-- database: PostgreSQL, MySQL, MongoDB, SQLite, CockroachDB
-- cache: Redis, Memcached, Upstash
-- orm: Drizzle, Prisma, TypeORM, SQLAlchemy, GORM
-- search: Algolia, Typesense, Meilisearch, OpenSearch
-- storage: S3, R2, GCS, Cloudinary, uploadthing
-- auth: Better Auth, NextAuth, Clerk, Supabase Auth, Lucia
-- oauth: Google OAuth, GitHub OAuth, Discord OAuth (external identity providers)
-- email: Resend, Mailgun, SendGrid, SES, Postmark
-- payment: Stripe, LemonSqueezy, Paddle
-- queue: BullMQ, SQS, RabbitMQ, Kafka, Inngest
-- ai: OpenAI, Anthropic, Gemini, Replicate, Hugging Face
-- observability: Sentry, PostHog, Datadog, Grafana, Prometheus, Logtail
-- container: Docker, Kubernetes, ECS, Cloud Run
-- ci: GitHub Actions, CircleCI, Buildkite
-- group: Dashed-border structural container box (not a service)
+/**
+ * Pass 1: Topology Generation Prompt
+ * Instructs the AI to build a highly detailed visual architecture topology (nodes & edges)
+ * without any text/metadata (why, cost, free_tier, alternatives).
+ * Mandates fine-grained libraries, tools, frameworks, and runtimes.
+ */
+const DIAGRAM_TOPOLOGY_SYSTEM_PROMPT = `You are a system architecture topology designer.
+Your job is to output a detailed JSON graph representing a system architecture topology.
+Do NOT include metadata details like "why", "free_tier", "cost_at_scale", "upgrade_signal", or "alternatives" in this step (set them to empty strings or empty arrays).
+You must focus entirely on mapping the granular tools, frameworks, libraries, databases, and servers.
 
-CATEGORY CONNECTIONS & DISAMBIGUATION:
-1. A 'runtime' node (Bun, Go) is NOT the same as a 'framework' node (Hono, Express). Show both if relevant: Bun (runtime) -> Hono (framework).
-2. 'library' nodes (Zod, TanStack Query, tRPC) bridge client and server. They represent shared data models, validation, or fetching. They do NOT connect to databases directly.
-3. 'orm' nodes (Drizzle, Prisma) sit between backend/framework and database. They are a separate layer. e.g. Hono -> Drizzle -> PostgreSQL.
-4. 'auth' nodes handle sessions. 'oauth' nodes are external identity providers. Connect: user -> oauth -> auth -> backend.
-5. 'group' nodes create visual boundaries. Use them for logical layers (e.g. "Frontend Edge", "Auth Stack", "Backend Stack", "Data Tier").
-   - A group node has type: "group" and data.category: "group". Its data.label is its title. Its data.why, data.free_tier, etc. are empty strings.
+PREFERRED NODE LABELS FOR ICON MATCHING:
+Always name node data.label EXACTLY as listed below if using these technologies (this guarantees the correct SVG logo matches):
+- Runtimes/SDKs: Bun, Node.js, Deno, Go, Rust, Python, TypeScript
+- Frontend/Frameworks: Next.js, React, Astro, SolidJS, Remix, Qwik, Vue, Svelte
+- Backend/Frameworks: Hono, Fastify, Express, FastAPI, Elysia, Django, Spring Boot, NestJS
+- Libraries: Zod, TanStack Query, React Hook Form, Tailwind CSS, tRPC, Framer Motion
+- ORMs/Drivers: Drizzle, Prisma, TypeORM, pg
+- Databases/Caches: PostgreSQL, MySQL, MongoDB, Redis, SQLite, Neon, PlanetScale, Supabase, Turso, Upstash, CockroachDB
+- Hosting/CDN: Vercel, Cloudflare, Cloudflare Workers, Cloudflare R2, Cloudflare CDN, Railway, Fly.io, Render, Heroku
+- Auth/OAuth: Better Auth, Clerk, Auth0, Google OAuth, GitHub OAuth
+- SaaS/APIs: Stripe, Resend, OpenAI, Anthropic, Mailgun, SendGrid, Twilio, Google Analytics
+- Observability: Sentry, PostHog, Datadog, Grafana, Prometheus
+
+GRANULAR NODE RULES:
+1. Represent all components at a fine-grained level. DO NOT abstract them into single generic boxes.
+2. Include specific developer libraries and tools in their correct locations:
+   - Client/Server Validation: Zod (category: 'library')
+   - Client Data Fetching: TanStack Query / React Query / tRPC (category: 'library')
+   - CSS/Styling: Tailwind CSS (category: 'library')
+   - Forms: React Hook Form (category: 'library')
+   - Backend Runtime: Bun, Node.js, Deno, Go Binary (category: 'runtime')
+   - Backend Framework: Hono, Express, Fastify, Gin, Axum, FastAPI (category: 'framework')
+   - Database ORM/Drivers: Drizzle, Prisma, TypeORM, GORM, sqlx, pg driver (category: 'orm')
+3. Show correct stack sequencing:
+   - e.g. User -> Cloudflare CDN -> Vercel (hosting) -> Next.js (frontend) -> TanStack Query -> Bun (runtime) -> Hono (framework) -> Zod (validation) -> Drizzle (orm) -> PostgreSQL (database).
+4. Group container boxes ('group' category) must be used to group logical segments (e.g., "Edge & Client", "Frontend Layer", "Application Services", "Data Store").
    - Child nodes placed inside a group MUST have:
      * "parentId": parent_group_id
      * "extent": "parent"
      * "position": relative local coordinates inside the parent's container box (e.g., x: 40, y: 60), NOT global coordinates.
    - Group nodes must have style: { "width": number, "height": number } to properly contain children.
 
-AI & DATA PIPELINE DISAMBIGUATION (CRITICAL):
-6. If the stack includes an AI service (OpenAI, Gemini, Anthropic), do NOT just represent it as a generic "AI Service". Draw the exact model provider node (e.g. 'OpenAI GPT-4o' or 'Gemini 2.5 Flash') with category 'ai'.
-7. If the stack uses a vector database or search index (Pinecone, Chroma, Qdrant, Milvus, Weaviate, Algolia), ALWAYS include a separate node with category 'search' or 'database' (e.g., 'Pinecone Vector DB') and connect it from the AI service or backend. Do NOT leave Pinecone or other databases unrendered.
-8. Be extremely thorough: represent libraries like Zod (schema/validation) and TanStack Query (data fetching) as individual nodes in their correct column, showcasing the full client-server data flow.
-
-SPATIAL LAYOUT RULES & COLLISION AVOIDANCE:
-- Dagre auto-layout runs on the client, but you MUST set initial horizontal columns (x coordinates) and space nodes vertically (y coordinates spaced 160px apart, e.g., y = 100, 260, 420...) to avoid overlapping.
-- Group containers should be large enough to hold all their children comfortably. For example, if a group has 3 children spaced vertically, it needs a width of 240 and height of 500. Child relative local coordinates (x: 40, y: 60, etc.) must fall cleanly inside parent dimensions.
+SPATIAL LAYOUT RULES:
+- Even though auto-layout runs on the client, you MUST set initial horizontal columns (x coordinates) and space nodes vertically (y coordinates spaced 160px apart, e.g., y = 100, 260, 420...) to avoid overlapping.
+- Group containers should be large enough to hold all their children comfortably (e.g., if a group has 3 children spaced vertically, it needs a width of 240 and height of 500).
 
 HORIZONTAL SWIMLANE COLUMNS (x coordinates for left-to-right flow):
 - Col 1 (x = 100): user / external clients
@@ -66,35 +64,33 @@ HORIZONTAL SWIMLANE COLUMNS (x coordinates for left-to-right flow):
 - Col 6 (x = 1100): database / storage / search
 - Col 7 (x = 1300): observability / email / payment / ai (external cloud services)
 
-Within each column, space nodes out vertically (y coordinates) spaced 160px apart (e.g., y = 100, 260, 420, etc.) to avoid any overlap.
-
-JSON Output Schema:
+JSON Topology Schema to output:
 {
   "nodes": [
     {
-      "id": "string (unique key, e.g. hono, postgres)",
+      "id": "string (unique key, e.g. hono, postgres, zod)",
       "type": "string ('customNode' or 'group')",
       "parentId": "string (optional parent group id)",
       "extent": "string (optional, set to 'parent' if parentId is defined)",
       "position": { "x": number, "y": number },
       "style": { "width": number, "height": number } (required for group nodes, omit for customNode),
       "data": {
-        "label": "string (display name, e.g. Hono, PostgreSQL, AWS Lambda)",
-        "category": "string (one of the categories above)",
-        "why": "string (1-2 sentences of engineering justification)",
-        "free_tier": "string (pricing free tier description)",
-        "cost_at_scale": "string (upgrade cost explanation)",
-        "upgrade_signal": "string (limit details)",
-        "alternatives": ["alternative1", "alternative2"]
+        "label": "string (display name, e.g. Hono, Zod, PostgreSQL)",
+        "category": "string (one of the categories: user, cdn, hosting, gateway, frontend, library, auth, oauth, backend, runtime, framework, orm, database, cache, search, storage, email, payment, queue, ai, observability, container, ci, group)",
+        "why": "",
+        "free_tier": "",
+        "cost_at_scale": "",
+        "upgrade_signal": "",
+        "alternatives": []
       }
     }
   ],
   "edges": [
     {
-      "id": "string (unique edge key, e.g. e-hono-postgres)",
+      "id": "string (unique edge key, e.g. e-zod-hono)",
       "source": "node_id",
       "target": "node_id",
-      "label": "string (connection type, e.g. SQL, gRPC, OAuth)",
+      "label": "string (connection type, e.g. Validates, Fetches, SQL, gRPC)",
       "animated": boolean,
       "data": {
         "description": "string (1 sentence context on what flows)"
@@ -105,6 +101,84 @@ JSON Output Schema:
 
 Only return clean, valid JSON matching the schema. No markdown formatting except the JSON block. Ensure all nodes are connected logically and edges flow left-to-right.`;
 
+/**
+ * Pass 2: Metadata Hydration Prompt
+ * Given the context map, history, and generated topology, this prompt fills in
+ * the engineering justification, pricing details, and alternatives for each node.
+ */
+const DIAGRAM_HYDRATION_SYSTEM_PROMPT = `You are a system architecture details hydrator.
+Your job is to read a technology stack context and a system architecture topology, and write detailed metadata properties for each node ID.
+
+For each node ID present in the topology, you must provide:
+1. "why": A 1-2 sentence engineering justification. How does this fit their scale, team skills, and tech philosophy?
+2. "free_tier": Clear description of its free tier (or "Self-hosted Free" if open source).
+3. "cost_at_scale": Expected cost at their specific scale tier (nano, micro, small, medium, large).
+4. "upgrade_signal": Limits or triggers that would force scaling or migrating this component.
+5. "alternatives": A list of 2-3 alternative tools or services.
+
+You must output a JSON object mapping each node's "id" directly to its metadata:
+{
+  "nodeId": {
+    "why": "string",
+    "free_tier": "string",
+    "cost_at_scale": "string",
+    "upgrade_signal": "string",
+    "alternatives": ["alternative1", "alternative2"]
+  }
+}
+
+Do NOT output nodes array, edges array, coordinates, groups, or connectives. Output ONLY the JSON map matching this schema.`;
+
+// ─── GEMINI INVOCATION WITH ROTATION & RETRY ─────────────────────────────────
+
+/**
+ * Calls Gemini with key rotation and retry logic.
+ * Resilient against transient 503 and rate limit 429 errors.
+ */
+async function generateTextWithRotation(system: string, prompt: string): Promise<string> {
+  let attempt = 0;
+  const maxAttempts = 8;
+
+  while (attempt < maxAttempts) {
+    attempt++;
+    let currentKey;
+
+    try {
+      currentKey = geminiRegistry.acquireKey();
+    } catch (registryErr) {
+      console.error('[DiagramGenerator] Key registry exhausted:', registryErr);
+      throw registryErr;
+    }
+
+    try {
+      console.log(`[DiagramGenerator] Invoking model ${DIAGRAM_MODEL} using key ${currentKey.label} (attempt ${attempt})...`);
+      const google = createGoogleGenerativeAI({ apiKey: currentKey.key });
+      const response = await generateText({
+        model: google(DIAGRAM_MODEL),
+        system,
+        prompt,
+      });
+
+      return response.text;
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.warn(`[DiagramGenerator] Key ${currentKey.label} failed: ${errorMsg}`);
+
+      if (errorMsg.includes('429')) {
+        geminiRegistry.markRateLimited(currentKey);
+      }
+
+      // Briefly wait and try next rotated key
+      const backoffMs = 400 * attempt;
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+    }
+  }
+
+  throw new Error('Failed to generate diagram component after multiple key rotation attempts.');
+}
+
+// ─── MAIN DIAGRAM GENERATOR ──────────────────────────────────────────────────
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function generateDiagramForBlueprint(blueprintId: string): Promise<any> {
   const result = await db.select().from(blueprints).where(eq(blueprints.id, blueprintId)).limit(1);
@@ -112,32 +186,93 @@ export async function generateDiagramForBlueprint(blueprintId: string): Promise<
   if (result.length === 0) throw new Error('Blueprint not found');
   const blueprint = result[0];
 
-  const prompt = `Based on the context map and recommendation history below, generate the visual diagram.
+  const contextMapString = JSON.stringify(blueprint.contextMap, null, 2);
+  const chatHistoryString = JSON.stringify(blueprint.chatHistory, null, 2);
+
+  // ─── PASS 1: GENERATE TOPOLOGY ───
+  console.log(`[DiagramGenerator] Starting PASS 1: Topology Generation for blueprint ${blueprintId}`);
+  const topologyPrompt = `Based on the context map and recommendation history below, generate the visual diagram topology.
+Follow the rules in the system prompt. Draw all granular libraries, drivers, validators, servers, and external services.
 
 Context Map:
-${JSON.stringify(blueprint.contextMap, null, 2)}
+${contextMapString}
 
 Chat history:
-${JSON.stringify(blueprint.chatHistory, null, 2)}
+${chatHistoryString}
 
-Generate a clean architecture graph following the system prompt rules. Output JSON only.`;
+Generate the detailed architecture nodes and edges. Output JSON only.`;
 
-  const currentKey = geminiRegistry.acquireKey();
-  const google = createGoogleGenerativeAI({ apiKey: currentKey.key });
-
-  const response = await generateText({
-    model: google(DIAGRAM_MODEL),
-    system: DIAGRAM_SYSTEM_PROMPT,
-    prompt,
-  });
-
-  const rawText = response.text
+  const topologyRaw = await generateTextWithRotation(DIAGRAM_TOPOLOGY_SYSTEM_PROMPT, topologyPrompt);
+  const cleanTopologyText = topologyRaw
     .trim()
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/\s*```$/, '');
-  const graph = JSON.parse(rawText);
+  
+  const graph = JSON.parse(cleanTopologyText);
 
-  // Save the generated graph to the database
+  // Validate basic graph schema
+  if (!graph.nodes || !Array.isArray(graph.nodes)) {
+    throw new Error('Invalid topology returned: missing nodes array');
+  }
+
+  // ─── PASS 2: METADATA HYDRATION ───
+  console.log(`[DiagramGenerator] Starting PASS 2: Metadata Hydration for blueprint ${blueprintId}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mappedNodes = graph.nodes.map((n: any) => ({ id: n.id, label: n.data?.label, category: n.data?.category }));
+
+  const hydrationPrompt = `Based on the context map and recommendation history, populate details for the topology.
+
+Context Map:
+${contextMapString}
+
+Chat history:
+${chatHistoryString}
+
+Topology Nodes:
+${JSON.stringify(mappedNodes, null, 2)}
+
+Provide the detailed metadata (why, free_tier, cost_at_scale, upgrade_signal, alternatives) for each node ID. Output JSON only.`;
+
+  try {
+    const hydrationRaw = await generateTextWithRotation(DIAGRAM_HYDRATION_SYSTEM_PROMPT, hydrationPrompt);
+    const cleanHydrationText = hydrationRaw
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '');
+    
+    const hydrationMap = JSON.parse(cleanHydrationText);
+
+    // Merge metadata back into topology nodes
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    graph.nodes = graph.nodes.map((node: any) => {
+      // Group nodes don't need details
+      if (node.type === 'group' || node.data?.category === 'group') {
+        return node;
+      }
+
+      const meta = hydrationMap[node.id];
+      if (meta) {
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            why: meta.why || '',
+            free_tier: meta.free_tier || '',
+            cost_at_scale: meta.cost_at_scale || '',
+            upgrade_signal: meta.upgrade_signal || '',
+            alternatives: Array.isArray(meta.alternatives) ? meta.alternatives : [],
+          },
+        };
+      }
+      return node;
+    });
+    console.log(`[DiagramGenerator] Successfully completed PASS 2 Hydration for blueprint ${blueprintId}`);
+  } catch (hydrationError) {
+    // Robust fallback: if hydration fails, we still return the topology with empty fields rather than crashing
+    console.warn(`[DiagramGenerator] Pass 2 Hydration failed. Falling back to raw topology:`, hydrationError);
+  }
+
+  // Save the complete diagram graph to the database
   const nextPhase = blueprint.currentPhase === 'followup' ? 'followup' : 'diagram';
 
   await db

@@ -353,6 +353,7 @@ export const ICON_REGISTRY: Record<string, IconEntry> = {
   'TanStack': { source: 'svgl', slug: 'tanstack' },
   'TanStack Query': { source: 'svgl', slug: 'reactquery' },
   'React Query': { source: 'svgl', slug: 'reactquery' },
+  'React Hook Form': { source: 'svgl', slug: 'react-hook-form' },
   'pgsql': { source: 'svgl', slug: 'postgresql' },
   'pg': { source: 'svgl', slug: 'postgresql' },
   'postgresql': { source: 'svgl', slug: 'postgresql' },
@@ -379,7 +380,7 @@ function buildIconUrl(entry: IconEntry): string {
 }
 
 function normalize(label: string): string {
-  return label.toLowerCase().replace(/[\s.\-_]/g, '');
+  return label.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 const LOOKUP = new Map<string, IconEntry>();
@@ -388,6 +389,45 @@ for (const [key, entry] of Object.entries(ICON_REGISTRY)) {
 }
 
 export function getIconUrl(label: string): string | null {
-  const entry = LOOKUP.get(normalize(label));
-  return entry ? buildIconUrl(entry) : null;
+  const normLabel = normalize(label);
+  if (!normLabel) return null;
+
+  // 1. Try exact normalized match first
+  const exactEntry = LOOKUP.get(normLabel);
+  if (exactEntry) return buildIconUrl(exactEntry);
+
+  // 2. Sort all registry keys by length descending to match the longest/most specific key first
+  const sortedKeys = Object.keys(ICON_REGISTRY).sort((a, b) => b.length - a.length);
+
+  // 3. Try matching if registry key is a substring of the label (e.g. "drizzle" is inside "drizzleorm")
+  for (const key of sortedKeys) {
+    const normKey = normalize(key);
+    // Ignore extremely short keys (like 'pg', 'go', 'c') to prevent false matches in longer names
+    if (normKey.length > 2 && normLabel.includes(normKey)) {
+      return buildIconUrl(ICON_REGISTRY[key]);
+    }
+  }
+
+  // 4. Try matching if label is a substring of registry key (e.g. "postgres" is inside "postgresql")
+  for (const key of sortedKeys) {
+    const normKey = normalize(key);
+    if (normLabel.length > 2 && normKey.includes(normLabel)) {
+      return buildIconUrl(ICON_REGISTRY[key]);
+    }
+  }
+
+  // 5. Fallback for very short keys (exact check or bounded check)
+  for (const key of sortedKeys) {
+    const normKey = normalize(key);
+    if (normLabel.includes(normKey)) {
+      // Check if it is a separate word boundary or exact match
+      const labelWords = label.toLowerCase().split(/[^a-z0-9]+/);
+      const keyWords = key.toLowerCase().split(/[^a-z0-9]+/);
+      if (labelWords.some(w => keyWords.includes(w))) {
+        return buildIconUrl(ICON_REGISTRY[key]);
+      }
+    }
+  }
+
+  return null;
 }

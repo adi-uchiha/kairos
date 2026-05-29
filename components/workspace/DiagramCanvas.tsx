@@ -167,7 +167,6 @@ function DiagramCanvasInner({
   nodeQuestions,
   nodeInput,
   generalQuestions,
-  inputMessage,
   isAskingNode,
   isReadOnly,
   blueprintName,
@@ -183,8 +182,6 @@ function DiagramCanvasInner({
   onNodeInputChange,
   onAskNode,
   onCloseGeneralPanel,
-  onInputMessageChange,
-  onAskGeneral,
   onResetLayout,
 }: DiagramCanvasProps) {
   // ── Layer filtering (memoised and group-aware) ──────────────────────────────

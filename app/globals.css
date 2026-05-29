@@ -48,6 +48,7 @@
   --orange: #ff5500;
   --orange-wash: rgba(255, 85, 0, 0.05);
   --orange-border: rgba(255, 85, 0, 0.25);
+  --group-bg: rgba(9, 9, 11, 0.015);
 
   --font-sans: 'Space Grotesk', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -63,6 +64,7 @@ html.dark {
   --text-muted: #88888b;
   --orange-wash: rgba(255, 85, 0, 0.08);
   --orange-border: rgba(255, 85, 0, 0.35);
+  --group-bg: rgba(255, 255, 255, 0.02);
 }
 
 @layer base {
@@ -178,4 +180,14 @@ select:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px var(--surface) inset !important;
   box-shadow: 0 0 0px 1000px var(--surface) inset !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+/* ReactFlow Group Node Default Overrides */
+.react-flow__node-group {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.react-flow__node-group.selected {
+  box-shadow: none !important;
 }

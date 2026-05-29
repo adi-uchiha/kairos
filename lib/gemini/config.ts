@@ -16,7 +16,7 @@ export const CHAT_MODEL = 'gemini-2.5-flash';
 export const ANALYZER_MODEL = 'gemini-2.5-flash';
 
 /** Diagram generation — needs reasoning capability */
-export const DIAGRAM_MODEL = 'gemini-2.5-flash';
+export const DIAGRAM_MODEL = 'gemini-3.5-flash';
 
 /** Max streaming retry attempts before giving up */
 export const MAX_RETRIES = 10;

@@ -200,7 +200,7 @@ export function GroupNode({ data, selected }: NodeProps<Node<ServiceNodeData>>) 
         style={{
           border: `1.5px dashed ${groupColor}`,
           borderRadius: 8,
-          background: 'rgba(255, 255, 255, 0.01)',
+          background: 'var(--group-bg)',
           width: '100%',
           height: '100%',
           padding: '8px 12px',
