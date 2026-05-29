@@ -28,7 +28,7 @@ function clean(str: string): string {
 }
 
 const BRAINSTORMED_TECH = [
-  // Languages
+  // 1. Languages (Original + Additions)
   { name: 'Zig', terms: ['zig'] },
   { name: 'Elixir', terms: ['elixir'] },
   { name: 'Clojure', terms: ['clojure'] },
@@ -44,8 +44,9 @@ const BRAINSTORMED_TECH = [
   { name: 'Dart', terms: ['dart'] },
   { name: 'Lua', terms: ['lua'] },
   { name: 'Julia', terms: ['julia'] },
+  { name: 'Git', terms: ['git'] },
 
-  // Frameworks & Runtimes
+  // 2. Frameworks & UI Runtimes
   { name: 'Astro', terms: ['astro'] },
   { name: 'SolidJS', terms: ['solidjs', 'solid'] },
   { name: 'Remix', terms: ['remix'] },
@@ -61,10 +62,22 @@ const BRAINSTORMED_TECH = [
   { name: 'Phoenix', terms: ['phoenix'] },
   { name: 'Actix', terms: ['actix'] },
   { name: 'Axum', terms: ['axum'] },
+  { name: 'Preact', terms: ['preact'] },
+  { name: 'Lit', terms: ['lit'] },
+  { name: 'React Native', terms: ['reactnative', 'react'] },
+  { name: 'Flutter', terms: ['flutter'] },
+  { name: 'Electron', terms: ['electron'] },
+  { name: 'Tauri', terms: ['tauri'] },
+  { name: 'Expo', terms: ['expo'] },
 
-  // Databases & Vector stores
+  // 3. Styling & Components
+  { name: 'Sass', terms: ['sass'] },
+  { name: 'Bootstrap', terms: ['bootstrap'] },
+  { name: 'Framer Motion', terms: ['framer'] },
+
+  // 4. Databases, Vector Stores & Caching
   { name: 'Cassandra', terms: ['cassandra'] },
-  { name: 'CockroachDB', terms: ['cockroachdb', 'cockroach'] },
+  { name: 'CockroachDB', terms: ['cockroachdb', 'cockroachlabs'] },
   { name: 'ClickHouse', terms: ['clickhouse'] },
   { name: 'InfluxDB', terms: ['influxdb'] },
   { name: 'TimescaleDB', terms: ['timescaledb', 'timescale'] },
@@ -72,20 +85,25 @@ const BRAINSTORMED_TECH = [
   { name: 'Typesense', terms: ['typesense'] },
   { name: 'Pinecone', terms: ['pinecone'] },
   { name: 'Milvus', terms: ['milvus'] },
-  { name: 'Chroma', terms: ['chroma', 'chromadb'] },
+  { name: 'Chroma', terms: ['chromadb', 'chroma'] },
   { name: 'Qdrant', terms: ['qdrant'] },
   { name: 'Weaviate', terms: ['weaviate'] },
   { name: 'Hasura', terms: ['hasura'] },
   { name: 'SurrealDB', terms: ['surrealdb', 'surreal'] },
+  { name: 'Snowflake', terms: ['snowflake'] },
+  { name: 'Databricks', terms: ['databricks'] },
+  { name: 'Apache Spark', terms: ['spark', 'apachespark'] },
+  { name: 'OpenSearch', terms: ['opensearch'] },
+  { name: 'Memcached', terms: ['memcached'] },
 
-  // Messaging & Queues
+  // 5. Messaging & Queues
   { name: 'RabbitMQ', terms: ['rabbitmq'] },
   { name: 'ActiveMQ', terms: ['activemq'] },
   { name: 'BullMQ', terms: ['bullmq'] },
   { name: 'Celery', terms: ['celery'] },
   { name: 'NATS', terms: ['nats'] },
 
-  // DevOps & Cloud-native
+  // 6. DevOps & Cloud Platform CDNs
   { name: 'Ansible', terms: ['ansible'] },
   { name: 'Terraform', terms: ['terraform'] },
   { name: 'Pulumi', terms: ['pulumi'] },
@@ -96,18 +114,30 @@ const BRAINSTORMED_TECH = [
   { name: 'Nomad', terms: ['nomad'] },
   { name: 'Consul', terms: ['consul'] },
   { name: 'Vault', terms: ['vault'] },
+  { name: 'Netlify', terms: ['netlify'] },
+  { name: 'DigitalOcean', terms: ['digitalocean'] },
+  { name: 'Fastly', terms: ['fastly'] },
+  { name: 'Akamai', terms: ['akamai'] },
+  { name: 'Linode', terms: ['linode'] },
+  { name: 'GitHub', terms: ['github'] },
+  { name: 'Bitbucket', terms: ['bitbucket'] },
+  { name: 'Minikube', terms: ['minikube'] },
+  { name: 'Rancher', terms: ['rancher'] },
+  { name: 'OpenShift', terms: ['openshift', 'redhatopenshift'] },
+  { name: 'Portainer', terms: ['portainer'] },
 
-  // API Gateways & Observability
+  // 7. API Protocols, Gateways & Proxies
   { name: 'gRPC', terms: ['grpc'] },
   { name: 'WebSockets', terms: ['websocket', 'websockets'] },
   { name: 'Kong', terms: ['kong'] },
-  { name: 'Traefik', terms: ['traefik'] },
+  { name: 'Traefik', terms: ['traefikproxy', 'traefik'] },
   { name: 'Envoy', terms: ['envoy'] },
   { name: 'HAProxy', terms: ['haproxy'] },
   { name: 'OpenTelemetry', terms: ['opentelemetry', 'otel'] },
   { name: 'Jaeger', terms: ['jaeger'] },
+  { name: 'Caddy', terms: ['caddy'] },
 
-  // Auth & Security
+  // 8. Auth, Security & Secrets
   { name: 'Better Auth', terms: ['betterauth', 'better-auth'] },
   { name: 'Kinde', terms: ['kinde'] },
   { name: 'Keycloak', terms: ['keycloak'] },
@@ -115,8 +145,10 @@ const BRAINSTORMED_TECH = [
   { name: 'Firebase Auth', terms: ['firebase'] },
   { name: 'Okta', terms: ['okta'] },
   { name: 'Bitwarden', terms: ['bitwarden'] },
+  { name: 'Authentik', terms: ['authentik'] },
+  { name: 'Teleport', terms: ['teleport'] },
 
-  // AI & ML
+  // 9. AI, ML & Vector Frameworks
   { name: 'LangChain', terms: ['langchain'] },
   { name: 'LlamaIndex', terms: ['llamaindex'] },
   { name: 'Hugging Face', terms: ['huggingface'] },
@@ -125,7 +157,7 @@ const BRAINSTORMED_TECH = [
   { name: 'Cohere', terms: ['cohere'] },
   { name: 'Replicate', terms: ['replicate'] },
 
-  // SaaS & Integration
+  // 10. SaaS, Collaboration & Integrations
   { name: 'Slack', terms: ['slack'] },
   { name: 'Discord', terms: ['discord'] },
   { name: 'Telegram', terms: ['telegram'] },
@@ -133,7 +165,15 @@ const BRAINSTORMED_TECH = [
   { name: 'Plaid', terms: ['plaid'] },
   { name: 'PayPal', terms: ['paypal'] },
   { name: 'Shopify', terms: ['shopify'] },
-  { name: 'Mailchimp', terms: ['mailchimp'] }
+  { name: 'Mailchimp', terms: ['mailchimp'] },
+  { name: 'Jira', terms: ['jira'] },
+  { name: 'Notion', terms: ['notion'] },
+  { name: 'Linear', terms: ['linear'] },
+  { name: 'Trello', terms: ['trello'] },
+  { name: 'Koa', terms: ['koa'] },
+  { name: 'TypeORM', terms: ['typeorm'] },
+  { name: 'Sequelize', terms: ['sequelize'] },
+  { name: 'Mongoose', terms: ['mongoose'] }
 ];
 
 async function testUrl(url: string): Promise<boolean> {
@@ -146,6 +186,36 @@ async function testUrl(url: string): Promise<boolean> {
 }
 
 function findBestSvglMatch(name: string, terms: string[]): string | null {
+  // Advanced Manual Overrides for Outstanding Aesthetics
+  const overrides: Record<string, string> = {
+    'React Native': 'react_dark',
+    'Framer Motion': 'framer_dark',
+    'GitHub': 'github_dark',
+    'Astro': 'astro-icon-dark',
+    'Remix': 'remix_dark',
+    'Tauri': 'tauri',
+    'Electron': 'electron',
+    'Flutter': 'flutter',
+    'Sass': 'sass',
+    'Sequelize': 'sequelize',
+    'TypeORM': 'typeorm',
+    'DigitalOcean': 'digitalocean',
+    'Netlify': 'netlify',
+    'Notion': 'notion',
+    'Linear': 'linear',
+    'Trello': 'trello',
+    'Bootstrap': 'bootstrap',
+    'Git': 'git',
+    'Expo': 'expo'
+  };
+
+  if (overrides[name]) {
+    const slug = overrides[name];
+    if (svglFiles.some(f => path.basename(f.path, '.svg') === slug)) {
+      return slug;
+    }
+  }
+
   for (const term of terms) {
     const cleanTerm = clean(term);
     const candidates = svglFiles.filter(f => {
@@ -170,7 +240,7 @@ interface ResolvedEntry {
 }
 
 async function run() {
-  console.log('Resolving and verifying 75+ brainstormed technical stack components...');
+  console.log('Resolving and verifying all brainstormed technical stack components...');
   const results: Record<string, ResolvedEntry> = {};
 
   const registryPath = path.join(__dirname, '../lib/icon-registry.ts');
