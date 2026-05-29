@@ -172,7 +172,7 @@ export interface Phase {
 
 export const WORKSPACE_PHASES: Phase[] = [
   { id: 'project_discovery', label: 'Discovery', icon: 'explore' },
-  { id: 'tech_philosophy', label: 'Tech Philosophy', icon: 'code_blocks' },
+  { id: 'tech_philosophy', label: 'Tech Philosophy', icon: 'code' },
   { id: 'scale_discovery', label: 'Scale & Growth', icon: 'storage' },
   { id: 'builder_context', label: 'Builder Context', icon: 'terminal' },
   { id: 'constraints', label: 'Constraints', icon: 'settings' },

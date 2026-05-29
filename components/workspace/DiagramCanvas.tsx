@@ -652,36 +652,6 @@ function DiagramCanvasInner({
           </div>
         </div>
       )}
-
-      {/* ── Persistent Diagram Chat Bar ── */}
-      <div className="p-4 border-t border-[var(--border)] shrink-0 bg-[var(--bg)] relative z-10">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => onInputMessageChange(e.target.value)}
-            placeholder="Ask questions about this architecture (e.g. 'what if database goes down?')..."
-            className="flex-1 bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[14px] focus:outline-none focus:border-[#FF5500]"
-            style={{ borderRadius: 0 }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                onAskGeneral(inputMessage);
-                onInputMessageChange('');
-              }
-            }}
-          />
-          <button
-            onClick={() => {
-              onAskGeneral(inputMessage);
-              onInputMessageChange('');
-            }}
-            className="px-5 border border-[var(--border)] bg-[var(--surface-hover)] hover:border-[#FF5500] hover:text-[#FF5500] transition-all flex items-center justify-center"
-            style={{ borderRadius: 0, cursor: 'pointer' }}
-          >
-            <MaterialIcon name="send" size={15} />
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
