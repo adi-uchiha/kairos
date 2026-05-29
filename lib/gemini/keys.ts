@@ -13,13 +13,13 @@ import type { GeminiKeyEntry } from './types';
 
 function loadKeys(): GeminiKeyEntry[] {
   const keys: GeminiKeyEntry[] = [];
-  let i = 1;
 
-  while (true) {
+  // Scan a range to allow gaps or revoked keys
+  for (let i = 1; i <= 50; i++) {
     const key = process.env[`GEMINI_KEY_${i}`];
-    if (!key) break; // Stop at first missing index
-    keys.push({ key, label: `Key-${i}` });
-    i++;
+    if (key && key.trim()) {
+      keys.push({ key: key.trim(), label: `Key-${i}` });
+    }
   }
 
   // Do not throw at module load/build time to prevent Next.js compilation/prerendering failures

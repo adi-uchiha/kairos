@@ -5,7 +5,7 @@
  * Run: node scripts/test-gemini-models.mjs
  */
 
-const API_KEY = 'AIzaSyARJA6gOj2a0CEuKNP7TDb9T2pdTbZog7c';
+const API_KEY = process.env.GEMINI_KEY_1 || process.env.GEMINI_API_KEY || '';
 const BASE = 'https://generativelanguage.googleapis.com/v1beta';
 
 // Candidate model names to test — from newest to oldest

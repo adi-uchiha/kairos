@@ -11,7 +11,7 @@ function getDeterministicUuid(userId: string): string {
     hash.substring(8, 12),
     hash.substring(12, 16),
     hash.substring(16, 20),
-    hash.substring(20, 32)
+    hash.substring(20, 32),
   ].join('-');
 }
 
