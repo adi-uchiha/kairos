@@ -87,7 +87,7 @@ export function CtaBand() {
               marginTop: 20,
             }}
           >
-            Free · No account needed · 5 min
+            Free
           </p>
         </motion.div>
       </div>
