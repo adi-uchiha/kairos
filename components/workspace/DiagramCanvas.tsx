@@ -19,8 +19,6 @@ import { toPng } from 'html-to-image';
 import {
   type ServiceNodeData,
   type QAPair,
-  type DiagramLayer,
-  DIAGRAM_LAYERS,
   AI_THINKING_PLACEHOLDER,
 } from '@/types/blueprint';
 import { ServiceNode, GroupNode } from './ServiceNode';
@@ -31,36 +29,6 @@ const NODE_TYPES = {
   customNode: ServiceNode,
   group: GroupNode,
 };
-
-// ─── LAYER FILTER LOGIC ──────────────────────────────────────────────────────
-
-function matchesLayer(category: string, layer: DiagramLayer): boolean {
-  const c = category?.toLowerCase();
-  switch (layer) {
-    case 'frontend':
-      return c === 'frontend' || c === 'hosting' || c === 'cdn';
-    case 'backend':
-      return c === 'backend' || c === 'framework' || c === 'runtime' || c === 'gateway';
-    case 'database':
-      return c === 'database' || c === 'storage' || c === 'cache' || c === 'orm';
-    case 'services':
-      return c === 'auth' || c === 'oauth' || c === 'email' || c === 'queue' || c === 'observability' || c === 'search' || c === 'ai';
-    default:
-      return true;
-  }
-}
-
-// ─── EXPORT HELPERS ───────────────────────────────────────────────────────────
-
-function downloadFile(content: string, filename: string, mimeType: string) {
-  const dataStr = `data:${mimeType};charset=utf-8,` + encodeURIComponent(content);
-  const anchor = document.createElement('a');
-  anchor.setAttribute('href', dataStr);
-  anchor.setAttribute('download', filename);
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-}
 
 // ─── NODE DETAIL FIELD ───────────────────────────────────────────────────────
 
@@ -100,7 +68,6 @@ function QAEntry({ qa }: { qa: QAPair }) {
 interface DiagramCanvasProps {
   nodes: Node<ServiceNodeData>[];
   edges: Edge[];
-  selectedLayer: DiagramLayer;
   selectedNode: Node<ServiceNodeData> | null;
   showGeneralAskPanel: boolean;
   nodeQuestions: Record<string, QAPair[]>;
@@ -115,7 +82,6 @@ interface DiagramCanvasProps {
   onNodesChange: ReturnType<typeof useNodesState<Node<ServiceNodeData>>>[2];
   onEdgesChange: ReturnType<typeof useEdgesState<Edge>>[2];
   onNodeClick: NodeMouseHandler<Node<ServiceNodeData>>;
-  onLayerChange: (layer: DiagramLayer) => void;
   onLayoutDirectionChange: (dir: 'LR' | 'TB') => void;
   onCloseNode: () => void;
   onOpenSwapModal: () => void;
@@ -132,12 +98,10 @@ interface DiagramCanvasProps {
 function ViewportFitter({
   nodesCount,
   direction,
-  layer,
   consoleOpen,
 }: {
   nodesCount: number;
   direction: string;
-  layer: string;
   consoleOpen: boolean;
 }) {
   const { fitView } = useReactFlow();
@@ -147,7 +111,7 @@ function ViewportFitter({
       fitView({ padding: 0.15, duration: 250 });
     }, 100);
     return () => clearTimeout(timer);
-  }, [nodesCount, direction, layer, consoleOpen, fitView]);
+  }, [nodesCount, direction, consoleOpen, fitView]);
 
   return null;
 }
@@ -163,7 +127,6 @@ export function DiagramCanvas(props: DiagramCanvasProps) {
 function DiagramCanvasInner({
   nodes,
   edges,
-  selectedLayer,
   selectedNode,
   showGeneralAskPanel,
   nodeQuestions,
@@ -177,7 +140,6 @@ function DiagramCanvasInner({
   onNodesChange,
   onEdgesChange,
   onNodeClick,
-  onLayerChange,
   onLayoutDirectionChange,
   onCloseNode,
   onOpenSwapModal,
@@ -188,32 +150,10 @@ function DiagramCanvasInner({
   onSaveLayout,
   onAutoLayout,
 }: DiagramCanvasProps) {
-  // ── Layer filtering (memoised and group-aware) ──────────────────────────────
-  const filteredNodes = useMemo(() => {
-    if (selectedLayer === 'all') return nodes;
-
-    const matchingIds = new Set(
-      nodes
-        .filter((n) => n.type !== 'group' && matchesLayer(n.data.category, selectedLayer))
-        .map((n) => n.id)
-    );
-
-    // Include group nodes if any child is visible
-    return nodes.filter((n) => {
-      if (n.type === 'group') {
-        return nodes.some((child) => child.parentId === n.id && matchingIds.has(child.id));
-      }
-      return matchingIds.has(n.id);
-    });
-  }, [nodes, selectedLayer]);
-
-  const filteredEdges = useMemo(() => {
-    if (selectedLayer === 'all') return edges;
-    const visible = new Set(filteredNodes.map((n) => n.id));
-    return edges.filter((e) => visible.has(e.source) && visible.has(e.target));
-  }, [edges, filteredNodes, selectedLayer]);
-
   // ── Export handlers ─────────────────────────────────────────────────────────
+  // Tiny transparent 1x1 PNG used as fallback for CORS-blocked external images
+  const TRANSPARENT_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
   const handleExportPNG = () => {
     const flowEl = document.querySelector('.react-flow') as HTMLElement;
     if (!flowEl) return;
@@ -229,6 +169,10 @@ function DiagramCanvasInner({
       width: flowEl.offsetWidth,
       height: flowEl.offsetHeight,
       style: { transform: 'none' },
+      // Skip Google Fonts CSS (avoids SecurityError on cross-origin CSSStyleSheet)
+      skipFonts: true,
+      // Use a transparent placeholder for any external SVG/image that fails CORS
+      imagePlaceholder: TRANSPARENT_PNG,
     })
       .then((url) => {
         const link = document.createElement('a');
@@ -247,62 +191,6 @@ function DiagramCanvasInner({
       });
   };
 
-  const handleExportJSON = () => {
-    downloadFile(
-      JSON.stringify({ nodes, edges }, null, 2),
-      `${blueprintName || 'architecture'}.json`,
-      'text/json',
-    );
-  };
-
-  const handleExportMermaid = () => {
-    let mmd = 'graph TD\n  %% Nodes\n';
-    nodes.forEach((n) => {
-      mmd += `  ${n.id}["${n.data.label} (${n.data.category})"]\n`;
-    });
-    mmd += '\n  %% Edges\n';
-    edges.forEach((e) => {
-      mmd += `  ${e.source} -->|"${String(e.label || '')}"| ${e.target}\n`;
-    });
-    downloadFile(mmd, `${blueprintName || 'architecture'}.mmd`, 'text/plain');
-    toast.success('Diagram exported as Mermaid.js successfully');
-  };
-
-  const handleExportCSV = () => {
-    const q = (s: string) => `"${s.replace(/"/g, '""')}"`;
-    let csv = 'ID,Type,Label,Category,Why Chosen,Free Tier,Cost at Scale\n';
-    nodes.forEach((n) => {
-      const d = n.data;
-      csv += [
-        n.id,
-        'Node',
-        q(d.label || ''),
-        q(d.category || ''),
-        q(d.why || ''),
-        q(d.free_tier || ''),
-        q(d.cost_at_scale || ''),
-      ].join(',') + '\n';
-    });
-    edges.forEach((e) => {
-      const ed = e.data as Record<string, unknown> | undefined;
-      csv += [
-        e.id,
-        'Connection',
-        q(String(e.label || '')),
-        q(`${e.source} -> ${e.target}`),
-        q(String(ed?.description || '')),
-        '',
-        '',
-      ].join(',') + '\n';
-    });
-    downloadFile(csv, `${blueprintName || 'architecture'}.csv`, 'text/csv');
-    toast.success('Diagram exported as Miro/Figma CSV successfully');
-  };
-
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success('Shareable URL copied to clipboard! Guests can view in Read-Only mode.');
-  };
 
   const defaultEdgeOptions = useMemo(() => ({
     type: 'smoothstep',
@@ -378,8 +266,8 @@ function DiagramCanvasInner({
       {/* ReactFlow Canvas */}
       <div className="flex-1 relative">
         <ReactFlow
-          nodes={filteredNodes}
-          edges={filteredEdges}
+          nodes={nodes}
+          edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
@@ -389,9 +277,8 @@ function DiagramCanvasInner({
           fitView
         >
           <ViewportFitter
-            nodesCount={filteredNodes.length}
+            nodesCount={nodes.length}
             direction={layoutDirection}
-            layer={selectedLayer}
             consoleOpen={showGeneralAskPanel || !!selectedNode}
           />
           <Background color="var(--border)" gap={16} size={1} />
@@ -404,28 +291,8 @@ function DiagramCanvasInner({
           />
         </ReactFlow>
 
-        {/* ── Layer Filter & Layout Toolbar (top-left) ── */}
-        <div className="absolute top-2 md:top-4 left-2 md:left-4 flex gap-1.5 md:gap-2 z-10 flex-wrap max-w-[calc(100%-120px)] md:max-w-[70%]">
-          <div
-            className="flex bg-[var(--surface)] border border-[var(--border)] p-0.5"
-            style={{ borderRadius: 0 }}
-          >
-            {DIAGRAM_LAYERS.map((layer) => (
-              <button
-                key={layer}
-                onClick={() => onLayerChange(layer)}
-                className={`px-2 md:px-2.5 py-1 text-[9px] md:text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer ${
-                  selectedLayer === layer
-                    ? 'bg-[#FF5500] text-white font-bold'
-                    : 'hover:bg-[var(--surface-hover)] text-[var(--text-muted)] hover:text-[var(--text)]'
-                }`}
-                style={{ borderRadius: 0 }}
-              >
-                {layer}
-              </button>
-            ))}
-          </div>
-
+        {/* ── Layout Toolbar (top-left) ── */}
+        <div className="absolute top-2 md:top-4 left-2 md:left-4 flex gap-1.5 md:gap-2 z-10 flex-wrap">
           <div
             className="flex bg-[var(--surface)] border border-[var(--border)] p-0.5"
             style={{ borderRadius: 0 }}
@@ -485,7 +352,7 @@ function DiagramCanvasInner({
           )}
         </div>
 
-        {/* ── Export / Share Toolbar (top-right) ── */}
+        {/* ── PNG Export (top-right) ── */}
         <div className="absolute top-2 md:top-4 right-2 md:right-4 flex gap-1.5 md:gap-2 z-10">
           <button
             onClick={handleExportPNG}
@@ -495,49 +362,6 @@ function DiagramCanvasInner({
           >
             <MaterialIcon name="image" size={14} />
             <span className="hidden sm:inline">PNG</span>
-          </button>
-
-          {/* Export dropdown */}
-          <div className="relative group">
-            <button
-              className="p-2 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
-              style={{ borderRadius: 0 }}
-            >
-              <MaterialIcon name="download" size={14} />
-              <span className="hidden sm:inline">EXPORT</span>
-            </button>
-            <div
-              className="absolute right-0 mt-1 w-48 bg-[var(--surface)] border border-[var(--border)] hidden group-hover:block z-30"
-              style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-            >
-              <button
-                onClick={handleExportJSON}
-                className="w-full text-left px-4 py-2 hover:bg-[var(--surface-hover)] text-xs font-mono cursor-pointer border-b border-[var(--border)]"
-              >
-                JSON (Internal)
-              </button>
-              <button
-                onClick={handleExportMermaid}
-                className="w-full text-left px-4 py-2 hover:bg-[var(--surface-hover)] text-xs font-mono cursor-pointer border-b border-[var(--border)]"
-              >
-                Mermaid.js (.mmd)
-              </button>
-              <button
-                onClick={handleExportCSV}
-                className="w-full text-left px-4 py-2 hover:bg-[var(--surface-hover)] text-xs font-mono cursor-pointer"
-              >
-                Miro/Figma CSV
-              </button>
-            </div>
-          </div>
-
-          <button
-            onClick={handleShare}
-            className="p-2 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
-            style={{ borderRadius: 0 }}
-          >
-            <MaterialIcon name="share" size={14} />
-            <span className="hidden sm:inline">SHARE</span>
           </button>
         </div>
 

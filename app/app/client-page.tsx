@@ -13,7 +13,6 @@ import {
   type ContextMap,
   type ServiceNodeData,
   type RawDiagramNode,
-  type DiagramLayer,
   WORKSPACE_PHASES,
 } from '@/types/blueprint';
 import { useBlueprintPolling } from '@/hooks/useBlueprintPolling';
@@ -107,7 +106,6 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
   }, [initialLaidOut]);
 
   const [selectedNode, setSelectedNode] = useState<Node<ServiceNodeData> | null>(null);
-  const [selectedLayer, setSelectedLayer] = useState<DiagramLayer>('all');
   const [showSwapModal, setShowSwapModal] = useState(false);
   const [isSwapping, setIsSwapping] = useState(false);
   const [isGeneratingDiagram, setIsGeneratingDiagram] = useState(false);
@@ -497,7 +495,6 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
             <DiagramCanvas
               nodes={nodes}
               edges={edges}
-              selectedLayer={selectedLayer}
               selectedNode={selectedNode}
               showGeneralAskPanel={diagramQA.showGeneralAskPanel}
               nodeQuestions={diagramQA.nodeQuestions}
@@ -515,7 +512,6 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
                 if (node.type === 'group') return;
                 setSelectedNode(node as Node<ServiceNodeData>);
               }}
-              onLayerChange={setSelectedLayer}
               onLayoutDirectionChange={handleLayoutDirectionChange}
               onCloseNode={() => setSelectedNode(null)}
               onOpenSwapModal={() => setShowSwapModal(true)}
