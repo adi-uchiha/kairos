@@ -109,6 +109,11 @@ export type NodeCategory =
  * Extends Record<string, unknown> so it satisfies the ReactFlow NodeData
  * constraint while remaining fully typed.
  */
+export interface LibEntry {
+  id: string;
+  label: string;
+}
+
 export interface ServiceNodeData extends Record<string, unknown> {
   label: string;
   category: string;
@@ -117,6 +122,8 @@ export interface ServiceNodeData extends Record<string, unknown> {
   cost_at_scale?: string;
   upgrade_signal?: string;
   alternatives?: string[];
+  /** For libCluster nodes: the list of libraries to render as icon pills */
+  libs?: LibEntry[];
 }
 
 export interface RawDiagramNode {

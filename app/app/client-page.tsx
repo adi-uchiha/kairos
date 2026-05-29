@@ -503,7 +503,6 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
               inputMessage={diagramInputMessage}
               isAskingNode={diagramQA.isAskingNode}
               isReadOnly={isReadOnly}
-              blueprintName={blueprintName}
               theme={theme}
               layoutDirection={layoutDirection}
               onNodesChange={onNodesChange}

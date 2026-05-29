@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { User } from 'lucide-react';
 import { Handle, Position, NodeResizer, type NodeProps, type Node } from '@xyflow/react';
-import { type ServiceNodeData } from '@/types/blueprint';
+import { type ServiceNodeData, type LibEntry } from '@/types/blueprint';
 import { getIconUrl } from '@/lib/icon-registry';
 
 /** Maps a service category to its accent color in the diagram. */
@@ -164,7 +164,119 @@ export function ServiceNode({ data }: NodeProps<Node<ServiceNodeData>>) {
   );
 }
 
-/** Determines dashed border color for Group nodes based on label contents. */
+/**
+ * LibClusterNode — Compact icon-grid node for library groups.
+ *
+ * Design intent: Libraries (Zod, TanStack Query, Tailwind CSS, etc.) don't
+ * deserve the same visual weight as real infrastructure services. This node
+ * shows them as a tight pill-grid of icons inside the parent layer's group
+ * container. Names appear only on hover (title tooltip). Clicking the node
+ * opens the standard detail drawer.
+ */
+export function LibClusterNode({ data }: NodeProps<Node<ServiceNodeData>>) {
+  const libs: LibEntry[] = Array.isArray(data.libs) ? data.libs : [];
+
+  return (
+    <div
+      style={{
+        background: 'var(--surface)',
+        border: '1px dashed var(--border)',
+        borderRadius: 8,
+        padding: '8px 10px',
+        minWidth: 140,
+        maxWidth: 280,
+        position: 'relative',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+      }}
+    >
+      <Handle
+        type="target"
+        position={Position.Left}
+        style={{ background: 'var(--border)', width: 8, height: 8 }}
+      />
+
+      {/* Header label */}
+      <div
+        style={{
+          fontSize: 9,
+          fontFamily: 'var(--font-mono)',
+          color: 'var(--text-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          marginBottom: 6,
+          userSelect: 'none',
+        }}
+      >
+        {data.label}
+      </div>
+
+      {/* Icon grid */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+        {libs.map((lib) => (
+          <LibIconPill key={lib.id} lib={lib} />
+        ))}
+        {libs.length === 0 && (
+          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            No libs
+          </span>
+        )}
+      </div>
+
+      <Handle
+        type="source"
+        position={Position.Right}
+        style={{ background: 'var(--border)', width: 8, height: 8 }}
+      />
+    </div>
+  );
+}
+
+/** Single library icon pill inside a LibClusterNode. */
+function LibIconPill({ lib }: { lib: LibEntry }) {
+  const iconUrl = getIconUrl(lib.label);
+  const [imgError, setImgError] = useState(false);
+
+  return (
+    <div
+      title={lib.label}
+      style={{
+        width: 28,
+        height: 28,
+        borderRadius: 6,
+        background: 'var(--surface-hover)',
+        border: '1px solid var(--border)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        cursor: 'default',
+        flexShrink: 0,
+      }}
+    >
+      {iconUrl && !imgError ? (
+         
+        <img
+          src={iconUrl}
+          alt={lib.label}
+          width={18}
+          height={18}
+          style={{ objectFit: 'contain' }}
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <span
+          style={{
+            fontSize: 10,
+            fontWeight: 700,
+            color: 'var(--text-muted)',
+          }}
+        >
+          {lib.label[0]?.toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function getGroupColor(label: string): string {
   const l = label.toLowerCase();
   if (l.includes('backend') || l.includes('api')) return '#ff5500';

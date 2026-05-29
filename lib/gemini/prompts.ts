@@ -154,6 +154,56 @@ Group 3 (Tooling Opinions):
   }
   :::
 
+Group 4 (Framework Preferences):
+- Frontend framework preference
+  Use a :::mcq block:
+  :::mcq
+  {
+    "question": "Preferred frontend framework?",
+    "field": "familiar_frameworks",
+    "allowMultiple": false,
+    "choices": [
+      { "label": "Next.js (React, SSR/SSG)", "value": "nextjs", "icon": "▲" },
+      { "label": "SvelteKit", "value": "sveltekit", "icon": "🔥" },
+      { "label": "Astro (Content-first)", "value": "astro", "icon": "🚀" },
+      { "label": "React SPA (Vite/CRA)", "value": "react-spa", "icon": "⚛️" },
+      { "label": "Nuxt / Vue", "value": "nuxt-vue", "icon": "💚" },
+      { "label": "No strong opinion", "value": "no-preference", "icon": "⚪" }
+    ]
+  }
+  :::
+- Backend runtime + framework preference
+  Use a :::mcq block:
+  :::mcq
+  {
+    "question": "Preferred backend runtime + framework?",
+    "field": "backend_runtime",
+    "allowMultiple": false,
+    "choices": [
+      { "label": "Bun + Hono (Fast, modern TS)", "value": "bun", "icon": "🐇" },
+      { "label": "Node.js + Express / Fastify", "value": "node", "icon": "🟩" },
+      { "label": "Go + Gin / Fiber", "value": "go", "icon": "🐹" },
+      { "label": "Python + FastAPI / Django", "value": "python", "icon": "🐍" },
+      { "label": "Rust + Axum", "value": "rust", "icon": "🦀" },
+      { "label": "Full-stack (Next.js API routes / tRPC)", "value": "fullstack", "icon": "🔗" }
+    ]
+  }
+  :::
+- AI tooling openness
+  Use a :::mcq block:
+  :::mcq
+  {
+    "question": "How open are you to integrating AI features?",
+    "field": "tech_philosophy.ai_tooling_openness",
+    "allowMultiple": false,
+    "choices": [
+      { "label": "Early adopter (AI is core to the product)", "value": "early-adopter", "icon": "🤖" },
+      { "label": "Pragmatic (AI where it clearly helps)", "value": "pragmatic", "icon": "🧠" },
+      { "label": "Conservative (Prefer deterministic systems)", "value": "conservative", "icon": "⚖️" }
+    ]
+  }
+  :::
+
 Close the phase with one open subjective question:
 - Any other strong preferences or tools you'd never use again?
   Use a :::subjective block:
@@ -306,10 +356,48 @@ Do NOT make technology recommendations yet.`,
 You are in the CONSTRAINTS phase.
 Ask about non-negotiables, compliance, and existing infrastructure. Use :::mcq and :::subjective blocks:
 
+- What platform services does this product need? (This is critical for the architecture diagram)
+  :::mcq
+  {
+    "question": "Which platform services will your product need? (Select all that apply)",
+    "field": "existing_tools",
+    "allowMultiple": true,
+    "choices": [
+      { "label": "User authentication / OAuth", "value": "auth", "icon": "🔐" },
+      { "label": "Payments / Subscriptions", "value": "payments", "icon": "💳" },
+      { "label": "Transactional email", "value": "email", "icon": "📧" },
+      { "label": "AI / LLM features", "value": "ai", "icon": "🤖" },
+      { "label": "File / media uploads", "value": "file-uploads", "icon": "📁" },
+      { "label": "Full-text search", "value": "search", "icon": "🔍" },
+      { "label": "Background jobs / queues", "value": "background-jobs", "icon": "⚙️" },
+      { "label": "Real-time / WebSockets", "value": "realtime", "icon": "⚡" },
+      { "label": "Push notifications", "value": "push-notifications", "icon": "🔔" }
+    ]
+  }
+  :::
+
+- Deployment target preference:
+  :::mcq
+  {
+    "question": "Where do you plan to deploy?",
+    "field": "deployment_target",
+    "allowMultiple": false,
+    "choices": [
+      { "label": "Vercel (Serverless / Edge)", "value": "vercel", "icon": "▲" },
+      { "label": "Railway / Render / Fly.io (PaaS)", "value": "railway", "icon": "🚂" },
+      { "label": "AWS (EC2/ECS/Lambda)", "value": "aws", "icon": "🟠" },
+      { "label": "GCP (Cloud Run / GKE)", "value": "gcp", "icon": "🔵" },
+      { "label": "Cloudflare Workers", "value": "cloudflare", "icon": "🟡" },
+      { "label": "Self-hosted VPS (Hetzner, DigitalOcean)", "value": "vps", "icon": "🖥️" },
+      { "label": "Not decided yet", "value": "undecided", "icon": "⚪" }
+    ]
+  }
+  :::
+
 - Existing infrastructure or mandatory tools:
   :::mcq
   {
-    "question": "Any existing infrastructure or tools in use?",
+    "question": "Any existing tools or services already locked in?",
     "field": "existing_tools",
     "allowMultiple": true,
     "choices": [
@@ -342,14 +430,23 @@ Ask about non-negotiables, compliance, and existing infrastructure. Use :::mcq a
   :::subjective
   {
     "field": "non_negotiables",
-    "label": "Are there any firm mandates or non-negotiables (must be open source, must run on-premise, etc.)?",
+    "label": "Any firm mandates? (must be open source, must run on-premise, specific vendor required, etc.)",
     "placeholder": "e.g. Stack must be fully open source, or must host on Hetzner VPS..."
   }
   :::
 
-Explicitly handle how these constraints limit or guide the technical options.
-If none, that's fine — just confirm and move on.
-After constraints, you have everything you need. Offer to generate the recommendation.`,
+After gathering service needs and constraints, map them to context fields:
+- "auth" in existing_tools → needs_payments: false, needs auth node in diagram
+- "payments" → needs_payments: true → include Stripe/LemonSqueezy node
+- "email" → needs_email: true → include Resend/Mailgun node
+- "ai" → needs_ai_features: true → include OpenAI/Anthropic node
+- "realtime" → has_realtime_requirement: true → include WebSocket/queue node
+- "background-jobs" → needs_background_jobs: true → include BullMQ/queue node
+- "search" → needs_search: true → include Algolia/Typesense node
+- deployment_target maps directly to the hosting node in the diagram
+
+Explicitly handle how constraints limit or guide options.
+After constraints, offer to generate the recommendation.`,
 
   recommendation: `
 You are in the RECOMMENDATION phase.

@@ -14,20 +14,20 @@ import {
   type Edge,
   type NodeMouseHandler,
 } from '@xyflow/react';
-import { toast } from 'sonner';
-import { toPng } from 'html-to-image';
+
 import {
   type ServiceNodeData,
   type QAPair,
   AI_THINKING_PLACEHOLDER,
 } from '@/types/blueprint';
-import { ServiceNode, GroupNode } from './ServiceNode';
+import { ServiceNode, GroupNode, LibClusterNode } from './ServiceNode';
 import { MaterialIcon } from './MaterialIcon';
 
 // ─── NODE TYPES (stable reference outside component) ─────────────────────────
 const NODE_TYPES = {
   customNode: ServiceNode,
   group: GroupNode,
+  libCluster: LibClusterNode,
 };
 
 // ─── NODE DETAIL FIELD ───────────────────────────────────────────────────────
@@ -76,7 +76,6 @@ interface DiagramCanvasProps {
   inputMessage: string;
   isAskingNode: boolean;
   isReadOnly: boolean;
-  blueprintName: string;
   theme: 'light' | 'dark' | null;
   layoutDirection: 'LR' | 'TB';
   onNodesChange: ReturnType<typeof useNodesState<Node<ServiceNodeData>>>[2];
@@ -134,7 +133,6 @@ function DiagramCanvasInner({
   generalQuestions,
   isAskingNode,
   isReadOnly,
-  blueprintName,
   theme,
   layoutDirection,
   onNodesChange,
@@ -150,46 +148,6 @@ function DiagramCanvasInner({
   onSaveLayout,
   onAutoLayout,
 }: DiagramCanvasProps) {
-  // ── Export handlers ─────────────────────────────────────────────────────────
-  // Tiny transparent 1x1 PNG used as fallback for CORS-blocked external images
-  const TRANSPARENT_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
-
-  const handleExportPNG = () => {
-    const flowEl = document.querySelector('.react-flow') as HTMLElement;
-    if (!flowEl) return;
-
-    const controls = document.querySelector('.react-flow__controls') as HTMLElement | null;
-    const panels = document.querySelectorAll<HTMLElement>('.react-flow__panel');
-
-    if (controls) controls.style.visibility = 'hidden';
-    panels.forEach((p) => (p.style.visibility = 'hidden'));
-
-    toPng(flowEl, {
-      backgroundColor: theme === 'dark' ? '#0d0d0f' : '#ffffff',
-      width: flowEl.offsetWidth,
-      height: flowEl.offsetHeight,
-      style: { transform: 'none' },
-      // Skip Google Fonts CSS (avoids SecurityError on cross-origin CSSStyleSheet)
-      skipFonts: true,
-      // Use a transparent placeholder for any external SVG/image that fails CORS
-      imagePlaceholder: TRANSPARENT_PNG,
-    })
-      .then((url) => {
-        const link = document.createElement('a');
-        link.download = `${blueprintName || 'architecture'}.png`;
-        link.href = url;
-        link.click();
-        toast.success('Diagram exported as PNG successfully');
-      })
-      .catch((err) => {
-        console.error('PNG export failed:', err);
-        toast.error('Failed to export diagram as PNG');
-      })
-      .finally(() => {
-        if (controls) controls.style.visibility = 'visible';
-        panels.forEach((p) => (p.style.visibility = 'visible'));
-      });
-  };
 
 
   const defaultEdgeOptions = useMemo(() => ({
@@ -352,18 +310,6 @@ function DiagramCanvasInner({
           )}
         </div>
 
-        {/* ── PNG Export (top-right) ── */}
-        <div className="absolute top-2 md:top-4 right-2 md:right-4 flex gap-1.5 md:gap-2 z-10">
-          <button
-            onClick={handleExportPNG}
-            className="p-2 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
-            style={{ borderRadius: 0 }}
-            title="Export PNG"
-          >
-            <MaterialIcon name="image" size={14} />
-            <span className="hidden sm:inline">PNG</span>
-          </button>
-        </div>
 
         {/* ── Node Detail Drawer ── */}
         {selectedNode && (
