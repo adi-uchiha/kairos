@@ -1,4 +1,4 @@
-type IconSource = 'devicon' | 'simpleicons' | 'local' | 'svgl' | 'selfhst';
+type IconSource = 'devicon' | 'simpleicons' | 'local' | 'svgl' | 'selfhst' | 'cloud';
 
 interface IconEntry {
   source: IconSource;
@@ -227,54 +227,54 @@ export const ICON_REGISTRY: Record<string, IconEntry> = {
   'Django': { source: 'svgl', slug: 'django' },
   'postgres': { source: 'svgl', slug: 'postgresql' },
   'AI Service (Python)': { source: 'devicon', slug: 'python' },
-  'AWS S3': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Storage/64/Amazon-Simple-Storage-Service.svg' },
+  'AWS S3': { source: 'cloud', slug: 'aws/service/Storage/64/Amazon-Simple-Storage-Service.svg' },
 
   // AWS Services
-  'AWS Lambda': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Compute/64/AWS-Lambda.svg' },
-  'Amazon S3': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Storage/64/Amazon-Simple-Storage-Service.svg' },
-  'Amazon RDS': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Database/64/Amazon-RDS.svg' },
-  'Amazon DynamoDB': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Database/64/Amazon-DynamoDB.svg' },
-  'Amazon SQS': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/App-Integration/64/Amazon-Simple-Queue-Service.svg' },
-  'Amazon SES': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Business-Applications/64/Amazon-Simple-Email-Service.svg' },
-  'Amazon EC2': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Compute/64/Amazon-EC2.svg' },
-  'Amazon ECS': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Containers/64/Amazon-Elastic-Container-Service.svg' },
-  'Amazon EKS': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Containers/64/Amazon-Elastic-Kubernetes-Service.svg' },
-  'Amazon CloudFront': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Networking-Content-Delivery/64/Amazon-CloudFront.svg' },
-  'Amazon API Gateway': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/App-Integration/64/Amazon-API-Gateway.svg' },
-  'Amazon Cognito': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Security-Identity-Compliance/64/Amazon-Cognito.svg' },
-  'Amazon Route 53': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Networking-Content-Delivery/64/Amazon-Route-53.svg' },
-  'Amazon ElastiCache': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Database/64/Amazon-ElastiCache.svg' },
-  'Amazon EventBridge': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/App-Integration/64/Amazon-EventBridge.svg' },
-  'Amazon SNS': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/App-Integration/64/Amazon-Simple-Notification-Service.svg' },
-  'Amazon Kinesis': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Analytics/64/Amazon-Kinesis.svg' },
-  'AWS Step Functions': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/App-Integration/64/AWS-Step-Functions.svg' },
-  'AWS Fargate': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Containers/64/AWS-Fargate.svg' },
-  'Amazon Aurora': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Database/64/Amazon-Aurora.svg' },
-  'AWS Secrets Manager': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Security-Identity-Compliance/64/AWS-Secrets-Manager.svg' },
-  'AWS WAF': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Security-Identity-Compliance/64/AWS-WAF.svg' },
-  'Amazon VPC': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Networking-Content-Delivery/64/Amazon-Virtual-Private-Cloud.svg' },
-  'AWS IAM': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Security-Identity-Compliance/64/AWS-Identity-and-Access-Management.svg' },
-  'Amazon CloudWatch': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Management-Governance/64/Amazon-CloudWatch.svg' },
-  'Amazon Athena': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Analytics/64/Amazon-Athena.svg' },
-  'Amazon Redshift': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/aws/service/Analytics/64/Amazon-Redshift.svg' },
-  'Amazon Bedrock': { source: 'local', slug: 'https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/amazonwebservices.svg' },
+  'AWS Lambda': { source: 'cloud', slug: 'aws/service/Compute/64/AWS-Lambda.svg' },
+  'Amazon S3': { source: 'cloud', slug: 'aws/service/Storage/64/Amazon-Simple-Storage-Service.svg' },
+  'Amazon RDS': { source: 'cloud', slug: 'aws/service/Database/64/Amazon-RDS.svg' },
+  'Amazon DynamoDB': { source: 'cloud', slug: 'aws/service/Database/64/Amazon-DynamoDB.svg' },
+  'Amazon SQS': { source: 'cloud', slug: 'aws/service/App-Integration/64/Amazon-Simple-Queue-Service.svg' },
+  'Amazon SES': { source: 'cloud', slug: 'aws/service/Business-Applications/64/Amazon-Simple-Email-Service.svg' },
+  'Amazon EC2': { source: 'cloud', slug: 'aws/service/Compute/64/Amazon-EC2.svg' },
+  'Amazon ECS': { source: 'cloud', slug: 'aws/service/Containers/64/Amazon-Elastic-Container-Service.svg' },
+  'Amazon EKS': { source: 'cloud', slug: 'aws/service/Containers/64/Amazon-Elastic-Kubernetes-Service.svg' },
+  'Amazon CloudFront': { source: 'cloud', slug: 'aws/service/Networking-Content-Delivery/64/Amazon-CloudFront.svg' },
+  'Amazon API Gateway': { source: 'cloud', slug: 'aws/service/App-Integration/64/Amazon-API-Gateway.svg' },
+  'Amazon Cognito': { source: 'cloud', slug: 'aws/service/Security-Identity-Compliance/64/Amazon-Cognito.svg' },
+  'Amazon Route 53': { source: 'cloud', slug: 'aws/service/Networking-Content-Delivery/64/Amazon-Route-53.svg' },
+  'Amazon ElastiCache': { source: 'cloud', slug: 'aws/service/Database/64/Amazon-ElastiCache.svg' },
+  'Amazon EventBridge': { source: 'cloud', slug: 'aws/service/App-Integration/64/Amazon-EventBridge.svg' },
+  'Amazon SNS': { source: 'cloud', slug: 'aws/service/App-Integration/64/Amazon-Simple-Notification-Service.svg' },
+  'Amazon Kinesis': { source: 'cloud', slug: 'aws/service/Analytics/64/Amazon-Kinesis.svg' },
+  'AWS Step Functions': { source: 'cloud', slug: 'aws/service/App-Integration/64/AWS-Step-Functions.svg' },
+  'AWS Fargate': { source: 'cloud', slug: 'aws/service/Containers/64/AWS-Fargate.svg' },
+  'Amazon Aurora': { source: 'cloud', slug: 'aws/service/Database/64/Amazon-Aurora.svg' },
+  'AWS Secrets Manager': { source: 'cloud', slug: 'aws/service/Security-Identity-Compliance/64/AWS-Secrets-Manager.svg' },
+  'AWS WAF': { source: 'cloud', slug: 'aws/service/Security-Identity-Compliance/64/AWS-WAF.svg' },
+  'Amazon VPC': { source: 'cloud', slug: 'aws/service/Networking-Content-Delivery/64/Amazon-Virtual-Private-Cloud.svg' },
+  'AWS IAM': { source: 'cloud', slug: 'aws/service/Security-Identity-Compliance/64/AWS-Identity-and-Access-Management.svg' },
+  'Amazon CloudWatch': { source: 'cloud', slug: 'aws/service/Management-Governance/64/Amazon-CloudWatch.svg' },
+  'Amazon Athena': { source: 'cloud', slug: 'aws/service/Analytics/64/Amazon-Athena.svg' },
+  'Amazon Redshift': { source: 'cloud', slug: 'aws/service/Analytics/64/Amazon-Redshift.svg' },
+  'Amazon Bedrock': { source: 'simpleicons', slug: 'amazonwebservices' },
 
   // GCP Services
-  'GCP Cloud Run': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/cloud_run/cloud_run.svg' },
-  'GCP Cloud Functions': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/cloud_functions/cloud_functions.svg' },
-  'GCP BigQuery': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/bigquery/bigquery.svg' },
-  'GCP Pub/Sub': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/pubsub/pubsub.svg' },
-  'GCP Cloud Storage': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/cloud_storage/cloud_storage.svg' },
-  'GCP Firebase': { source: 'local', slug: 'https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/firebase.svg' },
-  'GCP Firestore': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/firestore/firestore.svg' },
-  'GCP Cloud SQL': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/cloud_sql/cloud_sql.svg' },
-  'GCP Vertex AI': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/vertexai/vertexai.svg' },
-  'GCP GKE': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/google_kubernetes_engine/google_kubernetes_engine.svg' },
-  'GCP Cloud Armor': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/cloud_armor/cloud_armor.svg' },
-  'GCP Load Balancer': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/cloud_load_balancing/cloud_load_balancing.svg' },
-  'GCP Memorystore': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/memorystore/memorystore.svg' },
-  'GCP Spanner': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/cloud_spanner/cloud_spanner.svg' },
-  'GCP Secret Manager': { source: 'local', slug: 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main/gcp/secret_manager/secret_manager.svg' },
+  'GCP Cloud Run': { source: 'cloud', slug: 'gcp/cloud_run/cloud_run.svg' },
+  'GCP Cloud Functions': { source: 'cloud', slug: 'gcp/cloud_functions/cloud_functions.svg' },
+  'GCP BigQuery': { source: 'cloud', slug: 'gcp/bigquery/bigquery.svg' },
+  'GCP Pub/Sub': { source: 'cloud', slug: 'gcp/pubsub/pubsub.svg' },
+  'GCP Cloud Storage': { source: 'cloud', slug: 'gcp/cloud_storage/cloud_storage.svg' },
+  'GCP Firebase': { source: 'simpleicons', slug: 'firebase' },
+  'GCP Firestore': { source: 'cloud', slug: 'gcp/firestore/firestore.svg' },
+  'GCP Cloud SQL': { source: 'cloud', slug: 'gcp/cloud_sql/cloud_sql.svg' },
+  'GCP Vertex AI': { source: 'cloud', slug: 'gcp/vertexai/vertexai.svg' },
+  'GCP GKE': { source: 'cloud', slug: 'gcp/google_kubernetes_engine/google_kubernetes_engine.svg' },
+  'GCP Cloud Armor': { source: 'cloud', slug: 'gcp/cloud_armor/cloud_armor.svg' },
+  'GCP Load Balancer': { source: 'cloud', slug: 'gcp/cloud_load_balancing/cloud_load_balancing.svg' },
+  'GCP Memorystore': { source: 'cloud', slug: 'gcp/memorystore/memorystore.svg' },
+  'GCP Spanner': { source: 'cloud', slug: 'gcp/cloud_spanner/cloud_spanner.svg' },
+  'GCP Secret Manager': { source: 'cloud', slug: 'gcp/secret_manager/secret_manager.svg' },
 };
 
 const DEVICON_BASE = 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons';
@@ -290,6 +290,8 @@ function buildIconUrl(entry: IconEntry): string {
       return `https://svgl.app/library/${entry.slug}.svg`;
     case 'selfhst':
       return `https://cdn.jsdelivr.net/gh/selfhst/icons/svg/${entry.slug}.svg`;
+    case 'cloud':
+      return `https://cdn.jsdelivr.net/gh/tf2d2/icons@main/${entry.slug}`;
     case 'local':
       return entry.slug; // static public path
   }

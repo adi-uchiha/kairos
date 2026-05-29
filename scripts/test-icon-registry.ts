@@ -13,6 +13,8 @@ function buildIconUrl(source: string, slug: string, variant?: string): string {
       return `https://svgl.app/library/${slug}.svg`;
     case 'selfhst':
       return `https://cdn.jsdelivr.net/gh/selfhst/icons/svg/${slug}.svg`;
+    case 'cloud':
+      return `https://cdn.jsdelivr.net/gh/tf2d2/icons@main/${slug}`;
     case 'local':
       return slug.startsWith('http') ? slug : '';
     default:
