@@ -11,6 +11,8 @@ function buildIconUrl(source: string, slug: string, variant?: string): string {
       return `https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${slug}.svg`;
     case 'svgl':
       return `https://svgl.app/library/${slug}.svg`;
+    case 'selfhst':
+      return `https://cdn.jsdelivr.net/gh/selfhst/icons/svg/${slug}.svg`;
     case 'local':
       return slug.startsWith('http') ? slug : '';
     default:

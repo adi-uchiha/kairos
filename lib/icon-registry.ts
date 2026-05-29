@@ -1,4 +1,4 @@
-type IconSource = 'devicon' | 'simpleicons' | 'local' | 'svgl';
+type IconSource = 'devicon' | 'simpleicons' | 'local' | 'svgl' | 'selfhst';
 
 interface IconEntry {
   source: IconSource;
@@ -8,6 +8,37 @@ interface IconEntry {
 
 export const ICON_REGISTRY: Record<string, IconEntry> = {
   // Dev tools (devicon CDN)
+  'Weaviate': { source: 'selfhst', slug: 'weaviate' },
+  'WebSockets': { source: 'selfhst', slug: 'websocket' },
+  'Traefik': { source: 'selfhst', slug: 'traefik' },
+  'HAProxy': { source: 'selfhst', slug: 'haproxy' },
+  'Authelia': { source: 'selfhst', slug: 'authelia' },
+  'MinIO': { source: 'selfhst', slug: 'minio' },
+  'Plausible': { source: 'selfhst', slug: 'plausible' },
+  'Umami': { source: 'selfhst', slug: 'umami' },
+  'Uptime Kuma': { source: 'selfhst', slug: 'uptime-kuma' },
+  'Nextcloud': { source: 'selfhst', slug: 'nextcloud' },
+  'Syncthing': { source: 'selfhst', slug: 'syncthing' },
+  'Dex Auth': { source: 'selfhst', slug: 'dex-auth' },
+  'AdGuard Home': { source: 'selfhst', slug: 'adguard-home' },
+  'Directus': { source: 'selfhst', slug: 'directus' },
+  'Ghostty': { source: 'selfhst', slug: 'ghostty' },
+  'Gitea': { source: 'selfhst', slug: 'gitea' },
+  'Home Assistant': { source: 'selfhst', slug: 'home-assistant' },
+  'Jellyfin': { source: 'selfhst', slug: 'jellyfin' },
+  'Nginx Proxy Manager': { source: 'selfhst', slug: 'nginx-proxy-manager' },
+  'Strapi': { source: 'selfhst', slug: 'strapi' },
+  'Vaultwarden': { source: 'selfhst', slug: 'vaultwarden' },
+  'WordPress': { source: 'selfhst', slug: 'wordpress' },
+  'Appwrite': { source: 'selfhst', slug: 'appwrite' },
+  'Baserow': { source: 'selfhst', slug: 'baserow' },
+  'Flowise': { source: 'selfhst', slug: 'flowise' },
+  'Metabase': { source: 'selfhst', slug: 'metabase' },
+  'n8n': { source: 'selfhst', slug: 'n8n' },
+  'NocoDB': { source: 'selfhst', slug: 'nocodb' },
+  'Open WebUI': { source: 'selfhst', slug: 'open-webui' },
+  'PocketBase': { source: 'selfhst', slug: 'pocketbase' },
+
   'Git': { source: 'svgl', slug: 'git' },
   'Preact': { source: 'svgl', slug: 'preact' },
   'Lit': { source: 'svgl', slug: 'lit' },
@@ -35,7 +66,6 @@ export const ICON_REGISTRY: Record<string, IconEntry> = {
   'Rancher': { source: 'devicon', slug: 'rancher' },
   'OpenShift': { source: 'simpleicons', slug: 'redhatopenshift' },
   'Portainer': { source: 'devicon', slug: 'portainer' },
-  'Traefik': { source: 'devicon', slug: 'traefikproxy' },
   'Caddy': { source: 'simpleicons', slug: 'caddy' },
   'Authentik': { source: 'simpleicons', slug: 'authentik' },
   'Teleport': { source: 'devicon', slug: 'teleport' },
@@ -258,6 +288,8 @@ function buildIconUrl(entry: IconEntry): string {
       return `https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${entry.slug}.svg`;
     case 'svgl':
       return `https://svgl.app/library/${entry.slug}.svg`;
+    case 'selfhst':
+      return `https://cdn.jsdelivr.net/gh/selfhst/icons/svg/${entry.slug}.svg`;
     case 'local':
       return entry.slug; // static public path
   }
