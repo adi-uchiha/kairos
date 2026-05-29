@@ -302,6 +302,10 @@ export function DiagramCanvas({
           fill: var(--text) !important;
           color: var(--text) !important;
         }
+        .react-flow__controls-button svg path {
+          fill: currentColor !important;
+          stroke: currentColor !important;
+        }
       `}</style>
 
       {/* ReactFlow Canvas */}
