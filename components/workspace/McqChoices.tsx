@@ -2,6 +2,46 @@
 
 import React, { useState } from 'react';
 import { type McqBlock } from '@/lib/mcq-parser';
+import { getIconUrl } from '@/lib/icon-registry';
+
+type McqChoice = McqBlock['choices'][number];
+
+/** Renders the icon for a MCQ choice pill.
+ *  Priority: techIcon (tech SVG from registry) > materialIcon (Material Symbols Sharp) > nothing.
+ */
+function ChoiceIcon({ choice }: { choice: McqChoice }) {
+  const [imgError, setImgError] = useState(false);
+
+  if (choice.techIcon) {
+    const url = getIconUrl(choice.techIcon);
+    if (url && !imgError) {
+      return (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={url}
+          alt={choice.techIcon}
+          width={14}
+          height={14}
+          style={{ objectFit: 'contain', flexShrink: 0 }}
+          onError={() => setImgError(true)}
+        />
+      );
+    }
+  }
+
+  if (choice.materialIcon) {
+    return (
+      <span
+        className="material-symbols-sharp"
+        style={{ fontSize: 14, lineHeight: 1, flexShrink: 0, color: 'inherit' }}
+      >
+        {choice.materialIcon}
+      </span>
+    );
+  }
+
+  return null;
+}
 
 interface McqChoicesProps {
   block: McqBlock;
@@ -69,7 +109,7 @@ export function McqChoices({ block, onSelect, disabled = false, selectedValue }:
               }`}
               style={{ borderRadius: 0 }}
             >
-              {choice.icon && <span className="text-[14px]">{choice.icon}</span>}
+              <ChoiceIcon choice={choice} />
               <span>{choice.label}</span>
             </button>
           );

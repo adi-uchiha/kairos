@@ -3,7 +3,7 @@ export interface McqBlock {
   question: string;
   field: string;
   allowMultiple: boolean;
-  choices: { label: string; value: string; icon?: string }[];
+  choices: { label: string; value: string; materialIcon?: string; techIcon?: string }[];
 }
 
 export interface SubjectiveBlock {
@@ -13,44 +13,56 @@ export interface SubjectiveBlock {
   placeholder?: string;
 }
 
+export interface TransitionBlock {
+  type: 'transition';
+  next_phase: string;
+}
+
 export type InteractiveBlock = McqBlock | SubjectiveBlock;
 
 export interface ParsedMessage {
   textContent: string;
   blocks: InteractiveBlock[];
+  /** If the LLM signalled a phase transition via :::transition, this holds the target phase. */
+  requestedPhase?: string;
 }
 
 /**
- * Parses :::mcq ... ::: and :::subjective ... ::: blocks from a message's content.
- * Strips these blocks from the textContent and returns the parsed blocks in order.
- * If JSON parsing fails for a block, it is left in the textContent to avoid losing info.
+ * Parses :::mcq, :::subjective, and :::transition blocks from a message.
+ * Strips interactive blocks from textContent and returns them separately.
+ * On parse failure a block is left in the text to avoid losing info.
  */
 export function parseMcqBlocks(content: string | undefined | null): ParsedMessage {
   if (!content) {
     return { textContent: '', blocks: [] };
   }
 
-  // Regex to match :::blockType \n [JSON] \n :::
-  // We make it non-greedy and let it capture the block type and the JSON body
-  const blockRegex = /:::(mcq|subjective)\s*\n([\s\S]*?)\n\s*:::/g;
+  const blockRegex = /:::(mcq|subjective|transition)\s*\n([\s\S]*?)\n\s*:::/g;
   const tempBlocks: InteractiveBlock[] = [];
+  let requestedPhase: string | undefined;
+
   const processedText = content.replace(blockRegex, (rawBlock, blockType, jsonString) => {
     try {
       const parsed = JSON.parse(jsonString.trim());
-      // Validate type matches what was declared
       if (parsed && typeof parsed === 'object') {
+        if (blockType === 'transition') {
+          // Not an interactive block — just extract the phase signal
+          requestedPhase = parsed.next_phase as string;
+          return ''; // strip from content
+        }
         parsed.type = blockType;
         tempBlocks.push(parsed as InteractiveBlock);
-        return ''; // strip from content
+        return '';
       }
     } catch (e) {
       console.warn('Failed to parse interactive block JSON:', e, rawBlock);
     }
-    return rawBlock; // keep raw block on error
+    return rawBlock;
   });
 
   return {
     textContent: processedText.trim(),
     blocks: tempBlocks,
+    requestedPhase,
   };
 }

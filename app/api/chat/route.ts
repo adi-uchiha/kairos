@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server';
 import { streamGeminiChat, analyzeAndUpdateBlueprint } from '@/lib/gemini';
 import { KAIROS_SYSTEM_PROMPT } from '@/lib/gemini/prompts';
+import { parseMcqBlocks } from '@/lib/mcq-parser';
 import { db } from '@/db';
 import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
@@ -116,16 +117,28 @@ export async function POST(req: NextRequest) {
         ? [{ role: 'assistant' as const, content: event.text }]
         : [...messages, { role: 'assistant' as const, content: event.text }];
 
-      // Save assistant message to the database
+      // Check if the LLM requested a phase transition via :::transition block
+      const { requestedPhase } = parseMcqBlocks(event.text);
+      const safePhases = ['project_discovery', 'tech_philosophy', 'scale_discovery', 'builder_context', 'constraints', 'recommendation', 'diagram', 'followup'];
+      const isValidPhase = requestedPhase && safePhases.includes(requestedPhase);
+      // Never downgrade from diagram or followup
+      const isDowngrade = (currentPhase === 'diagram' || currentPhase === 'followup') && requestedPhase !== currentPhase;
+
+      // Save assistant message (and optional phase update) to the database
       try {
         await db
           .update(blueprints)
           .set({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             chatHistory: finalHistory as any,
+            ...(isValidPhase && !isDowngrade ? { currentPhase: requestedPhase } : {}),
             updatedAt: new Date(),
           })
           .where(eq(blueprints.id, sessionId));
+
+        if (isValidPhase && !isDowngrade) {
+          console.log(`[Chat] LLM-requested phase transition: ${currentPhase} → ${requestedPhase}`);
+        }
       } catch (err) {
         console.error('Failed to save chat history on finish:', err);
       }
