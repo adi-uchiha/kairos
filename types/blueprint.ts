@@ -50,23 +50,23 @@ export interface ContextMap {
   existing_tools?: string[];
   compliance_requirements?: string[];
   non_negotiables?: string[];
-  
+
   // New discovery & architecture fields
-  backend_runtime?: string | null;     // 'node' | 'bun' | 'deno' | 'go' | 'rust' | 'python'
-  backend_framework?: string | null;   // 'hono' | 'express' | 'fastify' | 'gin' | 'axum'
-  auth_strategy?: string | null;       // 'jwt' | 'sessions' | 'oauth-only' | 'passkeys'
-  auth_provider?: string | null;       // 'better-auth' | 'clerk' | 'supabase' | 'nextauth'
-  orm_preference?: string | null;      // 'drizzle' | 'prisma' | 'raw-sql' | 'none'
-  deployment_target?: string | null;   // 'vercel' | 'aws' | 'gcp' | 'railway' | 'fly' | 'vps'
+  backend_runtime?: string | null; // 'node' | 'bun' | 'deno' | 'go' | 'rust' | 'python'
+  backend_framework?: string | null; // 'hono' | 'express' | 'fastify' | 'gin' | 'axum'
+  auth_strategy?: string | null; // 'jwt' | 'sessions' | 'oauth-only' | 'passkeys'
+  auth_provider?: string | null; // 'better-auth' | 'clerk' | 'supabase' | 'nextauth'
+  orm_preference?: string | null; // 'drizzle' | 'prisma' | 'raw-sql' | 'none'
+  deployment_target?: string | null; // 'vercel' | 'aws' | 'gcp' | 'railway' | 'fly' | 'vps'
   needs_background_jobs?: boolean | null;
   needs_websockets?: boolean | null;
   needs_search?: boolean | null;
   needs_payments?: boolean | null;
   needs_email?: boolean | null;
   needs_ai_features?: boolean | null;
-  
+
   tech_philosophy?: Partial<TechPhilosophy>;
-  
+
   [key: string]: ContextMapValue | Partial<TechPhilosophy>;
 }
 
@@ -74,35 +74,35 @@ export interface ContextMap {
 
 export type NodeCategory =
   // User-facing layers
-  | 'user'            // "End Users", "Mobile App", external persona nodes
-  | 'frontend'        // React, Next.js, Svelte, SolidJS, Qwik, Astro
-  | 'cdn'             // Cloudflare CDN, CloudFront, Fastly, Akamai
-  | 'hosting'         // Vercel, Netlify, Railway, Render, Fly.io
+  | 'user' // "End Users", "Mobile App", external persona nodes
+  | 'frontend' // React, Next.js, Svelte, SolidJS, Qwik, Astro
+  | 'cdn' // Cloudflare CDN, CloudFront, Fastly, Akamai
+  | 'hosting' // Vercel, Netlify, Railway, Render, Fly.io
   // Backend
-  | 'gateway'         // API Gateway, Kong, nginx, Traefik, Caddy
-  | 'backend'         // Generic backend server
-  | 'runtime'         // The actual execution engine: Bun, Node.js, Deno
-  | 'framework'       // Hono, Express, Fastify, Gin, Axum, Fiber, Django, FastAPI
-  | 'library'         // Zod, TanStack, tRPC, SWR, React Query — middleware/utility
+  | 'gateway' // API Gateway, Kong, nginx, Traefik, Caddy
+  | 'backend' // Generic backend server
+  | 'runtime' // The actual execution engine: Bun, Node.js, Deno
+  | 'framework' // Hono, Express, Fastify, Gin, Axum, Fiber, Django, FastAPI
+  | 'library' // Zod, TanStack, tRPC, SWR, React Query — middleware/utility
   // Data
-  | 'database'        // PostgreSQL, MySQL, MongoDB, SQLite, CockroachDB
-  | 'cache'           // Redis, Memcached, Upstash
-  | 'orm'             // Drizzle, Prisma, TypeORM, SQLAlchemy, GORM
-  | 'search'          // Algolia, Typesense, Meilisearch, OpenSearch
-  | 'storage'         // S3, R2, GCS, Cloudinary, uploadthing
+  | 'database' // PostgreSQL, MySQL, MongoDB, SQLite, CockroachDB
+  | 'cache' // Redis, Memcached, Upstash
+  | 'orm' // Drizzle, Prisma, TypeORM, SQLAlchemy, GORM
+  | 'search' // Algolia, Typesense, Meilisearch, OpenSearch
+  | 'storage' // S3, R2, GCS, Cloudinary, uploadthing
   // Platform services
-  | 'auth'            // Better Auth, NextAuth, Clerk, Supabase Auth, Lucia
-  | 'oauth'           // Google OAuth, GitHub OAuth, Discord OAuth (identity providers)
-  | 'email'           // Resend, Mailgun, SendGrid, SES, Postmark
-  | 'payment'         // Stripe, LemonSqueezy, Paddle, Razorpay
-  | 'queue'           // BullMQ, SQS, RabbitMQ, Kafka, Inngest
-  | 'ai'              // OpenAI, Anthropic, Gemini, Replicate, Hugging Face
-  | 'observability'   // Sentry, PostHog, Datadog, Grafana, Prometheus, Logtail
+  | 'auth' // Better Auth, NextAuth, Clerk, Supabase Auth, Lucia
+  | 'oauth' // Google OAuth, GitHub OAuth, Discord OAuth (identity providers)
+  | 'email' // Resend, Mailgun, SendGrid, SES, Postmark
+  | 'payment' // Stripe, LemonSqueezy, Paddle, Razorpay
+  | 'queue' // BullMQ, SQS, RabbitMQ, Kafka, Inngest
+  | 'ai' // OpenAI, Anthropic, Gemini, Replicate, Hugging Face
+  | 'observability' // Sentry, PostHog, Datadog, Grafana, Prometheus, Logtail
   // Infrastructure
-  | 'container'       // Docker, Kubernetes, ECS, Cloud Run
-  | 'ci'              // GitHub Actions, CircleCI, Buildkite, Jenkins
+  | 'container' // Docker, Kubernetes, ECS, Cloud Run
+  | 'ci' // GitHub Actions, CircleCI, Buildkite, Jenkins
   // Structural
-  | 'group';          // Dashed-border container node — NOT a service
+  | 'group'; // Dashed-border container node — NOT a service
 
 /**
  * Matches the shape stored in blueprint.diagramGraph.nodes[n].data.
@@ -128,11 +128,12 @@ export interface ServiceNodeData extends Record<string, unknown> {
 
 export interface RawDiagramNode {
   id: string;
-  type?: string;          // 'customNode' | 'group'
+  type?: string; // 'customNode' | 'group'
   position?: { x: number; y: number };
-  parentId?: string;      // child nodes inside groups
-  extent?: 'parent';      // restricts dragging to parent
-  style?: {               // group width/height
+  parentId?: string; // child nodes inside groups
+  extent?: 'parent'; // restricts dragging to parent
+  style?: {
+    // group width/height
     width?: number;
     height?: number;
   };

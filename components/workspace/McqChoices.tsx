@@ -67,12 +67,12 @@ export function McqChoices({ block, onSelect, disabled = false, selectedValue }:
 
   const handleConfirm = () => {
     if (disabled || selectedValues.length === 0) return;
-    
+
     // Create a combined label from the selected choices
     const selectedChoices = block.choices.filter((c) => selectedValues.includes(c.value));
     const combinedLabel = selectedChoices.map((c) => c.label).join(', ');
     const combinedValue = selectedValues.join(',');
-    
+
     onSelect(combinedValue, combinedLabel);
   };
 
@@ -81,13 +81,13 @@ export function McqChoices({ block, onSelect, disabled = false, selectedValue }:
       <p className="text-xs font-semibold text-[var(--text-secondary)] mb-2.5 uppercase tracking-wider font-mono">
         {block.question}
       </p>
-      
+
       <div className="flex flex-wrap gap-2">
         {block.choices.map((choice) => {
           const isSelected = block.allowMultiple
             ? selectedValues.includes(choice.value)
             : selectedValue === choice.value;
-          
+
           return (
             <button
               key={choice.value}

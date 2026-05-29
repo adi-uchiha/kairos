@@ -16,6 +16,7 @@ Additionally, Kairos has no explicit mechanism to understand a user's **tech phi
 ## 2. Feature Breakdown
 
 ### Feature A — MCQ-Hybrid Chat UI
+
 - AI messages containing structured questions render **clickable choice chips** inline in the chat bubble.
 - Selecting a choice immediately submits it as the user's message (no textarea required).
 - Subjective questions show a **labeled textarea panel** beneath the AI bubble.
@@ -23,6 +24,7 @@ Additionally, Kairos has no explicit mechanism to understand a user's **tech phi
 - Free-text phases: `project_discovery`, `recommendation`, `diagram`, `followup`.
 
 ### Feature B — Tech Philosophy Phase
+
 - New phase `tech_philosophy` inserted **between `project_discovery` and `scale_discovery`**.
 - Builds a "tech DNA" profile via 5–7 quick MCQ questions + 1–2 subjective ones.
 - Results stored in a `tech_philosophy` sub-object inside `contextMap`.
@@ -64,6 +66,7 @@ PHASE_FOLLOWUP
 ### New Transition Condition
 
 **Tech Philosophy → Scale Discovery when:**
+
 - `tech_philosophy.cloud_preference` is set
 - `tech_philosophy.language_era` is set
 - `tech_philosophy.stack_style` is set
@@ -210,12 +213,14 @@ Render order:
 ## 8. Updated `ChatPanel.tsx`
 
 ### New props:
+
 ```typescript
 onMcqSelect: (value: string, label: string, field: string) => void;
 onSubjectiveSubmit: (text: string, field: string) => void;
 ```
 
 ### Changes:
+
 1. Replace assistant message render with `<HybridMessage>`.
 2. Detect if the latest assistant message has MCQ/subjective blocks.
 3. **Hide the floating textarea input bar** when:
@@ -230,14 +235,20 @@ onSubjectiveSubmit: (text: string, field: string) => void;
 Add two handlers:
 
 ```typescript
-const handleMcqSelect = useCallback((value: string, label: string, _field: string) => {
-  // Send the human-readable label as the user's chat message
-  sendMessage(label);
-}, [sendMessage]);
+const handleMcqSelect = useCallback(
+  (value: string, label: string, _field: string) => {
+    // Send the human-readable label as the user's chat message
+    sendMessage(label);
+  },
+  [sendMessage]
+);
 
-const handleSubjectiveSubmit = useCallback((text: string, _field: string) => {
-  sendMessage(text);
-}, [sendMessage]);
+const handleSubjectiveSubmit = useCallback(
+  (text: string, _field: string) => {
+    sendMessage(text);
+  },
+  [sendMessage]
+);
 ```
 
 Pass both to `<ChatPanel>`.
@@ -247,13 +258,15 @@ Pass both to `<ChatPanel>`.
 ## 10. AI Prompt Changes (`lib/gemini/prompts.ts`)
 
 ### Base prompt — add rule 8:
+
 ```
-8. For structured questions (scale, team size, budget, tech preferences), ALWAYS include 
-   a :::mcq or :::subjective block at the end of your message. The frontend renders these 
+8. For structured questions (scale, team size, budget, tech preferences), ALWAYS include
+   a :::mcq or :::subjective block at the end of your message. The frontend renders these
    as clickable UI elements — the user will NOT be typing free text for these.
 ```
 
 ### New phase: `tech_philosophy`
+
 ```
 You are in the TECH PHILOSOPHY phase.
 Build a clear map of this developer's technology DNA.
@@ -289,6 +302,7 @@ Do NOT make technology recommendations yet.
 **`constraints`** — add MCQ (allowMultiple=true) for compliance requirements and existing tools. Add :::subjective for firm mandates.
 
 ### Updated `recommendation` prompt — inject tech philosophy:
+
 ```
 TECH PHILOSOPHY:
 {TECH_PHILOSOPHY_JSON}
@@ -306,6 +320,7 @@ Bias your recommendations accordingly:
 ## 11. Analyzer Changes (`lib/gemini/analyzer.ts`)
 
 ### Add to extraction schema:
+
 ```
 - tech_philosophy (object or null): {
     cloud_preference, language_era, preferred_languages, stack_style,
@@ -315,6 +330,7 @@ Bias your recommendations accordingly:
 ```
 
 ### Update phase transition rules:
+
 ```
 Rule 1.5 (NEW):
   Transition from 'project_discovery' to 'tech_philosophy' when
@@ -366,23 +382,24 @@ export function parseMcqBlocks(content: string): ParsedMessage {
 
 ## 13. File-by-File Change Map
 
-| File | Change | Description |
-|---|---|---|
-| `types/blueprint.ts` | **Modify** | Add `TechPhilosophy` interface, extend `ContextMap`, update `WORKSPACE_PHASES` |
-| `lib/mcq-parser.ts` | **New** | `parseMcqBlocks()` utility — standalone, no deps |
-| `components/workspace/McqChoices.tsx` | **New** | Clickable MCQ chip component |
-| `components/workspace/SubjectiveInputPanel.tsx` | **New** | Inline textarea panel for open questions |
-| `components/workspace/HybridMessage.tsx` | **New** | Smart AI message wrapper |
-| `components/workspace/ChatPanel.tsx` | **Modify** | Use `HybridMessage`, add MCQ props, conditional input bar |
-| `app/app/client-page.tsx` | **Modify** | Add `handleMcqSelect`, `handleSubjectiveSubmit` handlers |
-| `lib/gemini/prompts.ts` | **Modify** | Add `tech_philosophy` phase prompt; update all MCQ phases with block instructions; update recommendation prompt |
-| `lib/gemini/analyzer.ts` | **Modify** | Add `tech_philosophy` extraction fields; add transition rule 1.5 |
+| File                                            | Change     | Description                                                                                                     |
+| ----------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| `types/blueprint.ts`                            | **Modify** | Add `TechPhilosophy` interface, extend `ContextMap`, update `WORKSPACE_PHASES`                                  |
+| `lib/mcq-parser.ts`                             | **New**    | `parseMcqBlocks()` utility — standalone, no deps                                                                |
+| `components/workspace/McqChoices.tsx`           | **New**    | Clickable MCQ chip component                                                                                    |
+| `components/workspace/SubjectiveInputPanel.tsx` | **New**    | Inline textarea panel for open questions                                                                        |
+| `components/workspace/HybridMessage.tsx`        | **New**    | Smart AI message wrapper                                                                                        |
+| `components/workspace/ChatPanel.tsx`            | **Modify** | Use `HybridMessage`, add MCQ props, conditional input bar                                                       |
+| `app/app/client-page.tsx`                       | **Modify** | Add `handleMcqSelect`, `handleSubjectiveSubmit` handlers                                                        |
+| `lib/gemini/prompts.ts`                         | **Modify** | Add `tech_philosophy` phase prompt; update all MCQ phases with block instructions; update recommendation prompt |
+| `lib/gemini/analyzer.ts`                        | **Modify** | Add `tech_philosophy` extraction fields; add transition rule 1.5                                                |
 
 ---
 
 ## 14. Styling Notes
 
 All new components follow the existing Kairos design system:
+
 - `borderRadius: 0` — sharp corners everywhere
 - MCQ chips: `background: var(--surface)`, `border: 1px solid var(--border)`
 - Selected chip: `background: var(--orange-wash)`, `border-color: #FF5500`, `color: #FF5500`
@@ -409,10 +426,10 @@ All new components follow the existing Kairos design system:
 
 ## 16. Open Questions
 
-| # | Question |
-|---|---|
-| 1 | Should MCQ selections be **optimistically applied** to the contextMap locally before the AI responds? |
-| 2 | Should the `:::mcq` block format be validated server-side, or parsed client-side only? |
-| 3 | For `allowMultiple` blocks, single submit (comma-separated) or one message per selection? |
-| 4 | Should tech philosophy preferences appear in a dedicated section of the **ContextMap sidebar**? |
-| 5 | Should previously answered MCQ questions be visually **greyed-out** in chat history to prevent re-interaction? |
+| #   | Question                                                                                                       |
+| --- | -------------------------------------------------------------------------------------------------------------- |
+| 1   | Should MCQ selections be **optimistically applied** to the contextMap locally before the AI responds?          |
+| 2   | Should the `:::mcq` block format be validated server-side, or parsed client-side only?                         |
+| 3   | For `allowMultiple` blocks, single submit (comma-separated) or one message per selection?                      |
+| 4   | Should tech philosophy preferences appear in a dedicated section of the **ContextMap sidebar**?                |
+| 5   | Should previously answered MCQ questions be visually **greyed-out** in chat history to prevent re-interaction? |

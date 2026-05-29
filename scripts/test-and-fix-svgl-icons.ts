@@ -18,8 +18,8 @@ const svglData: TreeData = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'svgl-tree-data.json'), 'utf8')
 );
 
-const svglFiles = svglData.tree.filter(e => 
-  e.path.startsWith('static/library/') && e.path.endsWith('.svg')
+const svglFiles = svglData.tree.filter(
+  (e) => e.path.startsWith('static/library/') && e.path.endsWith('.svg')
 );
 
 function clean(str: string): string {
@@ -28,64 +28,66 @@ function clean(str: string): string {
 
 function findBestSvglMatch(key: string): string | null {
   const cleanKey = clean(key);
-  
+
   // High-fidelity manual mappings for premium tech branding
   const manualMappings: Record<string, string> = {
     'Next.js': 'nextjs_icon_dark',
-    'React': 'react_dark',
-    'Vue': 'vue',
+    React: 'react_dark',
+    Vue: 'vue',
     'Node.js': 'nodejs',
-    'TypeScript': 'typescript',
-    'JavaScript': 'javascript',
-    'PostgreSQL': 'postgresql',
-    'postgres': 'postgresql',
-    'MySQL': 'mysql',
-    'MongoDB': 'mongodb',
-    'Redis': 'redis',
-    'Docker': 'docker',
-    'Kubernetes': 'kubernetes',
-    'GraphQL': 'graphql',
-    'Prisma': 'prisma',
+    TypeScript: 'typescript',
+    JavaScript: 'javascript',
+    PostgreSQL: 'postgresql',
+    postgres: 'postgresql',
+    MySQL: 'mysql',
+    MongoDB: 'mongodb',
+    Redis: 'redis',
+    Docker: 'docker',
+    Kubernetes: 'kubernetes',
+    GraphQL: 'graphql',
+    Prisma: 'prisma',
     'Tailwind CSS': 'tailwindcss',
-    'Express': 'express',
-    'Supabase': 'supabase',
+    Express: 'express',
+    Supabase: 'supabase',
     'Supabase PostgreSQL': 'supabase',
-    'Vercel': 'vercel_dark',
-    'Clerk': 'clerk-icon-dark',
+    Vercel: 'vercel_dark',
+    Clerk: 'clerk-icon-dark',
     'GitHub OAuth': 'github',
     'Google OAuth': 'google',
-    'OpenAI': 'openai_dark',
-    'Anthropic': 'anthropic_black',
-    'Stripe': 'stripe',
-    'Resend': 'resend-icon-black',
-    'Sentry': 'sentry',
-    'Datadog': 'datadog',
-    'Grafana': 'grafana',
-    'Prometheus': 'prometheus',
-    'FastAPI': 'fastapi',
-    'Metamask': 'metamask',
-    'Fastify': 'fastify',
+    OpenAI: 'openai_dark',
+    Anthropic: 'anthropic_black',
+    Stripe: 'stripe',
+    Resend: 'resend-icon-black',
+    Sentry: 'sentry',
+    Datadog: 'datadog',
+    Grafana: 'grafana',
+    Prometheus: 'prometheus',
+    FastAPI: 'fastapi',
+    Metamask: 'metamask',
+    Fastify: 'fastify',
   };
 
   if (manualMappings[key]) {
     const slug = manualMappings[key];
-    const exists = svglFiles.some(f => path.basename(f.path, '.svg') === slug);
+    const exists = svglFiles.some((f) => path.basename(f.path, '.svg') === slug);
     if (exists) return slug;
   }
 
   // Automatic search
-  const candidates = svglFiles.filter(f => {
+  const candidates = svglFiles.filter((f) => {
     const filename = path.basename(f.path, '.svg');
-    return clean(filename) === cleanKey || 
-           clean(filename) === `${cleanKey}dark` || 
-           clean(filename) === `${cleanKey}icon` ||
-           clean(filename) === `${cleanKey}icondark`;
+    return (
+      clean(filename) === cleanKey ||
+      clean(filename) === `${cleanKey}dark` ||
+      clean(filename) === `${cleanKey}icon` ||
+      clean(filename) === `${cleanKey}icondark`
+    );
   });
 
   if (candidates.length === 0) return null;
 
   // Prefer exact clean match
-  const exact = candidates.find(c => clean(path.basename(c.path, '.svg')) === cleanKey);
+  const exact = candidates.find((c) => clean(path.basename(c.path, '.svg')) === cleanKey);
   if (exact) return path.basename(exact.path, '.svg');
 
   return path.basename(candidates[0].path, '.svg');
@@ -102,13 +104,14 @@ async function testUrl(url: string): Promise<boolean> {
 
 async function run() {
   console.log('Searching and migrating eligible technical icons to premium SVGL equivalents...');
-  
+
   const registryPath = path.join(__dirname, '../lib/icon-registry.ts');
   let content = fs.readFileSync(registryPath, 'utf8');
 
   // Parse keys in ICON_REGISTRY
   // Format: 'Next.js': { source: 'devicon', slug: 'nextjs' }
-  const regex = /'([^']+)':\s*\{\s*source:\s*'([^']+)',\s*slug:\s*'([^']+)'(?:,\s*variant:\s*'([^']+)')?\s*\},?/g;
+  const regex =
+    /'([^']+)':\s*\{\s*source:\s*'([^']+)',\s*slug:\s*'([^']+)'(?:,\s*variant:\s*'([^']+)')?\s*\},?/g;
   let match;
   const matches: { key: string; source: string; slug: string; variant?: string }[] = [];
 
@@ -131,9 +134,12 @@ async function run() {
 
     if (isValid) {
       console.log(`\x1b[32m✓\x1b[0m Migrating ${m.key} ➔ SVGL: ${svglSlug} (${svglUrl})`);
-      
+
       // Replace in the file content
-      const entryRegex = new RegExp(`'${m.key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}':\\s*\\{[^\\}]*\\},?`, 'g');
+      const entryRegex = new RegExp(
+        `'${m.key.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}':\\s*\\{[^\\}]*\\},?`,
+        'g'
+      );
       const replacement = `'${m.key}': { source: 'svgl', slug: '${svglSlug}' },`;
       content = content.replace(entryRegex, replacement);
       migratedCount++;
@@ -143,7 +149,7 @@ async function run() {
   // Also support adding MetaMask and FastAPI explicitly if they aren't in the registry
   const extraTech = [
     { key: 'MetaMask', slug: 'metamask' },
-    { key: 'FastAPI', slug: 'fastapi' }
+    { key: 'FastAPI', slug: 'fastapi' },
   ];
 
   for (const tech of extraTech) {
@@ -156,13 +162,17 @@ async function run() {
           `// Dev tools (devicon CDN)`,
           `// Dev tools (devicon CDN)\n  '${tech.key}': { source: 'svgl', slug: '${tech.slug}' },`
         );
-        console.log(`\x1b[32m✓\x1b[0m Added extra premium tech: ${tech.key} ➔ SVGL: ${tech.slug} (${svglUrl})`);
+        console.log(
+          `\x1b[32m✓\x1b[0m Added extra premium tech: ${tech.key} ➔ SVGL: ${tech.slug} (${svglUrl})`
+        );
       }
     }
   }
 
   fs.writeFileSync(registryPath, content, 'utf8');
-  console.log(`\nMigration completed! Migrated ${migratedCount} tech stack icons to premium SVGL SVGs.`);
+  console.log(
+    `\nMigration completed! Migrated ${migratedCount} tech stack icons to premium SVGL SVGs.`
+  );
 }
 
 run();

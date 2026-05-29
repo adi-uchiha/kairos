@@ -10,11 +10,7 @@ interface WorkspaceSidebarProps {
 }
 
 /** Left sidebar showing the design-phase progress steps for the workspace as a static timeline. */
-export function WorkspaceSidebar({
-  phases,
-  currentPhase,
-  userName,
-}: WorkspaceSidebarProps) {
+export function WorkspaceSidebar({ phases, currentPhase, userName }: WorkspaceSidebarProps) {
   return (
     <aside className="w-56 border-r border-[var(--border)] flex flex-col justify-between p-4 shrink-0 bg-[var(--surface)] hidden md:flex">
       <div className="space-y-4">
@@ -40,11 +36,7 @@ export function WorkspaceSidebar({
               >
                 <div className="flex items-center justify-center shrink-0">
                   {isCompleted ? (
-                    <MaterialIcon
-                      name="check_circle"
-                      size={16}
-                      className="text-emerald-500"
-                    />
+                    <MaterialIcon name="check_circle" size={16} className="text-emerald-500" />
                   ) : (
                     <MaterialIcon
                       name={p.icon}

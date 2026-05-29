@@ -99,9 +99,7 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
         body: JSON.stringify({ id, name: trimmed }),
       });
       if (!res.ok) throw new Error('Failed to rename');
-      setBlueprints((prev) =>
-        prev.map((bp) => (bp.id === id ? { ...bp, name: trimmed } : bp))
-      );
+      setBlueprints((prev) => prev.map((bp) => (bp.id === id ? { ...bp, name: trimmed } : bp)));
       toast.success('Blueprint renamed');
       setEditingId(null);
     } catch {
@@ -138,7 +136,13 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
       >
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <svg width="24" height="21" viewBox="0 0 1671 1483" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg
+              width="24"
+              height="21"
+              viewBox="0 0 1671 1483"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path d="M428.5 0H0L0.5 428L428.5 0Z" fill="#FF5500" />
               <path d="M428.5 1482.5H0L0.5 1054.5L428.5 1482.5Z" fill="#FF5500" />
               <path d="M1671 1H739L0 741L738 1482H1671L933 741L1671 1Z" fill="#FF5500" />
@@ -277,11 +281,7 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
                       {/* Phase badge + date */}
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-1.5">
-                          <MaterialIcon
-                            name={phaseIcon}
-                            size={13}
-                            className="text-[#FF5500]"
-                          />
+                          <MaterialIcon name={phaseIcon} size={13} className="text-[#FF5500]" />
                           <span className="font-mono text-[10px] text-[#FF5500] uppercase tracking-wider">
                             {bp.currentPhase || 'DISCOVERY'}
                           </span>
@@ -296,7 +296,10 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
 
                       {/* Blueprint name — inline edit or display */}
                       {isEditing ? (
-                        <div className="flex gap-1 items-center" onClick={(e) => e.preventDefault()}>
+                        <div
+                          className="flex gap-1 items-center"
+                          onClick={(e) => e.preventDefault()}
+                        >
                           <input
                             autoFocus
                             type="text"
@@ -355,36 +358,48 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
                           onClick={(e) => startEdit(bp, e)}
                           title="Rename blueprint"
                           className="flex items-center gap-1 px-2 py-1 text-[var(--text-muted)] hover:text-[#FF5500] hover:bg-[var(--surface)] transition-all text-[10px] font-mono uppercase"
-                          style={{ borderRadius: 0, border: 'none', background: 'none', cursor: 'pointer' }}
+                          style={{
+                            borderRadius: 0,
+                            border: 'none',
+                            background: 'none',
+                            cursor: 'pointer',
+                          }}
                         >
                           <MaterialIcon name="edit" size={13} />
                           <span>Rename</span>
                         </button>
 
                         <AlertDialog>
-                          <AlertDialogTrigger render={
-                            <button
-                              title="Delete blueprint"
-                              disabled={isDeleting}
-                              className="flex items-center gap-1 px-2 py-1 text-[var(--text-muted)] hover:text-red-500 hover:bg-[var(--surface)] transition-all text-[10px] font-mono uppercase disabled:opacity-40"
-                              style={{ borderRadius: 0, border: 'none', background: 'none', cursor: 'pointer' }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {isDeleting ? (
-                                <MaterialIcon name="sync" size={13} className="animate-spin" />
-                              ) : (
-                                <MaterialIcon name="delete" size={13} />
-                              )}
-                              <span>Delete</span>
-                            </button>
-                          } />
+                          <AlertDialogTrigger
+                            render={
+                              <button
+                                title="Delete blueprint"
+                                disabled={isDeleting}
+                                className="flex items-center gap-1 px-2 py-1 text-[var(--text-muted)] hover:text-red-500 hover:bg-[var(--surface)] transition-all text-[10px] font-mono uppercase disabled:opacity-40"
+                                style={{
+                                  borderRadius: 0,
+                                  border: 'none',
+                                  background: 'none',
+                                  cursor: 'pointer',
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {isDeleting ? (
+                                  <MaterialIcon name="sync" size={13} className="animate-spin" />
+                                ) : (
+                                  <MaterialIcon name="delete" size={13} />
+                                )}
+                                <span>Delete</span>
+                              </button>
+                            }
+                          />
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete blueprint?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                <strong>&quot;{bp.name}&quot;</strong> will be permanently deleted along
-                                with all messages and the generated architecture diagram. This action
-                                cannot be undone.
+                                <strong>&quot;{bp.name}&quot;</strong> will be permanently deleted
+                                along with all messages and the generated architecture diagram. This
+                                action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -419,4 +434,3 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
     </div>
   );
 }
-

@@ -19,10 +19,7 @@ import { PHASE_PROMPTS } from './phases';
  * @param contextMap - Full live context map from the database
  * @returns Complete system prompt string to pass to the LLM
  */
-export function KAIROS_SYSTEM_PROMPT(
-  phase?: string,
-  contextMap?: Record<string, unknown>
-): string {
+export function KAIROS_SYSTEM_PROMPT(phase?: string, contextMap?: Record<string, unknown>): string {
   const phaseKey = phase ?? 'idle';
   let phaseInstruction = PHASE_PROMPTS[phaseKey] ?? PHASE_PROMPTS['idle'];
 

@@ -43,7 +43,10 @@ export function useDiagramQA(blueprintId: string) {
 
     setNodeQuestions((prev) => ({
       ...prev,
-      [selectedNodeId]: [...(prev[selectedNodeId] ?? []), { q: question, a: AI_THINKING_PLACEHOLDER }],
+      [selectedNodeId]: [
+        ...(prev[selectedNodeId] ?? []),
+        { q: question, a: AI_THINKING_PLACEHOLDER },
+      ],
     }));
 
     try {

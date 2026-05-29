@@ -253,7 +253,6 @@ function LibIconPill({ lib }: { lib: LibEntry }) {
       }}
     >
       {iconUrl && !imgError ? (
-         
         <img
           src={iconUrl}
           alt={lib.label}

@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   description:
     'Stop guessing your stack. Kairos asks the right questions and gives you a precise, opinionated tech stack recommendation with an interactive architecture diagram.',
   keywords: ['tech stack', 'system architecture', 'AI', 'solo developer', 'indie hacker'],
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon.png', type: 'image/png' },
+    ],
+    apple: '/apple-icon.png',
+  },
   openGraph: {
     title: 'Kairos: AI System Architect',
     description: 'Stop guessing your stack. Ship with confidence.',

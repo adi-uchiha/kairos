@@ -45,18 +45,18 @@ export function ChatPanel({
   // Check if the latest message has interactive blocks
   const latestMessage = messages.length > 0 ? messages[messages.length - 1] : null;
   const isLatestAssistant = latestMessage && latestMessage.role === 'assistant';
-  
-  const { blocks = [] } = isLatestAssistant 
-    ? parseMcqBlocks(latestMessage.content) 
+
+  const { blocks = [] } = isLatestAssistant
+    ? parseMcqBlocks(latestMessage.content)
     : { blocks: [] };
 
   const hasInteractiveBlocks = blocks.length > 0;
-  
+
   // Hide default input bar if in MCQ-hybrid phases and there are interactive blocks in the latest message
-  const isFreeTextPhase = ['project_discovery', 'recommendation', 'diagram', 'followup'].includes(currentPhase);
+  const isFreeTextPhase = ['project_discovery', 'recommendation', 'diagram', 'followup'].includes(
+    currentPhase
+  );
   const shouldHideInputBar = hasInteractiveBlocks && !isFreeTextPhase;
-
-
 
   return (
     <div
@@ -130,8 +130,6 @@ export function ChatPanel({
           );
         })}
 
-
-
         <div ref={chatEndRef} />
       </div>
 
@@ -186,8 +184,8 @@ export function ChatPanel({
                     isLoading
                       ? 'Waiting for response...'
                       : hasDiagram
-                      ? 'Ask follow-up questions or changes about this architecture...'
-                      : 'Ask or reply to Kairos... (Shift+Enter for new line)'
+                        ? 'Ask follow-up questions or changes about this architecture...'
+                        : 'Ask or reply to Kairos... (Shift+Enter for new line)'
                   }
                   disabled={isLoading}
                   rows={1}

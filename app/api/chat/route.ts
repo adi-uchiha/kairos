@@ -119,10 +119,21 @@ export async function POST(req: NextRequest) {
 
       // Check if the LLM requested a phase transition via :::transition block
       const { requestedPhase } = parseMcqBlocks(event.text);
-      const safePhases = ['project_discovery', 'tech_philosophy', 'scale_discovery', 'builder_context', 'constraints', 'recommendation', 'diagram', 'followup'];
+      const safePhases = [
+        'project_discovery',
+        'tech_philosophy',
+        'scale_discovery',
+        'builder_context',
+        'constraints',
+        'recommendation',
+        'diagram',
+        'followup',
+      ];
       const isValidPhase = requestedPhase && safePhases.includes(requestedPhase);
       // Never downgrade from diagram or followup
-      const isDowngrade = (currentPhase === 'diagram' || currentPhase === 'followup') && requestedPhase !== currentPhase;
+      const isDowngrade =
+        (currentPhase === 'diagram' || currentPhase === 'followup') &&
+        requestedPhase !== currentPhase;
 
       // Save assistant message (and optional phase update) to the database
       try {

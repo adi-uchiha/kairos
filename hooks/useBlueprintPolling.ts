@@ -20,7 +20,7 @@ export function useBlueprintPolling(
   isLoading: boolean,
   currentPhase: string,
   messagesLength: number,
-  callbacks: PollingCallbacks,
+  callbacks: PollingCallbacks
 ) {
   // Live-value refs so the interval closure always reads current values
   const isLoadingRef = useRef(isLoading);
@@ -72,7 +72,7 @@ export function useBlueprintPolling(
               extent: node.extent,
               style: node.style,
               data: node.data,
-            }),
+            })
           );
           callbacks.onDiagramUpdate(formattedNodes, data.diagramGraph.edges ?? []);
         }

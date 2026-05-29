@@ -36,7 +36,10 @@ export function WorkspaceHeader({
   return (
     <header className="h-12 md:h-14 border-b border-[var(--border)] flex items-center justify-between px-3 md:px-6 shrink-0 relative z-30">
       <div className="flex items-center gap-2 md:gap-3 min-w-0">
-        <Link href="/dashboard" className="p-1 hover:bg-[var(--surface-hover)] transition-all shrink-0">
+        <Link
+          href="/dashboard"
+          className="p-1 hover:bg-[var(--surface-hover)] transition-all shrink-0"
+        >
           <MaterialIcon name="chevron_left" size={18} />
         </Link>
         <span className="font-mono text-[10px] md:text-xs text-[#FF5500] uppercase tracking-wider hidden sm:inline shrink-0">

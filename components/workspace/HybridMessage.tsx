@@ -23,9 +23,11 @@ export function HybridMessage({
   disabled = false,
 }: HybridMessageProps) {
   const isUser = message.role === 'user';
-  
+
   // Track selections for multi-block messages locally
-  const [selections, setSelections] = useState<Record<string, { value: string; label: string }>>({});
+  const [selections, setSelections] = useState<Record<string, { value: string; label: string }>>(
+    {}
+  );
 
   if (isUser) {
     return <span style={{ whiteSpace: 'pre-wrap' }}>{message.content}</span>;
@@ -106,7 +108,8 @@ export function HybridMessage({
   };
 
   // Only show the confirm button if we are in a multi-block message and have selections
-  const showConfirmButton = isLatest && !isSingleMcq && blocks.length > 0 && Object.keys(selections).length > 0;
+  const showConfirmButton =
+    isLatest && !isSingleMcq && blocks.length > 0 && Object.keys(selections).length > 0;
 
   return (
     <div className="flex flex-col gap-2 w-full">

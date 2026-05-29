@@ -18,16 +18,16 @@ interface TreeData {
 const svglData: TreeData = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'svgl-tree-data.json'), 'utf8')
 );
-const svglFiles = svglData.tree.filter(e => 
-  e.path.startsWith('static/library/') && e.path.endsWith('.svg')
+const svglFiles = svglData.tree.filter(
+  (e) => e.path.startsWith('static/library/') && e.path.endsWith('.svg')
 );
 
 // Load selfhst index
 const selfhstData: TreeData = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'selfhst-tree-data.json'), 'utf8')
 );
-const selfhstFiles = selfhstData.tree.filter(e => 
-  e.path.startsWith('svg/') && e.path.endsWith('.svg')
+const selfhstFiles = selfhstData.tree.filter(
+  (e) => e.path.startsWith('svg/') && e.path.endsWith('.svg')
 );
 
 // Helper to normalize strings for comparison
@@ -319,7 +319,7 @@ const BRAINSTORMED_TECH = [
   // 24. Serialization Formats & Structs
   { name: 'Protocol Buffers', terms: ['protobuf', 'protocolbuffers'] },
   { name: 'Apache Avro', terms: ['avro', 'apacheavro'] },
-  { name: 'Apache Parquet', terms: ['parquet', 'apacheparquet'] }
+  { name: 'Apache Parquet', terms: ['parquet', 'apacheparquet'] },
 ];
 
 async function testUrl(url: string): Promise<boolean> {
@@ -335,47 +335,49 @@ function findBestSvglMatch(name: string, terms: string[]): string | null {
   const overrides: Record<string, string> = {
     'React Native': 'react_dark',
     'Framer Motion': 'framer_dark',
-    'GitHub': 'github_dark',
-    'Astro': 'astro-icon-dark',
-    'Remix': 'remix_dark',
-    'Tauri': 'tauri',
-    'Electron': 'electron',
-    'Flutter': 'flutter',
-    'Sass': 'sass',
-    'Sequelize': 'sequelize',
-    'TypeORM': 'typeorm',
-    'DigitalOcean': 'digitalocean',
-    'Netlify': 'netlify',
-    'Notion': 'notion',
-    'Linear': 'linear',
-    'Trello': 'trello',
-    'Bootstrap': 'bootstrap',
-    'Git': 'git',
-    'Expo': 'expo',
-    'Prettier': 'prettier-icon-dark',
-    'ESLint': 'eslint-icon-dark',
+    GitHub: 'github_dark',
+    Astro: 'astro-icon-dark',
+    Remix: 'remix_dark',
+    Tauri: 'tauri',
+    Electron: 'electron',
+    Flutter: 'flutter',
+    Sass: 'sass',
+    Sequelize: 'sequelize',
+    TypeORM: 'typeorm',
+    DigitalOcean: 'digitalocean',
+    Netlify: 'netlify',
+    Notion: 'notion',
+    Linear: 'linear',
+    Trello: 'trello',
+    Bootstrap: 'bootstrap',
+    Git: 'git',
+    Expo: 'expo',
+    Prettier: 'prettier-icon-dark',
+    ESLint: 'eslint-icon-dark',
     'Radix UI': 'radix-ui_dark',
-    'Shadcn UI': 'shadcn-ui_dark'
+    'Shadcn UI': 'shadcn-ui_dark',
   };
 
   if (overrides[name]) {
     const slug = overrides[name];
-    if (svglFiles.some(f => path.basename(f.path, '.svg') === slug)) {
+    if (svglFiles.some((f) => path.basename(f.path, '.svg') === slug)) {
       return slug;
     }
   }
 
   for (const term of terms) {
     const cleanTerm = clean(term);
-    const candidates = svglFiles.filter(f => {
+    const candidates = svglFiles.filter((f) => {
       const filename = path.basename(f.path, '.svg');
-      return clean(filename) === cleanTerm || 
-             clean(filename) === `${cleanTerm}dark` || 
-             clean(filename) === `${cleanTerm}icon` ||
-             clean(filename) === `${cleanTerm}icondark`;
+      return (
+        clean(filename) === cleanTerm ||
+        clean(filename) === `${cleanTerm}dark` ||
+        clean(filename) === `${cleanTerm}icon` ||
+        clean(filename) === `${cleanTerm}icondark`
+      );
     });
     if (candidates.length > 0) {
-      const exact = candidates.find(c => clean(path.basename(c.path, '.svg')) === cleanTerm);
+      const exact = candidates.find((c) => clean(path.basename(c.path, '.svg')) === cleanTerm);
       return exact ? path.basename(exact.path, '.svg') : path.basename(candidates[0].path, '.svg');
     }
   }
@@ -385,15 +387,17 @@ function findBestSvglMatch(name: string, terms: string[]): string | null {
 function findBestSelfhstMatch(name: string, terms: string[]): string | null {
   for (const term of terms) {
     const cleanTerm = clean(term);
-    const candidates = selfhstFiles.filter(f => {
+    const candidates = selfhstFiles.filter((f) => {
       const filename = path.basename(f.path, '.svg');
-      return clean(filename) === cleanTerm || 
-             clean(filename) === `${cleanTerm}-dark` || 
-             clean(filename) === `${cleanTerm}-light` || 
-             clean(filename) === `${cleanTerm}icon`;
+      return (
+        clean(filename) === cleanTerm ||
+        clean(filename) === `${cleanTerm}-dark` ||
+        clean(filename) === `${cleanTerm}-light` ||
+        clean(filename) === `${cleanTerm}icon`
+      );
     });
     if (candidates.length > 0) {
-      const exact = candidates.find(c => clean(path.basename(c.path, '.svg')) === cleanTerm);
+      const exact = candidates.find((c) => clean(path.basename(c.path, '.svg')) === cleanTerm);
       return exact ? path.basename(exact.path, '.svg') : path.basename(candidates[0].path, '.svg');
     }
   }
@@ -493,7 +497,9 @@ async function run() {
       `// Dev tools (devicon CDN)\n${insertText}`
     );
     fs.writeFileSync(registryPath, content, 'utf8');
-    console.log(`\nSuccessfully registered ${Object.keys(results).length} new technical stack components in lib/icon-registry.ts!`);
+    console.log(
+      `\nSuccessfully registered ${Object.keys(results).length} new technical stack components in lib/icon-registry.ts!`
+    );
   } else {
     console.log('\nNo new technical stack components to register.');
   }

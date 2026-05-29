@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { generateDiagramForBlueprint } from '@/lib/gemini';
 
-
 export const runtime = 'nodejs';
 
 // POST: Triggers diagram generation for a blueprint

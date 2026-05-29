@@ -269,7 +269,9 @@ async function generateTextWithRotation(system: string, prompt: string): Promise
     }
 
     try {
-      console.log(`[DiagramGenerator] Invoking model ${DIAGRAM_MODEL} using key ${currentKey.label} (attempt ${attempt})...`);
+      console.log(
+        `[DiagramGenerator] Invoking model ${DIAGRAM_MODEL} using key ${currentKey.label} (attempt ${attempt})...`
+      );
       const google = createGoogleGenerativeAI({ apiKey: currentKey.key });
       const response = await generateText({
         model: google(DIAGRAM_MODEL),
@@ -308,11 +310,16 @@ export async function generateDiagramForBlueprint(blueprintId: string): Promise<
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const currentGraph = blueprint.diagramGraph as any;
-  const hasExistingDiagram = currentGraph && Array.isArray(currentGraph.nodes) && currentGraph.nodes.length > 0;
+  const hasExistingDiagram =
+    currentGraph && Array.isArray(currentGraph.nodes) && currentGraph.nodes.length > 0;
 
-  const lastUserMessage = blueprint.chatHistory && blueprint.chatHistory.length > 0
-    ? [...blueprint.chatHistory].reverse().find(msg => msg.role === 'user')?.content?.toLowerCase() || ''
-    : '';
+  const lastUserMessage =
+    blueprint.chatHistory && blueprint.chatHistory.length > 0
+      ? [...blueprint.chatHistory]
+          .reverse()
+          .find((msg) => msg.role === 'user')
+          ?.content?.toLowerCase() || ''
+      : '';
 
   const isFullRedesignRequested =
     lastUserMessage.includes('redesign') ||
@@ -331,7 +338,9 @@ export async function generateDiagramForBlueprint(blueprintId: string): Promise<
   let graph: any;
 
   if (isIncremental) {
-    console.log(`[DiagramGenerator] Starting INCREMENTAL Topology Update for blueprint ${blueprintId}`);
+    console.log(
+      `[DiagramGenerator] Starting INCREMENTAL Topology Update for blueprint ${blueprintId}`
+    );
     const topologyPrompt = `Apply an incremental modification to the existing system architecture diagram.
 
 User's Request: "${lastUserMessage}"
@@ -346,7 +355,10 @@ Apply ONLY the requested change. Keep all other nodes and their positions unchan
 Remember: libraries (Zod, Drizzle, TanStack Query, Tailwind, etc.) must be in libCluster nodes, NOT standalone nodes.
 Output the complete updated JSON graph.`;
 
-    const topologyRaw = await generateTextWithRotation(DIAGRAM_INCREMENTAL_SYSTEM_PROMPT, topologyPrompt);
+    const topologyRaw = await generateTextWithRotation(
+      DIAGRAM_INCREMENTAL_SYSTEM_PROMPT,
+      topologyPrompt
+    );
     const cleanTopologyText = topologyRaw
       .trim()
       .replace(/^```(?:json)?\s*/i, '')
@@ -355,7 +367,9 @@ Output the complete updated JSON graph.`;
     graph = JSON.parse(cleanTopologyText);
   } else {
     // ─── PASS 1: FULL TOPOLOGY GENERATION ───
-    console.log(`[DiagramGenerator] Starting PASS 1: Topology Generation for blueprint ${blueprintId}`);
+    console.log(
+      `[DiagramGenerator] Starting PASS 1: Topology Generation for blueprint ${blueprintId}`
+    );
     const topologyPrompt = `Generate a professional system architecture diagram for the following project.
 
 Context Map (gathered from user):
@@ -373,7 +387,10 @@ IMPORTANT REMINDERS:
 
 Output ONLY the JSON diagram topology. No explanation.`;
 
-    const topologyRaw = await generateTextWithRotation(DIAGRAM_TOPOLOGY_SYSTEM_PROMPT, topologyPrompt);
+    const topologyRaw = await generateTextWithRotation(
+      DIAGRAM_TOPOLOGY_SYSTEM_PROMPT,
+      topologyPrompt
+    );
     const cleanTopologyText = topologyRaw
       .trim()
       .replace(/^```(?:json)?\s*/i, '')
@@ -387,7 +404,9 @@ Output ONLY the JSON diagram topology. No explanation.`;
   }
 
   // ─── PASS 2: METADATA HYDRATION ───
-  console.log(`[DiagramGenerator] Starting PASS 2: Metadata Hydration for blueprint ${blueprintId}`);
+  console.log(
+    `[DiagramGenerator] Starting PASS 2: Metadata Hydration for blueprint ${blueprintId}`
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const nodesToHydrate = graph.nodes.filter((node: any) => {
@@ -403,7 +422,11 @@ Output ONLY the JSON diagram topology. No explanation.`;
 
   if (nodesToHydrate.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const mappedNodes = nodesToHydrate.map((n: any) => ({ id: n.id, label: n.data?.label, category: n.data?.category }));
+    const mappedNodes = nodesToHydrate.map((n: any) => ({
+      id: n.id,
+      label: n.data?.label,
+      category: n.data?.category,
+    }));
 
     const hydrationPrompt = `Hydrate metadata for these infrastructure nodes in a system architecture.
 
@@ -419,7 +442,10 @@ ${JSON.stringify(mappedNodes, null, 2)}
 Output ONLY the JSON metadata map. No explanation.`;
 
     try {
-      const hydrationRaw = await generateTextWithRotation(DIAGRAM_HYDRATION_SYSTEM_PROMPT, hydrationPrompt);
+      const hydrationRaw = await generateTextWithRotation(
+        DIAGRAM_HYDRATION_SYSTEM_PROMPT,
+        hydrationPrompt
+      );
       const cleanHydrationText = hydrationRaw
         .trim()
         .replace(/^```(?:json)?\s*/i, '')
@@ -429,7 +455,11 @@ Output ONLY the JSON metadata map. No explanation.`;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       graph.nodes = graph.nodes.map((node: any) => {
-        if (node.type === 'group' || node.type === 'libCluster' || node.data?.category === 'group') {
+        if (
+          node.type === 'group' ||
+          node.type === 'libCluster' ||
+          node.data?.category === 'group'
+        ) {
           return node;
         }
         const meta = hydrationMap[node.id];
@@ -448,9 +478,14 @@ Output ONLY the JSON metadata map. No explanation.`;
         }
         return node;
       });
-      console.log(`[DiagramGenerator] Successfully completed PASS 2 Hydration for blueprint ${blueprintId}`);
+      console.log(
+        `[DiagramGenerator] Successfully completed PASS 2 Hydration for blueprint ${blueprintId}`
+      );
     } catch (hydrationError) {
-      console.warn(`[DiagramGenerator] Pass 2 Hydration failed, using raw topology:`, hydrationError);
+      console.warn(
+        `[DiagramGenerator] Pass 2 Hydration failed, using raw topology:`,
+        hydrationError
+      );
     }
   } else {
     console.log(`[DiagramGenerator] Skipping PASS 2 Hydration (all nodes already have metadata).`);

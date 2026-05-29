@@ -15,11 +15,7 @@ import {
   type NodeMouseHandler,
 } from '@xyflow/react';
 
-import {
-  type ServiceNodeData,
-  type QAPair,
-  AI_THINKING_PLACEHOLDER,
-} from '@/types/blueprint';
+import { type ServiceNodeData, type QAPair, AI_THINKING_PLACEHOLDER } from '@/types/blueprint';
 import { ServiceNode, GroupNode, LibClusterNode } from './ServiceNode';
 import { MaterialIcon } from './MaterialIcon';
 
@@ -148,22 +144,23 @@ function DiagramCanvasInner({
   onSaveLayout,
   onAutoLayout,
 }: DiagramCanvasProps) {
-
-
-  const defaultEdgeOptions = useMemo(() => ({
-    type: 'smoothstep',
-    animated: false,
-    style: {
-      strokeWidth: 2,
-      stroke: theme === 'dark' ? '#3f3f46' : '#cbd5e1',
-    },
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      width: 15,
-      height: 15,
-      color: theme === 'dark' ? '#3f3f46' : '#cbd5e1',
-    },
-  }), [theme]);
+  const defaultEdgeOptions = useMemo(
+    () => ({
+      type: 'smoothstep',
+      animated: false,
+      style: {
+        strokeWidth: 2,
+        stroke: theme === 'dark' ? '#3f3f46' : '#cbd5e1',
+      },
+      markerEnd: {
+        type: MarkerType.ArrowClosed,
+        width: 15,
+        height: 15,
+        color: theme === 'dark' ? '#3f3f46' : '#cbd5e1',
+      },
+    }),
+    [theme]
+  );
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -267,7 +264,9 @@ function DiagramCanvasInner({
                 style={{ borderRadius: 0 }}
                 title={dir === 'LR' ? 'Horizontal layout' : 'Vertical layout'}
               >
-                <span className="hidden md:inline">{dir === 'LR' ? '→ Horizontal' : '↓ Vertical'}</span>
+                <span className="hidden md:inline">
+                  {dir === 'LR' ? '→ Horizontal' : '↓ Vertical'}
+                </span>
                 <span className="md:hidden">{dir === 'LR' ? '→' : '↓'}</span>
               </button>
             ))}
@@ -309,7 +308,6 @@ function DiagramCanvasInner({
             </button>
           )}
         </div>
-
 
         {/* ── Node Detail Drawer ── */}
         {selectedNode && (

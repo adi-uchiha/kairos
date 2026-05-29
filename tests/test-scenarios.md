@@ -16,25 +16,25 @@
 
 After the full discovery flow, Kairos should have captured:
 
-| Field | Expected Value |
-|---|---|
-| `product_category` | B2B SaaS / AI Content Platform |
-| `primary_user_persona` | E-commerce brand managers |
-| `has_realtime_requirement` | `true` (live dashboard) |
-| `has_ai_ml_component` | `true` (LLM copy generation + A/B testing) |
-| `needs_payments` | `true` (seat-based + usage-based billing) |
-| `needs_email` | `true` (campaign sending + transactional) |
-| `needs_background_jobs` | `true` (AI generation, data sync jobs) |
-| `needs_search` | `true` (product catalog search) |
-| `needs_websockets` | `true` (real-time dashboard) |
-| `deployment_target` | `aws` |
-| `backend_runtime` | `bun` or `node` |
-| `tech_philosophy.cloud_preference` | `aws` |
-| `tech_philosophy.stack_style` | `hybrid` or `microservices` |
-| `scale_tier` | `micro` → `small` |
-| `team_size` | `solo` |
-| `budget_constraint` | `pre-revenue` |
-| `compliance_requirements` | `[]` (no HIPAA/GDPR mentioned) |
+| Field                              | Expected Value                             |
+| ---------------------------------- | ------------------------------------------ |
+| `product_category`                 | B2B SaaS / AI Content Platform             |
+| `primary_user_persona`             | E-commerce brand managers                  |
+| `has_realtime_requirement`         | `true` (live dashboard)                    |
+| `has_ai_ml_component`              | `true` (LLM copy generation + A/B testing) |
+| `needs_payments`                   | `true` (seat-based + usage-based billing)  |
+| `needs_email`                      | `true` (campaign sending + transactional)  |
+| `needs_background_jobs`            | `true` (AI generation, data sync jobs)     |
+| `needs_search`                     | `true` (product catalog search)            |
+| `needs_websockets`                 | `true` (real-time dashboard)               |
+| `deployment_target`                | `aws`                                      |
+| `backend_runtime`                  | `bun` or `node`                            |
+| `tech_philosophy.cloud_preference` | `aws`                                      |
+| `tech_philosophy.stack_style`      | `hybrid` or `microservices`                |
+| `scale_tier`                       | `micro` → `small`                          |
+| `team_size`                        | `solo`                                     |
+| `budget_constraint`                | `pre-revenue`                              |
+| `compliance_requirements`          | `[]` (no HIPAA/GDPR mentioned)             |
 
 ---
 
@@ -43,6 +43,7 @@ After the full discovery flow, Kairos should have captured:
 The generated diagram **must** include at minimum:
 
 **AWS Infrastructure:**
+
 - AWS ECS / Fargate or Lambda (compute)
 - Amazon RDS PostgreSQL or Aurora (primary DB)
 - Amazon S3 (asset storage)
@@ -52,12 +53,14 @@ The generated diagram **must** include at minimum:
 - AWS API Gateway (optional, if serverless)
 
 **Application Layer:**
+
 - Next.js (frontend)
 - Bun or Node.js runtime
 - Hono or Fastify (backend API)
 - WebSocket server (real-time dashboard)
 
 **Platform Services:**
+
 - OpenAI API or Anthropic Claude (AI copy generation)
 - Stripe (seat billing + metered usage)
 - Resend or SES (transactional + campaign email)
@@ -67,6 +70,7 @@ The generated diagram **must** include at minimum:
 - PostHog or Datadog (product analytics + APM)
 
 **libCluster Nodes (NOT standalone nodes):**
+
 - Frontend cluster: Zod, TanStack Query, Tailwind CSS, React Hook Form
 - Backend cluster: Drizzle ORM, Zod, Bull/BullMQ client, tRPC
 

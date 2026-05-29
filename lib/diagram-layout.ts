@@ -19,14 +19,9 @@ export interface LayoutOptions {
 export function applyDagreLayout(
   nodes: Node<ServiceNodeData>[],
   edges: Edge[],
-  options: LayoutOptions = {},
+  options: LayoutOptions = {}
 ): { nodes: Node<ServiceNodeData>[]; edges: Edge[] } {
-  const {
-    direction = 'LR',
-    nodeSep = 60,
-    rankSep = 120,
-    edgeSep = 20,
-  } = options;
+  const { direction = 'LR', nodeSep = 60, rankSep = 120, edgeSep = 20 } = options;
 
   // 1. Build Dagre graph
   const g = new Dagre.graphlib.Graph()
@@ -75,7 +70,7 @@ export function applyDagreLayout(
  * Translates child coordinates to be relative to the parent container as required by ReactFlow.
  */
 export function fitGroupsAndAdjustChildren(
-  nodes: Node<ServiceNodeData>[],
+  nodes: Node<ServiceNodeData>[]
 ): Node<ServiceNodeData>[] {
   const PADDING = 24;
   const HEADER_HEIGHT = 28; // room for the group title at the top

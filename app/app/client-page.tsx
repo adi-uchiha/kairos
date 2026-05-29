@@ -1,5 +1,5 @@
 'use client';
- 
+
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
@@ -61,9 +61,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   // ── Phase / tab state ───────────────────────────────────────────────────────
-  const [currentPhase, setCurrentPhase] = useState(
-    blueprint.currentPhase ?? 'project_discovery',
-  );
+  const [currentPhase, setCurrentPhase] = useState(blueprint.currentPhase ?? 'project_discovery');
 
   // ── Context map ─────────────────────────────────────────────────────────────
   const [contextMap, setContextMap] = useState<ContextMap>(blueprint.contextMap ?? {});
@@ -80,14 +78,19 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
 
   // ── Diagram state ───────────────────────────────────────────────────────────
   const [layoutDirection, setLayoutDirection] = useState<'LR' | 'TB'>('LR');
-  
-  const lastSavedDiagramRef = useRef<{ nodes: Node<ServiceNodeData>[]; edges: Edge[] }>({ nodes: [], edges: [] });
+
+  const lastSavedDiagramRef = useRef<{ nodes: Node<ServiceNodeData>[]; edges: Edge[] }>({
+    nodes: [],
+    edges: [],
+  });
 
   const initialLaidOut = useMemo(() => {
     const rawNodes = blueprint.diagramGraph?.nodes?.map(formatDiagramNode) ?? [];
     const rawEdges = blueprint.diagramGraph?.edges ?? [];
     if (rawNodes.length === 0) return { nodes: [], edges: [] };
-    const hasCustomCoords = rawNodes.some(n => n.position && (n.position.x !== 100 || n.position.y !== 100));
+    const hasCustomCoords = rawNodes.some(
+      (n) => n.position && (n.position.x !== 100 || n.position.y !== 100)
+    );
     if (hasCustomCoords) {
       return { nodes: rawNodes, edges: rawEdges };
     }
@@ -97,10 +100,8 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<ServiceNodeData>>(
     initialLaidOut.nodes
   );
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
-    initialLaidOut.edges
-  );
-  
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(initialLaidOut.edges);
+
   useEffect(() => {
     lastSavedDiagramRef.current = { nodes: initialLaidOut.nodes, edges: initialLaidOut.edges };
   }, [initialLaidOut]);
@@ -140,18 +141,28 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
     onDiagramUpdate: (newNodes, newEdges) => {
       setNodes((prevNodes) => {
         if (prevNodes.length > 0) {
-          const prevIds = prevNodes.map((n) => n.id).sort().join(',');
-          const newIds = newNodes.map((n) => n.id).sort().join(',');
+          const prevIds = prevNodes
+            .map((n) => n.id)
+            .sort()
+            .join(',');
+          const newIds = newNodes
+            .map((n) => n.id)
+            .sort()
+            .join(',');
           if (prevIds === newIds && prevNodes.length === newNodes.length) {
             return prevNodes; // Preserve custom node positions
           }
         }
-        const hasCustomCoords = newNodes.some(n => n.position && (n.position.x !== 100 || n.position.y !== 100));
+        const hasCustomCoords = newNodes.some(
+          (n) => n.position && (n.position.x !== 100 || n.position.y !== 100)
+        );
         if (hasCustomCoords) {
           lastSavedDiagramRef.current = { nodes: newNodes, edges: newEdges };
           return newNodes;
         }
-        const { nodes: laidNodes } = applyDagreLayout(newNodes, newEdges, { direction: layoutDirection });
+        const { nodes: laidNodes } = applyDagreLayout(newNodes, newEdges, {
+          direction: layoutDirection,
+        });
         lastSavedDiagramRef.current = { nodes: laidNodes, edges: newEdges };
         return laidNodes;
       });
@@ -159,13 +170,16 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
     },
   });
 
-  const handleLayoutDirectionChange = useCallback((dir: 'LR' | 'TB') => {
-    setLayoutDirection(dir);
-    setNodes((prevNodes) => {
-      const { nodes: laidNodes } = applyDagreLayout(prevNodes, edges, { direction: dir });
-      return laidNodes;
-    });
-  }, [edges, setNodes]);
+  const handleLayoutDirectionChange = useCallback(
+    (dir: 'LR' | 'TB') => {
+      setLayoutDirection(dir);
+      setNodes((prevNodes) => {
+        const { nodes: laidNodes } = applyDagreLayout(prevNodes, edges, { direction: dir });
+        return laidNodes;
+      });
+    },
+    [edges, setNodes]
+  );
 
   const handleSaveLayout = useCallback(async () => {
     if (isReadOnly) return;
@@ -176,7 +190,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
         body: JSON.stringify({
           id: blueprint.id,
           diagramGraph: {
-            nodes: nodes.map(n => ({
+            nodes: nodes.map((n) => ({
               id: n.id,
               type: n.type,
               position: n.position,
@@ -208,7 +222,9 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
       toast.success('Diagram restored to last saved layout');
     } else {
       setNodes((prevNodes) => {
-        const { nodes: laidNodes } = applyDagreLayout(prevNodes, edges, { direction: layoutDirection });
+        const { nodes: laidNodes } = applyDagreLayout(prevNodes, edges, {
+          direction: layoutDirection,
+        });
         return laidNodes;
       });
       toast.success('Diagram layout reset to auto-layout');
@@ -217,7 +233,9 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
 
   const handleAutoLayout = useCallback(() => {
     setNodes((prevNodes) => {
-      const { nodes: laidNodes } = applyDagreLayout(prevNodes, edges, { direction: layoutDirection });
+      const { nodes: laidNodes } = applyDagreLayout(prevNodes, edges, {
+        direction: layoutDirection,
+      });
       return laidNodes;
     });
     toast.success('Diagram layout recalculated automatically');
@@ -348,7 +366,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
         setIsLoading(false);
       }
     },
-    [blueprint.id, inputMessage, isLoading, messages, currentPhase, isReadOnly],
+    [blueprint.id, inputMessage, isLoading, messages, currentPhase, isReadOnly]
   );
 
   // Auto-fire opening question on fresh workspaces
@@ -365,13 +383,19 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
     sendMessage();
   };
 
-  const handleMcqSelect = useCallback((value: string, label: string) => {
-    sendMessage(label);
-  }, [sendMessage]);
+  const handleMcqSelect = useCallback(
+    (value: string, label: string) => {
+      sendMessage(label);
+    },
+    [sendMessage]
+  );
 
-  const handleSubjectiveSubmit = useCallback((text: string) => {
-    sendMessage(text);
-  }, [sendMessage]);
+  const handleSubjectiveSubmit = useCallback(
+    (text: string) => {
+      sendMessage(text);
+    },
+    [sendMessage]
+  );
 
   // ── Diagram generation ──────────────────────────────────────────────────────
   const handleGenerateDiagram = async () => {
@@ -387,7 +411,9 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
         const data = await res.json();
         const rawNodes = data.graph.nodes.map(formatDiagramNode);
         const rawEdges = data.graph.edges ?? [];
-        const { nodes: laidNodes, edges: laidEdges } = applyDagreLayout(rawNodes, rawEdges, { direction: layoutDirection });
+        const { nodes: laidNodes, edges: laidEdges } = applyDagreLayout(rawNodes, rawEdges, {
+          direction: layoutDirection,
+        });
         setNodes(laidNodes);
         setEdges(laidEdges);
         setCurrentPhase('diagram');
@@ -417,10 +443,14 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
         const data = await res.json();
         const rawNodes = data.graph.nodes.map(formatDiagramNode);
         const rawEdges = data.graph.edges ?? [];
-        const { nodes: laidNodes, edges: laidEdges } = applyDagreLayout(rawNodes, rawEdges, { direction: layoutDirection });
+        const { nodes: laidNodes, edges: laidEdges } = applyDagreLayout(rawNodes, rawEdges, {
+          direction: layoutDirection,
+        });
         setNodes(laidNodes);
         setEdges(laidEdges);
-        setSelectedNode(laidNodes.find((n: Node<ServiceNodeData>) => n.id === selectedNode.id) ?? null);
+        setSelectedNode(
+          laidNodes.find((n: Node<ServiceNodeData>) => n.id === selectedNode.id) ?? null
+        );
         setShowSwapModal(false);
       }
     } catch (err) {
@@ -477,7 +507,9 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
         />
 
         {/* Centre content — stacks vertically on mobile, side-by-side on md+ */}
-        <main className={`flex-1 overflow-hidden relative flex ${nodes.length > 0 ? 'flex-col md:flex-row' : 'flex-col'}`}>
+        <main
+          className={`flex-1 overflow-hidden relative flex ${nodes.length > 0 ? 'flex-col md:flex-row' : 'flex-col'}`}
+        >
           <ChatPanel
             messages={messages}
             isLoading={isLoading}
@@ -535,10 +567,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
 
         {/* Right context map sidebar */}
         {showContextMap && (
-          <ContextMapSidebar
-            contextMap={contextMap}
-            onClose={() => setShowContextMap(false)}
-          />
+          <ContextMapSidebar contextMap={contextMap} onClose={() => setShowContextMap(false)} />
         )}
       </div>
 

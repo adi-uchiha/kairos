@@ -91,7 +91,6 @@ OUTPUT SCHEMA (JSON only, no markdown):
   "regenerateDiagram": boolean
 }`;
 
-
 export async function analyzeAndUpdateBlueprint(
   blueprintId: string,
   fullHistory: { role: string; content: string }[]

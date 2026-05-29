@@ -1,4 +1,5 @@
 # Kairos Diagram Enhancement Plan
+
 ## Architecture Diagram v2 — Quality Implementation Roadmap
 
 > **Status:** Planning
@@ -35,13 +36,13 @@ The current diagram renders as a vertical chain of text boxes. The target is a *
 
 ### Guiding Principles
 
-| Principle | Implication |
-|---|---|
-| **Modular** | Each concern lives in its own file. No monolithic components. |
-| **Additive** | New node types/icons extend a registry — no conditionals scattered across the codebase |
-| **AI-driven** | The diagram output schema is the contract. Better prompt → better diagram. No hardcoding layouts. |
-| **Zero runtime cost** | Icons load from CDN or `/public` static assets. No icon library bloat in the JS bundle. |
-| **Maintainable** | The icon registry is a plain data file. A non-engineer could add a new tool by editing one line. |
+| Principle             | Implication                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------- |
+| **Modular**           | Each concern lives in its own file. No monolithic components.                                     |
+| **Additive**          | New node types/icons extend a registry — no conditionals scattered across the codebase            |
+| **AI-driven**         | The diagram output schema is the contract. Better prompt → better diagram. No hardcoding layouts. |
+| **Zero runtime cost** | Icons load from CDN or `/public` static assets. No icon library bloat in the JS bundle.           |
+| **Maintainable**      | The icon registry is a plain data file. A non-engineer could add a new tool by editing one line.  |
 
 ### Architecture Decision: Icon Source Strategy
 
@@ -63,6 +64,7 @@ A single `getIconUrl(label: string): string | null` function is the only public 
 ### Problem
 
 The current `ServiceNode` displays `label`, `category`, `why`, `free_tier`, `cost_at_scale` all on the canvas node itself. This causes:
+
 - Nodes that are 300-400px wide
 - Horizontal diagram overflow
 - Visual noise — users cannot scan the topology at a glance
@@ -90,6 +92,7 @@ The current `ServiceNode` displays `label`, `category`, `why`, `free_tier`, `cos
 **File:** `components/workspace/ServiceNode.tsx`
 
 The component responsibilities:
+
 1. Look up icon URL via `getIconUrl(data.label)` from the icon registry
 2. Render icon as `<img>` with an `onError` fallback to a `LetterAvatar`
 3. Fixed-width 160px card with centered content layout
@@ -100,8 +103,8 @@ The component responsibilities:
 // Pseudocode outline — implemented after icon registry in Priority 2
 
 function ServiceNode({ data }: NodeProps<Node<ServiceNodeData>>) {
-  const iconUrl = getIconUrl(data.label);         // from lib/icon-registry.ts
-  const color   = getCategoryColor(data.category); // local helper
+  const iconUrl = getIconUrl(data.label); // from lib/icon-registry.ts
+  const color = getCategoryColor(data.category); // local helper
 
   return (
     <div style={{ width: 160, background: 'var(--surface)', border: '1px solid var(--border)' }}>
@@ -113,25 +116,39 @@ function ServiceNode({ data }: NodeProps<Node<ServiceNodeData>>) {
       {/* Icon area */}
       <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 6px' }}>
         {iconUrl ? (
-          <img src={iconUrl} alt={data.label} width={40} height={40}
-               style={{ objectFit: 'contain' }}
-               onError={(e) => { /* swap to LetterAvatar */ }} />
+          <img
+            src={iconUrl}
+            alt={data.label}
+            width={40}
+            height={40}
+            style={{ objectFit: 'contain' }}
+            onError={(e) => {
+              /* swap to LetterAvatar */
+            }}
+          />
         ) : (
           <LetterAvatar label={data.label} color={color} />
         )}
       </div>
 
       {/* Label — truncated */}
-      <div style={{ textAlign: 'center', fontSize: 13, fontWeight: 600,
-                    padding: '0 8px', overflow: 'hidden',
-                    textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <div
+        style={{
+          textAlign: 'center',
+          fontSize: 13,
+          fontWeight: 600,
+          padding: '0 8px',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
         {data.label}
       </div>
 
       {/* Category pill */}
       <div style={{ textAlign: 'center', padding: '4px 0 10px' }}>
-        <span style={{ fontSize: 9, fontFamily: 'var(--font-mono)',
-                       color: 'var(--text-muted)' }}>
+        <span style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: 'var(--text-muted)' }}>
           {data.category}
         </span>
       </div>
@@ -150,13 +167,21 @@ When no icon is resolved, render a colored circle with the first character of th
 // Internal to ServiceNode.tsx
 function LetterAvatar({ label, color }: { label: string; color: string }) {
   return (
-    <div style={{
-      width: 40, height: 40, borderRadius: '50%',
-      background: color + '22',        // 13% opacity accent fill
-      border: `1.5px solid ${color}44`, // 26% opacity border
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: 18, fontWeight: 700, color,
-    }}>
+    <div
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: '50%',
+        background: color + '22', // 13% opacity accent fill
+        border: `1.5px solid ${color}44`, // 26% opacity border
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 18,
+        fontWeight: 700,
+        color,
+      }}
+    >
       {label[0]?.toUpperCase() ?? '?'}
     </div>
   );
@@ -167,9 +192,9 @@ function LetterAvatar({ label, color }: { label: string; color: string }) {
 
 Since Dagre will use `rankdir: 'LR'` (horizontal flow), handles must move:
 
-| Before (TB layout) | After (LR layout) |
-|---|---|
-| Target: `Position.Top` | Target: `Position.Left` |
+| Before (TB layout)        | After (LR layout)        |
+| ------------------------- | ------------------------ |
+| Target: `Position.Top`    | Target: `Position.Left`  |
 | Source: `Position.Bottom` | Source: `Position.Right` |
 
 This is a **two-line change** in `ServiceNode.tsx`.
@@ -183,19 +208,25 @@ ReactFlow renders children inside the parent's coordinate space automatically.
 // components/workspace/ServiceNode.tsx (exported alongside ServiceNode)
 export function GroupNode({ data }: NodeProps<Node<ServiceNodeData>>) {
   return (
-    <div style={{
-      border: '1.5px dashed var(--border)',
-      borderRadius: 6,
-      background: 'rgba(255,255,255,0.02)',
-      minWidth: 200,
-      minHeight: 100,
-      padding: '8px 12px',
-    }}>
-      <div style={{
-        fontSize: 10, fontFamily: 'var(--font-mono)',
-        color: 'var(--text-muted)', textTransform: 'uppercase',
-        letterSpacing: '0.08em',
-      }}>
+    <div
+      style={{
+        border: '1.5px dashed var(--border)',
+        borderRadius: 6,
+        background: 'rgba(255,255,255,0.02)',
+        minWidth: 200,
+        minHeight: 100,
+        padding: '8px 12px',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 10,
+          fontFamily: 'var(--font-mono)',
+          color: 'var(--text-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+        }}
+      >
         {data.label}
       </div>
       {/* ReactFlow positions children inside this container automatically */}
@@ -211,8 +242,8 @@ export function GroupNode({ data }: NodeProps<Node<ServiceNodeData>>) {
 ```ts
 // Stable reference outside component body (never recreated)
 const NODE_TYPES = {
-  customNode: ServiceNode,   // tech service card
-  group: GroupNode,          // dashed boundary container
+  customNode: ServiceNode, // tech service card
+  group: GroupNode, // dashed boundary container
 };
 ```
 
@@ -267,8 +298,7 @@ const ICON_REGISTRY: Record<string, IconEntry> = { ... };
 #### 3.3 URL builder
 
 ```ts
-const DEVICON_BASE =
-  'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons';
+const DEVICON_BASE = 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons';
 
 function buildIconUrl(entry: IconEntry): string {
   switch (entry.source) {
@@ -311,106 +341,106 @@ export function getIconUrl(label: string): string | null {
 
 **Dev tools (Devicons CDN)**
 
-| Label | Devicon slug | Variant |
-|---|---|---|
-| `Next.js` | `nextjs` | `original` |
-| `React` | `react` | `original` |
-| `Vue` | `vuejs` | `original` |
-| `Svelte` | `svelte` | `original` |
-| `Bun` | `bun` | `original` |
-| `Node.js` | `nodejs` | `original` |
-| `Deno` | `denojs` | `original` |
-| `Go` | `go` | `original` |
-| `Rust` | `rust` | `original` |
-| `Python` | `python` | `original` |
-| `TypeScript` | `typescript` | `original` |
-| `JavaScript` | `javascript` | `original` |
-| `PostgreSQL` | `postgresql` | `original` |
-| `MySQL` | `mysql` | `original` |
-| `MongoDB` | `mongodb` | `original` |
-| `Redis` | `redis` | `original` |
-| `SQLite` | `sqlite` | `original` |
-| `Docker` | `docker` | `original` |
-| `Kubernetes` | `kubernetes` | `original` |
-| `Nginx` | `nginx` | `original` |
-| `GraphQL` | `graphql` | `plain` |
-| `Prisma` | `prisma` | `original` |
-| `Vite` | `vitejs` | `original` |
-| `Tailwind CSS` | `tailwindcss` | `original` |
-| `Hono` | `hono` | `original` |
-| `Fastify` | `fastify` | `original` |
-| `Express` | `express` | `original` |
-| `Elysia` | — | simpleicons: `elysia` |
-| `tRPC` | — | simpleicons: `trpc` |
-| `Zod` | — | simpleicons: `zod` |
-| `Drizzle` | — | simpleicons: `drizzle` |
-| `Kafka` | `apachekafka` | `original` |
-| `Elasticsearch` | `elasticsearch` | `original` |
+| Label           | Devicon slug    | Variant                |
+| --------------- | --------------- | ---------------------- |
+| `Next.js`       | `nextjs`        | `original`             |
+| `React`         | `react`         | `original`             |
+| `Vue`           | `vuejs`         | `original`             |
+| `Svelte`        | `svelte`        | `original`             |
+| `Bun`           | `bun`           | `original`             |
+| `Node.js`       | `nodejs`        | `original`             |
+| `Deno`          | `denojs`        | `original`             |
+| `Go`            | `go`            | `original`             |
+| `Rust`          | `rust`          | `original`             |
+| `Python`        | `python`        | `original`             |
+| `TypeScript`    | `typescript`    | `original`             |
+| `JavaScript`    | `javascript`    | `original`             |
+| `PostgreSQL`    | `postgresql`    | `original`             |
+| `MySQL`         | `mysql`         | `original`             |
+| `MongoDB`       | `mongodb`       | `original`             |
+| `Redis`         | `redis`         | `original`             |
+| `SQLite`        | `sqlite`        | `original`             |
+| `Docker`        | `docker`        | `original`             |
+| `Kubernetes`    | `kubernetes`    | `original`             |
+| `Nginx`         | `nginx`         | `original`             |
+| `GraphQL`       | `graphql`       | `plain`                |
+| `Prisma`        | `prisma`        | `original`             |
+| `Vite`          | `vitejs`        | `original`             |
+| `Tailwind CSS`  | `tailwindcss`   | `original`             |
+| `Hono`          | `hono`          | `original`             |
+| `Fastify`       | `fastify`       | `original`             |
+| `Express`       | `express`       | `original`             |
+| `Elysia`        | —               | simpleicons: `elysia`  |
+| `tRPC`          | —               | simpleicons: `trpc`    |
+| `Zod`           | —               | simpleicons: `zod`     |
+| `Drizzle`       | —               | simpleicons: `drizzle` |
+| `Kafka`         | `apachekafka`   | `original`             |
+| `Elasticsearch` | `elasticsearch` | `original`             |
 
 **SaaS & cloud brands (Simple Icons CDN)**
 
-| Label | Simple Icons slug |
-|---|---|
-| `Vercel` | `vercel` |
-| `Cloudflare` | `cloudflare` |
-| `Cloudflare Workers` | `cloudflare` |
-| `Cloudflare R2` | `cloudflare` |
-| `Neon` | `neon` |
-| `PlanetScale` | `planetscale` |
-| `Supabase` | `supabase` |
-| `Turso` | `turso` |
-| `Upstash` | `upstash` |
-| `Stripe` | `stripe` |
-| `Resend` | `resend` |
-| `Mailgun` | `mailgun` |
-| `SendGrid` | `twilio` |
-| `Twilio` | `twilio` |
-| `GitHub OAuth` | `github` |
-| `Google OAuth` | `google` |
-| `Clerk` | `clerk` |
-| `Auth0` | `auth0` |
-| `Better Auth` | — (letter avatar fallback) |
-| `PostHog` | `posthog` |
-| `Sentry` | `sentry` |
-| `Datadog` | `datadog` |
-| `Grafana` | `grafana` |
-| `Prometheus` | `prometheus` |
-| `Railway` | `railway` |
-| `Fly.io` | `flyio` |
-| `Render` | `render` |
-| `Heroku` | `heroku` |
-| `Planetscale` | `planetscale` |
-| `Algolia` | `algolia` |
-| `Typesense` | — (letter avatar) |
-| `OpenAI` | `openai` |
-| `Anthropic` | `anthropic` |
+| Label                | Simple Icons slug          |
+| -------------------- | -------------------------- |
+| `Vercel`             | `vercel`                   |
+| `Cloudflare`         | `cloudflare`               |
+| `Cloudflare Workers` | `cloudflare`               |
+| `Cloudflare R2`      | `cloudflare`               |
+| `Neon`               | `neon`                     |
+| `PlanetScale`        | `planetscale`              |
+| `Supabase`           | `supabase`                 |
+| `Turso`              | `turso`                    |
+| `Upstash`            | `upstash`                  |
+| `Stripe`             | `stripe`                   |
+| `Resend`             | `resend`                   |
+| `Mailgun`            | `mailgun`                  |
+| `SendGrid`           | `twilio`                   |
+| `Twilio`             | `twilio`                   |
+| `GitHub OAuth`       | `github`                   |
+| `Google OAuth`       | `google`                   |
+| `Clerk`              | `clerk`                    |
+| `Auth0`              | `auth0`                    |
+| `Better Auth`        | — (letter avatar fallback) |
+| `PostHog`            | `posthog`                  |
+| `Sentry`             | `sentry`                   |
+| `Datadog`            | `datadog`                  |
+| `Grafana`            | `grafana`                  |
+| `Prometheus`         | `prometheus`               |
+| `Railway`            | `railway`                  |
+| `Fly.io`             | `flyio`                    |
+| `Render`             | `render`                   |
+| `Heroku`             | `heroku`                   |
+| `Planetscale`        | `planetscale`              |
+| `Algolia`            | `algolia`                  |
+| `Typesense`          | — (letter avatar)          |
+| `OpenAI`             | `openai`                   |
+| `Anthropic`          | `anthropic`                |
 
 **Cloud provider services (local `/public/icons/`)**
 
 These come from the official AWS and GCP icon packs (Priority 6). Until that pack is downloaded, they fall back to `LetterAvatar`.
 
-| Label | Local path |
-|---|---|
-| `AWS Lambda` | `/icons/aws/lambda.svg` |
-| `Amazon S3` | `/icons/aws/s3.svg` |
-| `Amazon RDS` | `/icons/aws/rds.svg` |
-| `Amazon DynamoDB` | `/icons/aws/dynamodb.svg` |
-| `Amazon SQS` | `/icons/aws/sqs.svg` |
-| `Amazon SES` | `/icons/aws/ses.svg` |
-| `Amazon EC2` | `/icons/aws/ec2.svg` |
-| `Amazon ECS` | `/icons/aws/ecs.svg` |
-| `Amazon CloudFront` | `/icons/aws/cloudfront.svg` |
-| `Amazon API Gateway` | `/icons/aws/apigateway.svg` |
-| `Amazon Cognito` | `/icons/aws/cognito.svg` |
-| `Amazon Route 53` | `/icons/aws/route53.svg` |
-| `Amazon ElastiCache` | `/icons/aws/elasticache.svg` |
-| `Amazon EventBridge` | `/icons/aws/eventbridge.svg` |
-| `GCP Cloud Run` | `/icons/gcp/cloudrun.svg` |
-| `GCP BigQuery` | `/icons/gcp/bigquery.svg` |
-| `GCP Pub/Sub` | `/icons/gcp/pubsub.svg` |
-| `GCP Cloud Storage` | `/icons/gcp/cloudstorage.svg` |
-| `GCP Firebase` | `/icons/gcp/firebase.svg` |
-| `GCP Firestore` | `/icons/gcp/firestore.svg` |
+| Label                | Local path                    |
+| -------------------- | ----------------------------- |
+| `AWS Lambda`         | `/icons/aws/lambda.svg`       |
+| `Amazon S3`          | `/icons/aws/s3.svg`           |
+| `Amazon RDS`         | `/icons/aws/rds.svg`          |
+| `Amazon DynamoDB`    | `/icons/aws/dynamodb.svg`     |
+| `Amazon SQS`         | `/icons/aws/sqs.svg`          |
+| `Amazon SES`         | `/icons/aws/ses.svg`          |
+| `Amazon EC2`         | `/icons/aws/ec2.svg`          |
+| `Amazon ECS`         | `/icons/aws/ecs.svg`          |
+| `Amazon CloudFront`  | `/icons/aws/cloudfront.svg`   |
+| `Amazon API Gateway` | `/icons/aws/apigateway.svg`   |
+| `Amazon Cognito`     | `/icons/aws/cognito.svg`      |
+| `Amazon Route 53`    | `/icons/aws/route53.svg`      |
+| `Amazon ElastiCache` | `/icons/aws/elasticache.svg`  |
+| `Amazon EventBridge` | `/icons/aws/eventbridge.svg`  |
+| `GCP Cloud Run`      | `/icons/gcp/cloudrun.svg`     |
+| `GCP BigQuery`       | `/icons/gcp/bigquery.svg`     |
+| `GCP Pub/Sub`        | `/icons/gcp/pubsub.svg`       |
+| `GCP Cloud Storage`  | `/icons/gcp/cloudstorage.svg` |
+| `GCP Firebase`       | `/icons/gcp/firebase.svg`     |
+| `GCP Firestore`      | `/icons/gcp/firestore.svg`    |
 
 #### 3.6 Testing the resolver
 
@@ -421,9 +451,18 @@ A simple unit test file (no test framework needed — just a script) to verify t
 import { getIconUrl } from '../lib/icon-registry';
 
 const SPOT_CHECK = [
-  'Next.js', 'Bun', 'Go', 'Rust', 'PostgreSQL', 'Redis',
-  'Vercel', 'Stripe', 'Resend', 'Supabase',
-  'AWS Lambda', 'Amazon S3',
+  'Next.js',
+  'Bun',
+  'Go',
+  'Rust',
+  'PostgreSQL',
+  'Redis',
+  'Vercel',
+  'Stripe',
+  'Resend',
+  'Supabase',
+  'AWS Lambda',
+  'Amazon S3',
 ];
 
 for (const label of SPOT_CHECK) {
@@ -482,27 +521,22 @@ import Dagre from '@dagrejs/dagre';
 import { type Node, type Edge } from '@xyflow/react';
 import { type ServiceNodeData } from '@/types/blueprint';
 
-const NODE_WIDTH  = 160;  // matches ServiceNode fixed width
-const NODE_HEIGHT = 100;  // matches ServiceNode approximate height
+const NODE_WIDTH = 160; // matches ServiceNode fixed width
+const NODE_HEIGHT = 100; // matches ServiceNode approximate height
 
 export interface LayoutOptions {
-  direction?: 'LR' | 'TB' | 'RL' | 'BT';  // LR = left-to-right (default)
-  nodeSep?: number;   // horizontal gap between nodes in same rank
-  rankSep?: number;   // vertical gap between rank levels (swimlane depth)
-  edgeSep?: number;   // gap between edges
+  direction?: 'LR' | 'TB' | 'RL' | 'BT'; // LR = left-to-right (default)
+  nodeSep?: number; // horizontal gap between nodes in same rank
+  rankSep?: number; // vertical gap between rank levels (swimlane depth)
+  edgeSep?: number; // gap between edges
 }
 
 export function applyDagreLayout(
   nodes: Node<ServiceNodeData>[],
   edges: Edge[],
-  options: LayoutOptions = {},
+  options: LayoutOptions = {}
 ): { nodes: Node<ServiceNodeData>[]; edges: Edge[] } {
-  const {
-    direction = 'LR',
-    nodeSep   = 60,
-    rankSep   = 120,
-    edgeSep   = 20,
-  } = options;
+  const { direction = 'LR', nodeSep = 60, rankSep = 120, edgeSep = 20 } = options;
 
   // 1. Build Dagre graph
   const g = new Dagre.graphlib.Graph()
@@ -532,7 +566,7 @@ export function applyDagreLayout(
     return {
       ...node,
       position: {
-        x: pos.x - NODE_WIDTH  / 2,
+        x: pos.x - NODE_WIDTH / 2,
         y: pos.y - NODE_HEIGHT / 2,
       },
     };
@@ -582,11 +616,14 @@ Add a `[ LR | TB ]` toggle button to the diagram toolbar in `DiagramCanvas.tsx`.
 // Inside DiagramCanvas.tsx, in the layer filter toolbar area:
 <div className="flex bg-[var(--surface)] border border-[var(--border)] p-0.5">
   {(['LR', 'TB'] as const).map((dir) => (
-    <button key={dir}
-      onClick={() => onLayoutChange(dir)}   // new prop
-      className={layoutDirection === dir
-        ? 'bg-[#FF5500] text-white px-2 py-1 text-[10px] font-mono'
-        : 'text-[var(--text-muted)] px-2 py-1 text-[10px] font-mono hover:bg-[var(--surface-hover)]'}
+    <button
+      key={dir}
+      onClick={() => onLayoutChange(dir)} // new prop
+      className={
+        layoutDirection === dir
+          ? 'bg-[#FF5500] text-white px-2 py-1 text-[10px] font-mono'
+          : 'text-[var(--text-muted)] px-2 py-1 text-[10px] font-mono hover:bg-[var(--surface-hover)]'
+      }
     >
       {dir === 'LR' ? '→ Horizontal' : '↓ Vertical'}
     </button>
@@ -599,11 +636,13 @@ When toggled, call `applyDagreLayout(nodes, edges, { direction })` and update Re
 #### 4.5 Group node position handling
 
 Group container nodes (`type: 'group'`) are **excluded from Dagre** because:
+
 - Dagre handles flat graphs, not hierarchical subflows
 - Group size and position should come from the AI's output or be user-resizable
 - Child nodes inside groups get their positions computed by Dagre separately (as if the group doesn't exist), then `parentId` is set post-layout
 
 The group positioning algorithm after Dagre runs:
+
 1. Find all group nodes (type === 'group')
 2. Find their children (nodes where `parentId === group.id`)
 3. Compute bounding box of children
@@ -611,9 +650,7 @@ The group positioning algorithm after Dagre runs:
 
 ```ts
 // In lib/diagram-layout.ts, additional export:
-export function fitGroupsToChildren(
-  nodes: Node<ServiceNodeData>[],
-): Node<ServiceNodeData>[] {
+export function fitGroupsToChildren(nodes: Node<ServiceNodeData>[]): Node<ServiceNodeData>[] {
   const PADDING = 24;
   const groups = nodes.filter((n) => n.type === 'group');
 
@@ -633,7 +670,7 @@ export function fitGroupsToChildren(
       position: { x: minX - PADDING, y: minY - PADDING },
       style: {
         ...node.style,
-        width:  maxX - minX + PADDING * 2,
+        width: maxX - minX + PADDING * 2,
         height: maxY - minY + PADDING * 2,
       },
     };
@@ -722,11 +759,12 @@ The `DIAGRAM_SYSTEM_PROMPT` must be updated to output the extended node schema:
 ```ts
 export interface RawDiagramNode {
   id: string;
-  type?: string;          // 'customNode' | 'group' (AI outputs this)
+  type?: string; // 'customNode' | 'group' (AI outputs this)
   position?: { x: number; y: number };
-  parentId?: string;      // new — for child nodes inside groups
-  extent?: 'parent';      // new — constrains dragging to parent bounds
-  style?: {               // new — used by group nodes for width/height
+  parentId?: string; // new — for child nodes inside groups
+  extent?: 'parent'; // new — constrains dragging to parent bounds
+  style?: {
+    // new — used by group nodes for width/height
     width?: number;
     height?: number;
   };
@@ -741,13 +779,13 @@ export interface RawDiagramNode {
 ```ts
 function formatDiagramNode(node: RawDiagramNode): Node<ServiceNodeData> {
   return {
-    id:       node.id,
-    type:     node.type ?? 'customNode',   // default to customNode
+    id: node.id,
+    type: node.type ?? 'customNode', // default to customNode
     position: node.position ?? { x: 0, y: 0 },
-    parentId: node.parentId,               // pass through if present
-    extent:   node.extent,                 // pass through if present
-    style:    node.style,                  // pass through if present (group dimensions)
-    data:     node.data,
+    parentId: node.parentId, // pass through if present
+    extent: node.extent, // pass through if present
+    style: node.style, // pass through if present (group dimensions)
+    data: node.data,
   };
 }
 ```
@@ -803,11 +841,11 @@ Different group types get different dashed border colors to visually distinguish
 // In GroupNode component
 function getGroupColor(label: string): string {
   const l = label.toLowerCase();
-  if (l.includes('backend') || l.includes('api'))  return '#ff5500';
+  if (l.includes('backend') || l.includes('api')) return '#ff5500';
   if (l.includes('frontend') || l.includes('cdn')) return '#0070f3';
-  if (l.includes('database') || l.includes('data'))return '#10b981';
-  if (l.includes('auth'))                           return '#8b5cf6';
-  if (l.includes('region') || l.includes('vpc'))   return '#71717a';
+  if (l.includes('database') || l.includes('data')) return '#10b981';
+  if (l.includes('auth')) return '#8b5cf6';
+  if (l.includes('region') || l.includes('vpc')) return '#71717a';
   return 'var(--border)'; // default
 }
 ```
@@ -832,6 +870,7 @@ The current AI system prompt for diagram generation (`lib/gemini/diagram-generat
 `frontend | backend | database | auth | email | storage | hosting | observability | queue | cdn`
 
 This misses:
+
 - Backend runtimes: Bun, Node.js, Deno, Go, Rust
 - Frameworks: Hono, Express, Fastify, Gin, Axum, Fiber
 - Libraries: Zod, TanStack Query, tRPC, SWR
@@ -843,6 +882,7 @@ This misses:
 - API gateways: Kong, Traefik, nginx, AWS API Gateway
 
 It also does not understand:
+
 - Group container nodes (type: 'group')
 - Library/middleware nodes that sit between frontend and backend
 - Unconnected standalone nodes (legend items, external systems)
@@ -856,40 +896,40 @@ It also does not understand:
 ```ts
 export type NodeCategory =
   // User-facing layers
-  | 'user'            // "End Users", "Mobile App", external persona nodes
-  | 'frontend'        // React, Next.js, Svelte, SolidJS, Qwik, Astro
-  | 'cdn'             // Cloudflare CDN, CloudFront, Fastly, Akamai
-  | 'hosting'         // Vercel, Netlify, Railway, Render, Fly.io
+  | 'user' // "End Users", "Mobile App", external persona nodes
+  | 'frontend' // React, Next.js, Svelte, SolidJS, Qwik, Astro
+  | 'cdn' // Cloudflare CDN, CloudFront, Fastly, Akamai
+  | 'hosting' // Vercel, Netlify, Railway, Render, Fly.io
 
   // Backend
-  | 'gateway'         // API Gateway, Kong, nginx, Traefik, Caddy
-  | 'backend'         // Generic backend server
-  | 'runtime'         // The actual execution engine: Bun, Node.js, Deno
-  | 'framework'       // Hono, Express, Fastify, Gin, Axum, Fiber, Django, FastAPI
-  | 'library'         // Zod, TanStack, tRPC, SWR, React Query — middleware/utility
+  | 'gateway' // API Gateway, Kong, nginx, Traefik, Caddy
+  | 'backend' // Generic backend server
+  | 'runtime' // The actual execution engine: Bun, Node.js, Deno
+  | 'framework' // Hono, Express, Fastify, Gin, Axum, Fiber, Django, FastAPI
+  | 'library' // Zod, TanStack, tRPC, SWR, React Query — middleware/utility
 
   // Data
-  | 'database'        // PostgreSQL, MySQL, MongoDB, SQLite, CockroachDB
-  | 'cache'           // Redis, Memcached, Upstash
-  | 'orm'             // Drizzle, Prisma, TypeORM, SQLAlchemy, GORM
-  | 'search'          // Algolia, Typesense, Meilisearch, OpenSearch
-  | 'storage'         // S3, R2, GCS, Cloudinary, uploadthing
+  | 'database' // PostgreSQL, MySQL, MongoDB, SQLite, CockroachDB
+  | 'cache' // Redis, Memcached, Upstash
+  | 'orm' // Drizzle, Prisma, TypeORM, SQLAlchemy, GORM
+  | 'search' // Algolia, Typesense, Meilisearch, OpenSearch
+  | 'storage' // S3, R2, GCS, Cloudinary, uploadthing
 
   // Platform services
-  | 'auth'            // Better Auth, NextAuth, Clerk, Supabase Auth, Lucia
-  | 'oauth'           // Google OAuth, GitHub OAuth, Discord OAuth (identity providers)
-  | 'email'           // Resend, Mailgun, SendGrid, SES, Postmark
-  | 'payment'         // Stripe, LemonSqueezy, Paddle, Razorpay
-  | 'queue'           // BullMQ, SQS, RabbitMQ, Kafka, Inngest
-  | 'ai'              // OpenAI, Anthropic, Gemini, Replicate, Hugging Face
-  | 'observability'   // Sentry, PostHog, Datadog, Grafana, Prometheus, Logtail
+  | 'auth' // Better Auth, NextAuth, Clerk, Supabase Auth, Lucia
+  | 'oauth' // Google OAuth, GitHub OAuth, Discord OAuth (identity providers)
+  | 'email' // Resend, Mailgun, SendGrid, SES, Postmark
+  | 'payment' // Stripe, LemonSqueezy, Paddle, Razorpay
+  | 'queue' // BullMQ, SQS, RabbitMQ, Kafka, Inngest
+  | 'ai' // OpenAI, Anthropic, Gemini, Replicate, Hugging Face
+  | 'observability' // Sentry, PostHog, Datadog, Grafana, Prometheus, Logtail
 
   // Infrastructure
-  | 'container'       // Docker, Kubernetes, ECS, Cloud Run
-  | 'ci'              // GitHub Actions, CircleCI, Buildkite, Jenkins
+  | 'container' // Docker, Kubernetes, ECS, Cloud Run
+  | 'ci' // GitHub Actions, CircleCI, Buildkite, Jenkins
 
   // Structural
-  | 'group';          // Dashed-border container node — NOT a service
+  | 'group'; // Dashed-border container node — NOT a service
 ```
 
 #### 6.2 Updated diagram system prompt
@@ -969,12 +1009,12 @@ export interface ContextMap {
   // ... existing fields ...
 
   // New fields for richer context
-  backend_runtime?: string | null;     // 'node' | 'bun' | 'deno' | 'go' | 'rust' | 'python'
-  backend_framework?: string | null;   // 'hono' | 'express' | 'fastify' | 'gin' | 'axum'
-  auth_strategy?: string | null;       // 'jwt' | 'sessions' | 'oauth-only' | 'passkeys'
-  auth_provider?: string | null;       // 'better-auth' | 'clerk' | 'supabase' | 'nextauth'
-  orm_preference?: string | null;      // 'drizzle' | 'prisma' | 'raw-sql' | 'none'
-  deployment_target?: string | null;   // 'vercel' | 'aws' | 'gcp' | 'railway' | 'fly' | 'vps'
+  backend_runtime?: string | null; // 'node' | 'bun' | 'deno' | 'go' | 'rust' | 'python'
+  backend_framework?: string | null; // 'hono' | 'express' | 'fastify' | 'gin' | 'axum'
+  auth_strategy?: string | null; // 'jwt' | 'sessions' | 'oauth-only' | 'passkeys'
+  auth_provider?: string | null; // 'better-auth' | 'clerk' | 'supabase' | 'nextauth'
+  orm_preference?: string | null; // 'drizzle' | 'prisma' | 'raw-sql' | 'none'
+  deployment_target?: string | null; // 'vercel' | 'aws' | 'gcp' | 'railway' | 'fly' | 'vps'
   needs_background_jobs?: boolean | null;
   needs_websockets?: boolean | null;
   needs_search?: boolean | null;
@@ -987,6 +1027,7 @@ export interface ContextMap {
 #### 6.5 Discovery phase prompt updates
 
 The discovery conversation must now ask about:
+
 - **Runtime preference** (new question in scale_discovery or builder_context phase)
 - **Authentication approach** (does the app need OAuth? passkeys? magic links?)
 - **Background processing** (cron jobs, webhooks, queues, workers?)
@@ -1020,11 +1061,11 @@ Both providers distribute free, official icon sets as zip archives. We download 
 
 #### 7.1 Download sources
 
-| Provider | URL | Format | Size |
-|---|---|---|---|
-| **AWS** | `aws.amazon.com/architecture/icons` → "Asset Package" | ZIP of SVG + PNG | ~180MB |
-| **GCP** | `cloud.google.com/icons` → "Google Cloud icons" | ZIP of SVG | ~50MB |
-| **Azure** | `azure.microsoft.com/en-us/patterns/icons` | ZIP of SVG | ~30MB |
+| Provider  | URL                                                   | Format           | Size   |
+| --------- | ----------------------------------------------------- | ---------------- | ------ |
+| **AWS**   | `aws.amazon.com/architecture/icons` → "Asset Package" | ZIP of SVG + PNG | ~180MB |
+| **GCP**   | `cloud.google.com/icons` → "Google Cloud icons"       | ZIP of SVG       | ~50MB  |
+| **Azure** | `azure.microsoft.com/en-us/patterns/icons`            | ZIP of SVG       | ~30MB  |
 
 Download all three into a local folder, extract, and then run the setup script below.
 
@@ -1192,40 +1233,40 @@ Summary of every file that needs to be created or modified, organized by priorit
 
 ### New Files
 
-| File | Priority | Purpose |
-|---|---|---|
-| `lib/icon-registry.ts` | P2 | Single icon resolver for all sources |
-| `lib/diagram-layout.ts` | P3 | Dagre layout runner (pure function) |
-| `public/icons/aws/*.svg` | P6 | Official AWS service icons (static) |
-| `public/icons/gcp/*.svg` | P6 | Official GCP service icons (static) |
-| `scripts/setup-cloud-icons.sh` | P6 | Extracts + normalises cloud icon zips |
-| `scripts/audit-icon-registry.ts` | P6 | Verifies all local icon paths exist |
-| `scripts/test-icon-registry.ts` | P2 | Spot-checks resolver output |
+| File                             | Priority | Purpose                               |
+| -------------------------------- | -------- | ------------------------------------- |
+| `lib/icon-registry.ts`           | P2       | Single icon resolver for all sources  |
+| `lib/diagram-layout.ts`          | P3       | Dagre layout runner (pure function)   |
+| `public/icons/aws/*.svg`         | P6       | Official AWS service icons (static)   |
+| `public/icons/gcp/*.svg`         | P6       | Official GCP service icons (static)   |
+| `scripts/setup-cloud-icons.sh`   | P6       | Extracts + normalises cloud icon zips |
+| `scripts/audit-icon-registry.ts` | P6       | Verifies all local icon paths exist   |
+| `scripts/test-icon-registry.ts`  | P2       | Spot-checks resolver output           |
 
 ### Modified Files
 
-| File | Priority | Change |
-|---|---|---|
-| `components/workspace/ServiceNode.tsx` | P1 | Compact design, icon-first, Left/Right handles, LetterAvatar, GroupNode |
-| `components/workspace/DiagramCanvas.tsx` | P1, P3, P4 | NODE_TYPES update, layout toggle, group-aware layer filter |
-| `types/blueprint.ts` | P4, P5 | RawDiagramNode with parentId/extent/style; NodeCategory type; ContextMap expansion |
-| `app/app/client-page.tsx` | P3, P4 | applyDagreLayout in handleGenerateDiagram; formatDiagramNode passes group fields; group click guard |
-| `hooks/useBlueprintPolling.ts` | P3 | applyDagreLayout applied to polled diagram data |
-| `lib/gemini/diagram-generator.ts` | P5 | Expanded DIAGRAM_SYSTEM_PROMPT with new categories, group schema, swimlane hints |
-| `lib/gemini/prompts.ts` | P5 | Expanded PHASE_PROMPTS with runtime/framework/ORM/library awareness |
+| File                                     | Priority   | Change                                                                                              |
+| ---------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------- |
+| `components/workspace/ServiceNode.tsx`   | P1         | Compact design, icon-first, Left/Right handles, LetterAvatar, GroupNode                             |
+| `components/workspace/DiagramCanvas.tsx` | P1, P3, P4 | NODE_TYPES update, layout toggle, group-aware layer filter                                          |
+| `types/blueprint.ts`                     | P4, P5     | RawDiagramNode with parentId/extent/style; NodeCategory type; ContextMap expansion                  |
+| `app/app/client-page.tsx`                | P3, P4     | applyDagreLayout in handleGenerateDiagram; formatDiagramNode passes group fields; group click guard |
+| `hooks/useBlueprintPolling.ts`           | P3         | applyDagreLayout applied to polled diagram data                                                     |
+| `lib/gemini/diagram-generator.ts`        | P5         | Expanded DIAGRAM_SYSTEM_PROMPT with new categories, group schema, swimlane hints                    |
+| `lib/gemini/prompts.ts`                  | P5         | Expanded PHASE_PROMPTS with runtime/framework/ORM/library awareness                                 |
 
 ### Unchanged Files (for reference)
 
-| File | Reason |
-|---|---|
-| `components/workspace/ChatPanel.tsx` | No diagram concerns |
-| `components/workspace/WorkspaceHeader.tsx` | No diagram concerns |
-| `components/workspace/WorkspaceSidebar.tsx` | No diagram concerns |
-| `components/workspace/SwapModal.tsx` | No changes needed — works with new categories |
-| `components/workspace/ContextMapSidebar.tsx` | Picks up new ContextMap fields automatically |
-| `hooks/useDiagramQA.ts` | No structural changes; benefits from better diagrams |
-| `app/api/blueprints/diagram/route.ts` | No changes |
-| `app/api/blueprints/route.ts` | No changes |
+| File                                         | Reason                                               |
+| -------------------------------------------- | ---------------------------------------------------- |
+| `components/workspace/ChatPanel.tsx`         | No diagram concerns                                  |
+| `components/workspace/WorkspaceHeader.tsx`   | No diagram concerns                                  |
+| `components/workspace/WorkspaceSidebar.tsx`  | No diagram concerns                                  |
+| `components/workspace/SwapModal.tsx`         | No changes needed — works with new categories        |
+| `components/workspace/ContextMapSidebar.tsx` | Picks up new ContextMap fields automatically         |
+| `hooks/useDiagramQA.ts`                      | No structural changes; benefits from better diagrams |
+| `app/api/blueprints/diagram/route.ts`        | No changes                                           |
+| `app/api/blueprints/route.ts`                | No changes                                           |
 
 ---
 
@@ -1233,10 +1274,10 @@ Summary of every file that needs to be created or modified, organized by priorit
 
 ### New npm Dependencies
 
-| Package | Version | Priority | Bundle impact | Why |
-|---|---|---|---|---|
-| `@dagrejs/dagre` | `^1.0.4` | P3 | ~85KB (tree-shaken) | Graph layout algorithm |
-| `@types/dagrejs__dagre` | `^1.0.4` | P3 | Dev-only | TypeScript types for dagre |
+| Package                 | Version  | Priority | Bundle impact       | Why                        |
+| ----------------------- | -------- | -------- | ------------------- | -------------------------- |
+| `@dagrejs/dagre`        | `^1.0.4` | P3       | ~85KB (tree-shaken) | Graph layout algorithm     |
+| `@types/dagrejs__dagre` | `^1.0.4` | P3       | Dev-only            | TypeScript types for dagre |
 
 > **No other new dependencies.** Devicons and Simple Icons are loaded from CDN at runtime as `<img src>` — they add zero bytes to the JS bundle. AWS/GCP icons are static files served from `/public/`.
 
@@ -1284,15 +1325,15 @@ Week 3:
 
 ### Risk Register
 
-| Risk | Likelihood | Mitigation |
-|---|---|---|
-| Devicons CDN is down | Low | `LetterAvatar` fallback always renders. Add a local fallback copy of the 10 most common icons in `/public/icons/dev/` |
-| AI ignores group node schema | Medium | Provide concrete JSON examples in the system prompt. Add a post-processing step that groups nodes by category if AI outputs no groups |
-| Dagre overlaps nodes with parentId | Medium | Exclude all child nodes (those with parentId) from Dagre; layout only top-level nodes |
-| AWS icon filename normalisation mismatch | Medium | Run audit script on every PR; registry key must match exactly |
-| Simple Icons slug not found (404) | Low | Wrap `<img>` in error boundary; fallback to `LetterAvatar` on 404 |
+| Risk                                     | Likelihood | Mitigation                                                                                                                            |
+| ---------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Devicons CDN is down                     | Low        | `LetterAvatar` fallback always renders. Add a local fallback copy of the 10 most common icons in `/public/icons/dev/`                 |
+| AI ignores group node schema             | Medium     | Provide concrete JSON examples in the system prompt. Add a post-processing step that groups nodes by category if AI outputs no groups |
+| Dagre overlaps nodes with parentId       | Medium     | Exclude all child nodes (those with parentId) from Dagre; layout only top-level nodes                                                 |
+| AWS icon filename normalisation mismatch | Medium     | Run audit script on every PR; registry key must match exactly                                                                         |
+| Simple Icons slug not found (404)        | Low        | Wrap `<img>` in error boundary; fallback to `LetterAvatar` on 404                                                                     |
 
 ---
 
-*Last updated: 2026-05-29*
-*Owner: Kairos Engineering*
+_Last updated: 2026-05-29_
+_Owner: Kairos Engineering_

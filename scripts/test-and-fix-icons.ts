@@ -23,30 +23,66 @@ const JSDELIVR_BASE = 'https://cdn.jsdelivr.net/gh/tf2d2/icons@main';
 const SERVICES = [
   // AWS Services
   { name: 'AWS Lambda', provider: 'aws', terms: ['AWS-Lambda', 'Lambda'] },
-  { name: 'AWS S3', provider: 'aws', terms: ['Amazon-Simple-Storage-Service', 'Amazon-S3', 'Simple-Storage-Service', 'S3'] },
-  { name: 'Amazon S3', provider: 'aws', terms: ['Amazon-Simple-Storage-Service', 'Amazon-S3', 'Simple-Storage-Service', 'S3'] },
+  {
+    name: 'AWS S3',
+    provider: 'aws',
+    terms: ['Amazon-Simple-Storage-Service', 'Amazon-S3', 'Simple-Storage-Service', 'S3'],
+  },
+  {
+    name: 'Amazon S3',
+    provider: 'aws',
+    terms: ['Amazon-Simple-Storage-Service', 'Amazon-S3', 'Simple-Storage-Service', 'S3'],
+  },
   { name: 'Amazon RDS', provider: 'aws', terms: ['RDS', 'Amazon-RDS'] },
   { name: 'Amazon DynamoDB', provider: 'aws', terms: ['DynamoDB', 'Amazon-DynamoDB'] },
-  { name: 'Amazon SQS', provider: 'aws', terms: ['Simple-Queue-Service', 'SQS', 'Amazon-Simple-Queue-Service'] },
-  { name: 'Amazon SES', provider: 'aws', terms: ['Simple-Email-Service', 'SES', 'Amazon-Simple-Email-Service'] },
+  {
+    name: 'Amazon SQS',
+    provider: 'aws',
+    terms: ['Simple-Queue-Service', 'SQS', 'Amazon-Simple-Queue-Service'],
+  },
+  {
+    name: 'Amazon SES',
+    provider: 'aws',
+    terms: ['Simple-Email-Service', 'SES', 'Amazon-Simple-Email-Service'],
+  },
   { name: 'Amazon EC2', provider: 'aws', terms: ['EC2', 'Amazon-EC2', 'Elastic-Compute-Cloud'] },
-  { name: 'Amazon ECS', provider: 'aws', terms: ['Elastic-Container-Service', 'ECS', 'Amazon-ECS'] },
-  { name: 'Amazon EKS', provider: 'aws', terms: ['Elastic-Kubernetes-Service', 'EKS', 'Amazon-EKS'] },
+  {
+    name: 'Amazon ECS',
+    provider: 'aws',
+    terms: ['Elastic-Container-Service', 'ECS', 'Amazon-ECS'],
+  },
+  {
+    name: 'Amazon EKS',
+    provider: 'aws',
+    terms: ['Elastic-Kubernetes-Service', 'EKS', 'Amazon-EKS'],
+  },
   { name: 'Amazon CloudFront', provider: 'aws', terms: ['CloudFront', 'Amazon-CloudFront'] },
   { name: 'Amazon API Gateway', provider: 'aws', terms: ['API-Gateway', 'Amazon-API-Gateway'] },
   { name: 'Amazon Cognito', provider: 'aws', terms: ['Cognito', 'Amazon-Cognito'] },
   { name: 'Amazon Route 53', provider: 'aws', terms: ['Route-53', 'Route53', 'Amazon-Route-53'] },
   { name: 'Amazon ElastiCache', provider: 'aws', terms: ['ElastiCache', 'Amazon-ElastiCache'] },
   { name: 'Amazon EventBridge', provider: 'aws', terms: ['EventBridge', 'Amazon-EventBridge'] },
-  { name: 'Amazon SNS', provider: 'aws', terms: ['Simple-Notification-Service', 'SNS', 'Amazon-Simple-Notification-Service'] },
+  {
+    name: 'Amazon SNS',
+    provider: 'aws',
+    terms: ['Simple-Notification-Service', 'SNS', 'Amazon-Simple-Notification-Service'],
+  },
   { name: 'Amazon Kinesis', provider: 'aws', terms: ['Kinesis', 'Amazon-Kinesis'] },
   { name: 'AWS Step Functions', provider: 'aws', terms: ['Step-Functions', 'AWS-Step-Functions'] },
   { name: 'AWS Fargate', provider: 'aws', terms: ['Fargate', 'AWS-Fargate'] },
   { name: 'Amazon Aurora', provider: 'aws', terms: ['Aurora', 'Amazon-Aurora'] },
-  { name: 'AWS Secrets Manager', provider: 'aws', terms: ['Secrets-Manager', 'AWS-Secrets-Manager'] },
+  {
+    name: 'AWS Secrets Manager',
+    provider: 'aws',
+    terms: ['Secrets-Manager', 'AWS-Secrets-Manager'],
+  },
   { name: 'AWS WAF', provider: 'aws', terms: ['WAF', 'AWS-WAF'] },
   { name: 'Amazon VPC', provider: 'aws', terms: ['Virtual-Private-Cloud', 'VPC', 'Amazon-VPC'] },
-  { name: 'AWS IAM', provider: 'aws', terms: ['Identity-and-Access-Management', 'AWS-Identity-and-Access-Management', 'IAM'] },
+  {
+    name: 'AWS IAM',
+    provider: 'aws',
+    terms: ['Identity-and-Access-Management', 'AWS-Identity-and-Access-Management', 'IAM'],
+  },
   { name: 'Amazon CloudWatch', provider: 'aws', terms: ['CloudWatch', 'Amazon-CloudWatch'] },
   { name: 'Amazon Athena', provider: 'aws', terms: ['Athena', 'Amazon-Athena'] },
   { name: 'Amazon Redshift', provider: 'aws', terms: ['Redshift', 'Amazon-Redshift'] },
@@ -67,26 +103,28 @@ const SERVICES = [
   { name: 'GCP Load Balancer', provider: 'gcp', terms: ['cloud_load_balancing'] },
   { name: 'GCP Memorystore', provider: 'gcp', terms: ['memorystore'] },
   { name: 'GCP Spanner', provider: 'gcp', terms: ['cloud_spanner'] },
-  { name: 'GCP Secret Manager', provider: 'gcp', terms: ['secret_manager'] }
+  { name: 'GCP Secret Manager', provider: 'gcp', terms: ['secret_manager'] },
 ];
 
 function findBestAwsMatch(terms: string[]): string | null {
-  const candidates = treeData.tree.filter(e => 
-    e.path.startsWith('aws/service/') && e.path.endsWith('.svg') && e.path.includes('/64/')
+  const candidates = treeData.tree.filter(
+    (e) => e.path.startsWith('aws/service/') && e.path.endsWith('.svg') && e.path.includes('/64/')
   );
 
   for (const term of terms) {
-    const match = candidates.find(c => {
+    const match = candidates.find((c) => {
       const filename = path.basename(c.path, '.svg').toLowerCase();
-      return filename === term.toLowerCase() || 
-             filename === `aws-${term.toLowerCase()}` || 
-             filename === `amazon-${term.toLowerCase()}`;
+      return (
+        filename === term.toLowerCase() ||
+        filename === `aws-${term.toLowerCase()}` ||
+        filename === `amazon-${term.toLowerCase()}`
+      );
     });
     if (match) return match.path;
   }
 
   for (const term of terms) {
-    const match = candidates.find(c => {
+    const match = candidates.find((c) => {
       const filename = path.basename(c.path, '.svg').toLowerCase();
       return filename.includes(term.toLowerCase());
     });
@@ -97,21 +135,23 @@ function findBestAwsMatch(terms: string[]): string | null {
 }
 
 function findBestGcpMatch(terms: string[]): string | null {
-  const candidates = treeData.tree.filter(e => 
-    e.path.startsWith('gcp/') && e.path.endsWith('.svg')
+  const candidates = treeData.tree.filter(
+    (e) => e.path.startsWith('gcp/') && e.path.endsWith('.svg')
   );
 
   for (const term of terms) {
-    const match = candidates.find(c => {
+    const match = candidates.find((c) => {
       const filename = path.basename(c.path, '.svg').toLowerCase();
-      return filename === term.toLowerCase() || 
-             filename.replace(/_/g, '') === term.toLowerCase().replace(/_/g, '');
+      return (
+        filename === term.toLowerCase() ||
+        filename.replace(/_/g, '') === term.toLowerCase().replace(/_/g, '')
+      );
     });
     if (match) return match.path;
   }
 
   for (const term of terms) {
-    const match = candidates.find(c => {
+    const match = candidates.find((c) => {
       const filename = path.basename(c.path, '.svg').toLowerCase();
       return filename.includes(term.toLowerCase());
     });
@@ -181,7 +221,9 @@ async function run() {
   }
 
   fs.writeFileSync(registryPath, content, 'utf8');
-  console.log('\nSuccessfully verified and saved 100% of official cloud pack icons to lib/icon-registry.ts!');
+  console.log(
+    '\nSuccessfully verified and saved 100% of official cloud pack icons to lib/icon-registry.ts!'
+  );
 }
 
 run();
