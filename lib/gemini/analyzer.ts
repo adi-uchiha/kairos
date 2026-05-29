@@ -29,11 +29,24 @@ Fields to update:
 - existing_tools (array of strings)
 - compliance_requirements (array of strings)
 - non_negotiables (array of strings)
+- tech_philosophy (object or null): {
+    cloud_preference: string or null ("gcp", "aws", "azure", "cloudflare", "multi-cloud", "no-preference"),
+    language_era: string or null ("legacy", "modern", "bleeding-edge"),
+    preferred_languages: array of strings,
+    stack_style: string or null ("monolith", "microservices", "serverless", "hybrid"),
+    devops_philosophy: string or null ("managed-only", "container-friendly", "infra-as-code"),
+    orm_stance: string or null ("love-orm", "raw-sql", "query-builder"),
+    ai_tooling_openness: string or null ("early-adopter", "pragmatic", "conservative"),
+    vendor_lock_in_tolerance: string or null ("hate-it", "pragmatic", "fine-with-it"),
+    open_source_priority: string or null ("always", "preferred", "indifferent"),
+    subjective_notes: string or null
+  }
 
 Also recommend the next phase.
 Rules for Phase Transition:
-1. Transition from 'project_discovery' to 'scale_discovery' when product_category, core_user_workflow, primary_user_persona, and data_model_nature are known.
-2. Transition from 'scale_discovery' to 'builder_context' when expected_users_month_1, expected_users_month_6, and launch_timeline_weeks are known.
+1. Transition from 'project_discovery' to 'tech_philosophy' when product_category and core_user_workflow are known.
+1.5. Transition from 'tech_philosophy' to 'scale_discovery' when tech_philosophy.cloud_preference, language_era, stack_style, and devops_philosophy are known.
+2. Transition from 'scale_discovery' to 'builder_context' when expected_users_month_1, expected_users_month_6, and launch_timeline_weeks are known (or defaults assigned).
 3. Transition from 'builder_context' to 'constraints' when team_size, primary_language, budget_constraint, and devops_tolerance are known.
 4. Transition from 'constraints' to 'recommendation' when constraints are known (even if none).
 5. Transition from 'recommendation' to 'diagram' when the user asks to generate the diagram.

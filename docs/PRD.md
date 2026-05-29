@@ -57,6 +57,10 @@ Phase 1: Project Discovery
   AI asks open-ended questions about the product idea
   (What are you building? Who is it for? What's the core workflow?)
         ↓
+Phase 1.5: Tech Philosophy
+  AI asks about developer's tech preferences and opinions
+  (Cloud bias? Language era? Stack style? ORM opinions?)
+        ↓
 Phase 2: Scale & Timeline Discovery
   AI asks about expected users, growth horizon, launch timeline
   (How many users in month 1? Month 6? Is this a side project or a company?)
@@ -105,6 +109,23 @@ Phase 7: Follow-up / Deep Dive
   - Real-time requirements (does the product need live updates, sockets, etc.)
 - FR-04: The AI MUST NOT ask more than 3–4 questions at a time. Questions should be grouped naturally, not fired as a list.
 - FR-05: The AI MUST acknowledge and briefly reflect on the user's answer before asking the next set of questions. This makes the conversation feel human.
+
+### 3.1.5 Phase 1.5 — Tech Philosophy (P0)
+
+**Goal:** Capture the developer's technology DNA to guide opinionated tech recommendations.
+
+**Requirements:**
+
+- FR-05.1: The AI MUST ask multiple-choice questions (MCQ) regarding the developer's cloud preferences, language preferences, and stack preferences.
+- FR-05.2: The discovery phase MUST cover at minimum:
+  - Cloud preference (GCP, AWS, Azure, Cloudflare, Multi-cloud, No preference)
+  - Infrastructure & DevOps philosophy (Managed serverless, Container-friendly, Full IaC)
+  - Preferred language era (Legacy Java/.NET/PHP, Modern TS/Go/Python, Bleeding-edge Rust/Bun/Zig)
+  - Stack style (Monolith, Microservices, Serverless, Hybrid)
+  - ORM preference (ORM-friendly, Query builders, Raw SQL)
+  - Vendor lock-in tolerance (Hate it, Pragmatic, Fine with it)
+- FR-05.3: The UI MUST render MCQ choices as clickable chips inline in the chat interface. Clicking a chip sends the choice immediately as the user's message.
+- FR-05.4: The AI MUST ask at least one subjective question in a :::subjective block, allowing the user to express raw technical opinions or non-negotiables, which the UI renders as an inline textarea.
 
 ### 3.2 Phase 2 — Scale & Timeline Discovery (P0)
 

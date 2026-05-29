@@ -51,7 +51,10 @@ PHASE_IDLE
     ▼  (user sends first message)
 PHASE_PROJECT_DISCOVERY
     │
-    ▼  (AI determines sufficient context)
+    ▼  (AI determines category and workflow)
+PHASE_TECH_PHILOSOPHY
+    │
+    ▼  (AI determines cloud preference, language era, stack, devops stance)
 PHASE_SCALE_DISCOVERY
     │
     ▼
@@ -81,6 +84,13 @@ A phase is considered **complete** when the context map fields for that phase ar
 - `primary_user_persona` is identified
 - `data_model_nature` has at least one signal (relational, document, time-series, real-time)
 
+**Tech Philosophy complete when:**
+
+- `tech_philosophy.cloud_preference` is identified
+- `tech_philosophy.language_era` is identified
+- `tech_philosophy.stack_style` is identified
+- `tech_philosophy.devops_philosophy` is identified
+
 **Scale Discovery complete when:**
 
 - `expected_users_month_1` has a numeric estimate (even a rough one)
@@ -107,6 +117,19 @@ A phase is considered **complete** when the context map fields for that phase ar
 The context map is the internal data structure that accumulates information from the conversation. It is serialized into the LLM prompt during the recommendation phase.
 
 ```typescript
+interface TechPhilosophy {
+  cloud_preference: 'gcp' | 'aws' | 'azure' | 'cloudflare' | 'multi-cloud' | 'no-preference' | null;
+  language_era: 'legacy' | 'modern' | 'bleeding-edge' | null;
+  preferred_languages: string[];
+  stack_style: 'monolith' | 'microservices' | 'serverless' | 'hybrid' | null;
+  devops_philosophy: 'managed-only' | 'container-friendly' | 'infra-as-code' | null;
+  orm_stance: 'love-orm' | 'raw-sql' | 'query-builder' | null;
+  ai_tooling_openness: 'early-adopter' | 'pragmatic' | 'conservative' | null;
+  vendor_lock_in_tolerance: 'hate-it' | 'pragmatic' | 'fine-with-it' | null;
+  open_source_priority: 'always' | 'preferred' | 'indifferent' | null;
+  subjective_notes: string | null;
+}
+
 interface ContextMap {
   // Phase 1: Project Discovery
   product_category: string | null; // e.g. "B2B SaaS", "consumer app", "internal tool"
@@ -115,6 +138,9 @@ interface ContextMap {
   data_model_nature: DataModelNature[]; // ["relational", "document", "real-time", "time-series", "file-heavy"]
   has_realtime_requirement: boolean | null;
   has_ai_ml_component: boolean | null;
+
+  // Phase 1.5: Tech Philosophy
+  tech_philosophy: Partial<TechPhilosophy> | null;
 
   // Phase 2: Scale & Timeline
   expected_users_month_1: number | null;
@@ -156,6 +182,7 @@ type DataModelNature =
 type ConversationPhase =
   | 'idle'
   | 'project_discovery'
+  | 'tech_philosophy'
   | 'scale_discovery'
   | 'builder_context'
   | 'constraints'

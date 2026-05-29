@@ -3,13 +3,14 @@
 import React from 'react';
 import { type ChatMessage } from '@/types/blueprint';
 import { MaterialIcon } from './MaterialIcon';
-import { MarkdownRenderer } from '@/components/ui/markdown-renderer';
+import { HybridMessage } from './HybridMessage';
+import { parseMcqBlocks } from '@/lib/mcq-parser';
 
 interface ChatPanelProps {
   messages: ChatMessage[];
   isLoading: boolean;
   inputMessage: string;
-  activeTab: string;
+  currentPhase: string;
   isGeneratingDiagram: boolean;
   chatEndRef: React.RefObject<HTMLDivElement | null>;
   hasAutoStarted: boolean;
@@ -17,6 +18,9 @@ interface ChatPanelProps {
   onSend: () => void;
   onGenerateDiagram: () => void;
   onBeginDiscovery: () => void;
+  onMcqSelect: (value: string, label: string, field: string) => void;
+  onSubjectiveSubmit: (text: string, field: string) => void;
+  hasDiagram: boolean;
 }
 
 /** The left-side chat pane: message history, typing indicator, and input bar. */
@@ -24,7 +28,7 @@ export function ChatPanel({
   messages,
   isLoading,
   inputMessage,
-  activeTab,
+  currentPhase,
   isGeneratingDiagram,
   chatEndRef,
   hasAutoStarted,
@@ -32,8 +36,25 @@ export function ChatPanel({
   onSend,
   onGenerateDiagram,
   onBeginDiscovery,
+  onMcqSelect,
+  onSubjectiveSubmit,
+  hasDiagram,
 }: ChatPanelProps) {
-  const isFollowup = activeTab === 'followup';
+  const isFollowup = hasDiagram;
+
+  // Check if the latest message has interactive blocks
+  const latestMessage = messages.length > 0 ? messages[messages.length - 1] : null;
+  const isLatestAssistant = latestMessage && latestMessage.role === 'assistant';
+  
+  const { blocks = [] } = isLatestAssistant 
+    ? parseMcqBlocks(latestMessage.content) 
+    : { blocks: [] };
+
+  const hasInteractiveBlocks = blocks.length > 0;
+  
+  // Hide default input bar if in MCQ-hybrid phases and there are interactive blocks in the latest message
+  const isFreeTextPhase = ['project_discovery', 'recommendation', 'diagram', 'followup'].includes(currentPhase);
+  const shouldHideInputBar = hasInteractiveBlocks && !isFreeTextPhase;
 
   return (
     <div
@@ -79,6 +100,8 @@ export function ChatPanel({
 
         {messages.map((msg, index) => {
           const isUser = msg.role === 'user';
+          const isLatest = index === messages.length - 1;
+
           return (
             <div key={index} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
               <div
@@ -87,13 +110,15 @@ export function ChatPanel({
                     ? 'bg-[var(--surface-hover)] border-[var(--border)] text-[var(--text-primary)]'
                     : 'bg-[var(--surface)] border-[var(--orange-border)] text-[var(--text-primary)]'
                 }`}
-                style={{ borderRadius: 0 }}
+                style={{ borderRadius: 0, width: isUser ? 'auto' : '100%' }}
               >
-                {isUser ? (
-                  <span style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
-                ) : (
-                  <MarkdownRenderer content={msg.content} />
-                )}
+                <HybridMessage
+                  message={msg}
+                  isLatest={isLatest}
+                  onMcqSelect={onMcqSelect}
+                  onSubjectiveSubmit={onSubjectiveSubmit}
+                  disabled={isLoading}
+                />
               </div>
             </div>
           );
@@ -127,83 +152,85 @@ export function ChatPanel({
       </div>
 
       {/* INPUT BAR */}
-      <div className="p-4 border-t border-[var(--border)] shrink-0 bg-[var(--bg)]">
-        {activeTab === 'recommendation' ? (
-          <div className="flex justify-center p-2">
-            <button
-              onClick={onGenerateDiagram}
-              disabled={isGeneratingDiagram}
-              className="py-3 px-6 text-xs font-semibold uppercase tracking-wider text-white hover:opacity-95 transition-all flex items-center gap-2"
-              style={{
-                borderRadius: 0,
-                background: '#FF5500',
-                width: '100%',
-                justifyContent: 'center',
+      {!shouldHideInputBar && (
+        <div className="p-4 border-t border-[var(--border)] shrink-0 bg-[var(--bg)]">
+          {currentPhase === 'recommendation' && !hasDiagram ? (
+            <div className="flex justify-center p-2">
+              <button
+                onClick={onGenerateDiagram}
+                disabled={isGeneratingDiagram}
+                className="py-3 px-6 text-xs font-semibold uppercase tracking-wider text-white hover:opacity-95 transition-all flex items-center gap-2"
+                style={{
+                  borderRadius: 0,
+                  background: '#FF5500',
+                  width: '100%',
+                  justifyContent: 'center',
+                }}
+              >
+                {isGeneratingDiagram ? (
+                  <>
+                    <MaterialIcon name="sync" size={14} className="animate-spin" />
+                    <span>Generating Canvas...</span>
+                  </>
+                ) : (
+                  <>
+                    <MaterialIcon name="auto_awesome" size={14} />
+                    <span>Generate Visual Architecture Diagram</span>
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                onSend();
               }}
+              className="flex gap-2 items-end"
             >
-              {isGeneratingDiagram ? (
-                <>
-                  <MaterialIcon name="sync" size={14} className="animate-spin" />
-                  <span>Generating Canvas...</span>
-                </>
-              ) : (
-                <>
-                  <MaterialIcon name="auto_awesome" size={14} />
-                  <span>Generate Visual Architecture Diagram</span>
-                </>
-              )}
-            </button>
-          </div>
-        ) : (
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              onSend();
-            }}
-            className="flex gap-2 items-end"
-          >
-            <textarea
-              value={inputMessage}
-              onChange={(e) => onInputChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  onSend();
+              <textarea
+                value={inputMessage}
+                onChange={(e) => onInputChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    onSend();
+                  }
+                }}
+                placeholder={
+                  hasDiagram
+                    ? 'Ask follow-up questions or changes about this architecture...'
+                    : 'Ask or reply to Kairos... (Shift+Enter for new line)'
                 }
-              }}
-              placeholder={
-                activeTab === 'followup'
-                  ? 'Ask follow-up questions about this architecture...'
-                  : 'Ask or reply to Kairos... (Shift+Enter for new line)'
-              }
-              disabled={isLoading}
-              rows={1}
-              className="flex-1 bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[14px] focus:outline-none focus:border-[#FF5500] resize-none"
-              style={{
-                borderRadius: 0,
-                minHeight: '48px',
-                maxHeight: '160px',
-                overflowY: 'auto',
-                lineHeight: '1.5',
-                height: 'auto',
-              }}
-              onInput={(e) => {
-                const el = e.currentTarget;
-                el.style.height = 'auto';
-                el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-              }}
-            />
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="px-5 border border-[var(--border)] bg-[var(--surface-hover)] hover:border-[#FF5500] hover:text-[#FF5500] transition-all flex items-center justify-center"
-              style={{ borderRadius: 0, cursor: 'pointer', height: '48px', flexShrink: 0 }}
-            >
-              <MaterialIcon name="send" size={15} />
-            </button>
-          </form>
-        )}
-      </div>
+                disabled={isLoading}
+                rows={1}
+                className="flex-1 bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[14px] focus:outline-none focus:border-[#FF5500] resize-none"
+                style={{
+                  borderRadius: 0,
+                  minHeight: '48px',
+                  maxHeight: '160px',
+                  overflowY: 'auto',
+                  lineHeight: '1.5',
+                  height: 'auto',
+                }}
+                onInput={(e) => {
+                  const el = e.currentTarget;
+                  el.style.height = 'auto';
+                  el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+                }}
+              />
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="px-5 border border-[var(--border)] bg-[var(--surface-hover)] hover:border-[#FF5500] hover:text-[#FF5500] transition-all flex items-center justify-center"
+                style={{ borderRadius: 0, cursor: 'pointer', height: '48px', flexShrink: 0 }}
+              >
+                <MaterialIcon name="send" size={15} />
+              </button>
+            </form>
+          )}
+        </div>
+      )}
     </div>
   );
 }

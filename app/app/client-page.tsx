@@ -56,6 +56,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
   // ── Chat state ──────────────────────────────────────────────────────────────
   const [messages, setMessages] = useState<ChatMessage[]>(blueprint.chatHistory ?? []);
   const [inputMessage, setInputMessage] = useState('');
+  const [diagramInputMessage, setDiagramInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [hasAutoStarted, setHasAutoStarted] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -64,7 +65,6 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
   const [currentPhase, setCurrentPhase] = useState(
     blueprint.currentPhase ?? 'project_discovery',
   );
-  const [activeTab, setActiveTab] = useState(blueprint.currentPhase ?? 'project_discovery');
 
   // ── Context map ─────────────────────────────────────────────────────────────
   const [contextMap, setContextMap] = useState<ContextMap>(blueprint.contextMap ?? {});
@@ -126,7 +126,6 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
     onContextMapUpdate: (cm) => setContextMap(cm as ContextMap),
     onPhaseUpdate: (phase) => {
       setCurrentPhase(phase);
-      setActiveTab(phase);
     },
     onMessagesUpdate: (msgs) => setMessages(msgs as ChatMessage[]),
     onDiagramUpdate: (newNodes, newEdges) => {
@@ -212,7 +211,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
       if (!overrideText) setInputMessage('');
       setIsLoading(true);
 
-      if (!overrideText) {
+      if (userText !== '__KAIROS_OPEN__') {
         setMessages((prev) => [...prev, { role: 'user', content: userText }]);
       }
 
@@ -223,7 +222,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
           body: JSON.stringify({
             sessionId: blueprint.id,
             message: userText,
-            history: overrideText ? [] : messages,
+            history: messages,
             phase: currentPhase,
           }),
         });
@@ -305,6 +304,14 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
     sendMessage();
   };
 
+  const handleMcqSelect = useCallback((value: string, label: string) => {
+    sendMessage(label);
+  }, [sendMessage]);
+
+  const handleSubjectiveSubmit = useCallback((text: string) => {
+    sendMessage(text);
+  }, [sendMessage]);
+
   // ── Diagram generation ──────────────────────────────────────────────────────
   const handleGenerateDiagram = async () => {
     if (isReadOnly) return;
@@ -323,7 +330,6 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
         setNodes(laidNodes);
         setEdges(laidEdges);
         setCurrentPhase('diagram');
-        setActiveTab('diagram');
       }
     } catch (err) {
       console.error('Failed to generate diagram:', err);
@@ -405,36 +411,33 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
         {/* Left sidebar */}
         <WorkspaceSidebar
           phases={WORKSPACE_PHASES}
-          activeTab={activeTab}
           currentPhase={currentPhase}
           userName={user.name}
-          onTabChange={setActiveTab}
         />
 
         {/* Centre content */}
         <main className="flex-1 flex overflow-hidden relative">
-          {/* Chat pane — hidden during full-screen diagram view */}
-          {activeTab !== 'diagram' && (
-            <ChatPanel
-              messages={messages}
-              isLoading={isLoading}
-              inputMessage={inputMessage}
-              activeTab={activeTab}
-              isGeneratingDiagram={isGeneratingDiagram}
-              chatEndRef={chatEndRef}
-              hasAutoStarted={hasAutoStarted}
-              onInputChange={setInputMessage}
-              onSend={handleSendMessage}
-              onGenerateDiagram={handleGenerateDiagram}
-              onBeginDiscovery={() => {
-                setHasAutoStarted(true);
-                sendMessage('__KAIROS_OPEN__');
-              }}
-            />
-          )}
+          <ChatPanel
+            messages={messages}
+            isLoading={isLoading}
+            inputMessage={inputMessage}
+            currentPhase={currentPhase}
+            isGeneratingDiagram={isGeneratingDiagram}
+            chatEndRef={chatEndRef}
+            hasAutoStarted={hasAutoStarted}
+            onInputChange={setInputMessage}
+            onSend={handleSendMessage}
+            onGenerateDiagram={handleGenerateDiagram}
+            onBeginDiscovery={() => {
+              setHasAutoStarted(true);
+              sendMessage('__KAIROS_OPEN__');
+            }}
+            onMcqSelect={handleMcqSelect}
+            onSubjectiveSubmit={handleSubjectiveSubmit}
+            hasDiagram={nodes.length > 0}
+          />
 
-          {/* Diagram canvas — shown in diagram/followup tabs */}
-          {(activeTab === 'diagram' || activeTab === 'followup') && (
+          {nodes.length > 0 && (
             <DiagramCanvas
               nodes={nodes}
               edges={edges}
@@ -444,7 +447,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
               nodeQuestions={diagramQA.nodeQuestions}
               nodeInput={diagramQA.nodeInput}
               generalQuestions={diagramQA.generalQuestions}
-              inputMessage={inputMessage}
+              inputMessage={diagramInputMessage}
               isAskingNode={diagramQA.isAskingNode}
               isReadOnly={isReadOnly}
               blueprintName={blueprintName}
@@ -463,7 +466,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
               onNodeInputChange={diagramQA.setNodeInput}
               onAskNode={handleAskNodeWithId}
               onCloseGeneralPanel={() => diagramQA.setShowGeneralAskPanel(false)}
-              onInputMessageChange={setInputMessage}
+              onInputMessageChange={setDiagramInputMessage}
               onAskGeneral={diagramQA.handleAskGeneralDiagram}
               onResetLayout={handleResetLayout}
             />

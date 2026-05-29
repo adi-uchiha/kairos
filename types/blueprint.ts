@@ -18,6 +18,19 @@ export interface ChatMessage {
 
 export type ContextMapValue = string | string[] | boolean | number | null | undefined;
 
+export interface TechPhilosophy {
+  cloud_preference: 'gcp' | 'aws' | 'azure' | 'cloudflare' | 'multi-cloud' | 'no-preference' | null;
+  language_era: 'legacy' | 'modern' | 'bleeding-edge' | null;
+  preferred_languages: string[];
+  stack_style: 'monolith' | 'microservices' | 'serverless' | 'hybrid' | null;
+  devops_philosophy: 'managed-only' | 'container-friendly' | 'infra-as-code' | null;
+  orm_stance: 'love-orm' | 'raw-sql' | 'query-builder' | null;
+  ai_tooling_openness: 'early-adopter' | 'pragmatic' | 'conservative' | null;
+  vendor_lock_in_tolerance: 'hate-it' | 'pragmatic' | 'fine-with-it' | null;
+  open_source_priority: 'always' | 'preferred' | 'indifferent' | null;
+  subjective_notes: string | null;
+}
+
 export interface ContextMap {
   product_category?: string | null;
   core_user_workflow?: string | null;
@@ -52,7 +65,9 @@ export interface ContextMap {
   needs_email?: boolean | null;
   needs_ai_features?: boolean | null;
   
-  [key: string]: ContextMapValue;
+  tech_philosophy?: Partial<TechPhilosophy>;
+  
+  [key: string]: ContextMapValue | Partial<TechPhilosophy>;
 }
 
 // ─── DIAGRAM ──────────────────────────────────────────────────────────────────
@@ -157,6 +172,7 @@ export interface Phase {
 
 export const WORKSPACE_PHASES: Phase[] = [
   { id: 'project_discovery', label: 'Discovery', icon: 'explore' },
+  { id: 'tech_philosophy', label: 'Tech Philosophy', icon: 'code_blocks' },
   { id: 'scale_discovery', label: 'Scale & Growth', icon: 'storage' },
   { id: 'builder_context', label: 'Builder Context', icon: 'terminal' },
   { id: 'constraints', label: 'Constraints', icon: 'settings' },

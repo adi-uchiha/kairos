@@ -48,6 +48,15 @@ CATEGORY CONNECTIONS & DISAMBIGUATION:
      * "position": relative local coordinates inside the parent's container box (e.g., x: 40, y: 60), NOT global coordinates.
    - Group nodes must have style: { "width": number, "height": number } to properly contain children.
 
+AI & DATA PIPELINE DISAMBIGUATION (CRITICAL):
+6. If the stack includes an AI service (OpenAI, Gemini, Anthropic), do NOT just represent it as a generic "AI Service". Draw the exact model provider node (e.g. 'OpenAI GPT-4o' or 'Gemini 2.5 Flash') with category 'ai'.
+7. If the stack uses a vector database or search index (Pinecone, Chroma, Qdrant, Milvus, Weaviate, Algolia), ALWAYS include a separate node with category 'search' or 'database' (e.g., 'Pinecone Vector DB') and connect it from the AI service or backend. Do NOT leave Pinecone or other databases unrendered.
+8. Be extremely thorough: represent libraries like Zod (schema/validation) and TanStack Query (data fetching) as individual nodes in their correct column, showcasing the full client-server data flow.
+
+SPATIAL LAYOUT RULES & COLLISION AVOIDANCE:
+- Dagre auto-layout runs on the client, but you MUST set initial horizontal columns (x coordinates) and space nodes vertically (y coordinates spaced 160px apart, e.g., y = 100, 260, 420...) to avoid overlapping.
+- Group containers should be large enough to hold all their children comfortably. For example, if a group has 3 children spaced vertically, it needs a width of 240 and height of 500. Child relative local coordinates (x: 40, y: 60, etc.) must fall cleanly inside parent dimensions.
+
 HORIZONTAL SWIMLANE COLUMNS (x coordinates for left-to-right flow):
 - Col 1 (x = 100): user / external clients
 - Col 2 (x = 300): cdn / hosting / gateway
@@ -109,7 +118,7 @@ Context Map:
 ${JSON.stringify(blueprint.contextMap, null, 2)}
 
 Chat history:
-${JSON.stringify(blueprint.chatHistory.slice(-4), null, 2)}
+${JSON.stringify(blueprint.chatHistory, null, 2)}
 
 Generate a clean architecture graph following the system prompt rules. Output JSON only.`;
 

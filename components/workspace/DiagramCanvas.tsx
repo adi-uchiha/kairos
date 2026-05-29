@@ -1,17 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useEffect } from 'react';
 import {
   ReactFlow,
   Background,
   Controls,
   useNodesState,
   useEdgesState,
+  MarkerType,
+  ReactFlowProvider,
+  useReactFlow,
   type Node,
   type Edge,
   type NodeMouseHandler,
 } from '@xyflow/react';
-import { useMemo } from 'react';
 import { toast } from 'sonner';
 import { toPng } from 'html-to-image';
 import {
@@ -125,12 +127,38 @@ interface DiagramCanvasProps {
   onResetLayout?: () => void;
 }
 
-/**
- * The full ReactFlow diagram canvas, including the segmented layer filter toolbar,
- * export/share toolbar, node detail drawer with inline Q&A, and the general
- * architecture analysis console at the bottom.
- */
-export function DiagramCanvas({
+function ViewportFitter({
+  nodesCount,
+  direction,
+  layer,
+  consoleOpen,
+}: {
+  nodesCount: number;
+  direction: string;
+  layer: string;
+  consoleOpen: boolean;
+}) {
+  const { fitView } = useReactFlow();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fitView({ padding: 0.15, duration: 250 });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [nodesCount, direction, layer, consoleOpen, fitView]);
+
+  return null;
+}
+
+export function DiagramCanvas(props: DiagramCanvasProps) {
+  return (
+    <ReactFlowProvider>
+      <DiagramCanvasInner {...props} />
+    </ReactFlowProvider>
+  );
+}
+
+function DiagramCanvasInner({
   nodes,
   edges,
   selectedLayer,
@@ -275,6 +303,21 @@ export function DiagramCanvas({
     toast.success('Shareable URL copied to clipboard! Guests can view in Read-Only mode.');
   };
 
+  const defaultEdgeOptions = useMemo(() => ({
+    type: 'smoothstep',
+    animated: false,
+    style: {
+      strokeWidth: 2,
+      stroke: theme === 'dark' ? '#3f3f46' : '#cbd5e1',
+    },
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+      width: 15,
+      height: 15,
+      color: theme === 'dark' ? '#3f3f46' : '#cbd5e1',
+    },
+  }), [theme]);
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       <style>{`
@@ -306,6 +349,29 @@ export function DiagramCanvas({
           fill: currentColor !important;
           stroke: currentColor !important;
         }
+        .react-flow__edge-label {
+          font-family: var(--font-mono);
+          font-size: 9px !important;
+          font-weight: 600;
+          color: var(--text-muted) !important;
+          background: var(--surface) !important;
+          border: 1px solid var(--border) !important;
+          padding: 2px 6px !important;
+          border-radius: 4px !important;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        .react-flow__edge-path {
+          transition: stroke 0.15s ease, stroke-width 0.15s ease;
+        }
+        .react-flow__edge:hover .react-flow__edge-path {
+          stroke: #ff5500 !important;
+          stroke-width: 2.5px !important;
+        }
+        .react-flow__edge:hover marker path {
+          fill: #ff5500 !important;
+        }
       `}</style>
 
       {/* ReactFlow Canvas */}
@@ -317,9 +383,16 @@ export function DiagramCanvas({
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
           nodeTypes={NODE_TYPES}
+          defaultEdgeOptions={defaultEdgeOptions}
           proOptions={{ hideAttribution: true }}
           fitView
         >
+          <ViewportFitter
+            nodesCount={filteredNodes.length}
+            direction={layoutDirection}
+            layer={selectedLayer}
+            consoleOpen={showGeneralAskPanel || !!selectedNode}
+          />
           <Background color="var(--border)" gap={16} size={1} />
           <Controls
             style={{

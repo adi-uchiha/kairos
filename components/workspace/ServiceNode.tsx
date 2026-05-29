@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { User } from 'lucide-react';
-import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
+import { Handle, Position, NodeResizer, type NodeProps, type Node } from '@xyflow/react';
 import { type ServiceNodeData } from '@/types/blueprint';
 import { getIconUrl } from '@/lib/icon-registry';
 
@@ -179,33 +179,48 @@ function getGroupColor(label: string): string {
  * Transparent dashed-border container node for ReactFlow.
  * Sizes and contains subflow child nodes.
  */
-export function GroupNode({ data }: NodeProps<Node<ServiceNodeData>>) {
+export function GroupNode({ data, selected }: NodeProps<Node<ServiceNodeData>>) {
   const groupColor = getGroupColor(data.label);
   return (
-    <div
-      style={{
-        border: `1.5px dashed ${groupColor}`,
-        borderRadius: 8,
-        background: 'rgba(255, 255, 255, 0.01)',
-        width: '100%',
-        height: '100%',
-        padding: '8px 12px',
-        pointerEvents: 'none', // Allow clicking child nodes underneath
-      }}
-    >
+    <>
+      <NodeResizer
+        minWidth={150}
+        minHeight={80}
+        isVisible={!!selected}
+        lineStyle={{ border: `1.5px dashed ${groupColor}`, borderRadius: 8 }}
+        handleStyle={{
+          width: 8,
+          height: 8,
+          background: 'var(--surface)',
+          border: `2px solid ${groupColor}`,
+          borderRadius: '50%',
+        }}
+      />
       <div
         style={{
-          fontSize: 10,
-          fontFamily: 'var(--font-mono)',
-          color: groupColor,
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          fontWeight: 600,
-          userSelect: 'none',
+          border: `1.5px dashed ${groupColor}`,
+          borderRadius: 8,
+          background: 'rgba(255, 255, 255, 0.01)',
+          width: '100%',
+          height: '100%',
+          padding: '8px 12px',
+          boxSizing: 'border-box',
         }}
       >
-        {data.label}
+        <div
+          style={{
+            fontSize: 10,
+            fontFamily: 'var(--font-mono)',
+            color: groupColor,
+            textTransform: 'uppercase',
+            letterSpacing: '0.08em',
+            fontWeight: 600,
+            userSelect: 'none',
+          }}
+        >
+          {data.label}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

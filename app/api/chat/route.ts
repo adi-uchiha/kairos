@@ -84,21 +84,51 @@ export async function POST(req: NextRequest) {
     { role: 'user' as const, content: userMessage },
   ];
 
-  // 3. Build the phase-aware system prompt, passing the contextMap
+  // 3. Run analysis & update blueprint context map + phase synchronously (unless auto-opening)
+  if (!isAutoOpen) {
+    try {
+      await analyzeAndUpdateBlueprint(sessionId, messages);
+
+      // Fetch the updated phase and context map from the database
+      const bpResult = await db
+        .select()
+        .from(blueprints)
+        .where(eq(blueprints.id, sessionId))
+        .limit(1);
+
+      if (bpResult.length > 0) {
+        contextMap = (bpResult[0].contextMap || {}) as Record<string, unknown>;
+        currentPhase = bpResult[0].currentPhase || currentPhase;
+      }
+    } catch (err) {
+      console.error('Failed to run synchronous analyzer:', err);
+    }
+  }
+
+  // 4. Build the phase-aware system prompt, passing the updated contextMap
   const systemPrompt = KAIROS_SYSTEM_PROMPT(currentPhase, contextMap);
 
-  // 4. Stream from Gemini with automatic key rotation
+  // 5. Stream from Gemini with automatic key rotation
   try {
     const stream = await streamGeminiChat(messages, systemPrompt, async (event) => {
       // Build history excluding the internal system trigger message
-      const historyToSave = isAutoOpen
+      const finalHistory = isAutoOpen
         ? [{ role: 'assistant' as const, content: event.text }]
         : [...messages, { role: 'assistant' as const, content: event.text }];
 
-      // Perform background analysis & database save
-      analyzeAndUpdateBlueprint(sessionId, historyToSave).catch((err) => {
-        console.error('[Background Analysis Error]:', err);
-      });
+      // Save assistant message to the database
+      try {
+        await db
+          .update(blueprints)
+          .set({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            chatHistory: finalHistory as any,
+            updatedAt: new Date(),
+          })
+          .where(eq(blueprints.id, sessionId));
+      } catch (err) {
+        console.error('Failed to save chat history on finish:', err);
+      }
     });
 
     return new Response(stream, {
