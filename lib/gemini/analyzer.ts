@@ -103,6 +103,7 @@ Analyze the history and return the updated context map, the suggested next phase
       await db
         .update(blueprints)
         .set({
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           contextMap: data.contextMap as any,
           currentPhase: nextPhase,
           chatHistory: fullHistory as never,

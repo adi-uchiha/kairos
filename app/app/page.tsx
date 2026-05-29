@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
 import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
+import { type Blueprint } from '@/types/blueprint';
 import { ClientAppPage } from './client-page';
 
 export const metadata = {
@@ -78,9 +80,14 @@ export default async function AppPage({
     .where(eq(blueprints.id, id as string))
     .limit(1);
 
-  if (bpResult.length === 0 || bpResult[0].userId !== session.user.id) {
+  if (bpResult.length === 0) {
     redirect('/dashboard');
   }
 
-  return <ClientAppPage blueprint={bpResult[0]} user={session.user} />;
+  const isReadOnly = bpResult[0].userId !== session.user.id;
+
+  // Cast at the server/client boundary — the DB row is a superset of Blueprint.
+  const blueprint = bpResult[0] as unknown as Blueprint;
+
+  return <ClientAppPage blueprint={blueprint} user={session.user} isReadOnly={isReadOnly} />;
 }

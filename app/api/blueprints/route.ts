@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       name,
       currentPhase: 'project_discovery',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       chatHistory: [] as any,
       contextMap: {
         product_category: null,
@@ -90,7 +91,9 @@ export async function POST(req: NextRequest) {
         existing_tools: [],
         compliance_requirements: [],
         non_negotiables: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       diagramGraph: { nodes: [], edges: [] } as any,
       createdAt: new Date(),
       updatedAt: new Date(),

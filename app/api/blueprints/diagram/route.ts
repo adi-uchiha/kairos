@@ -1,8 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { generateDiagramForBlueprint } from '@/lib/gemini';
-import { db } from '@/db';
-import { blueprints } from '@/db/schema/blueprints';
-import { eq } from 'drizzle-orm';
+
 
 export const runtime = 'nodejs';
 

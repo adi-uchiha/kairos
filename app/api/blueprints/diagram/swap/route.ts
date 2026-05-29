@@ -76,6 +76,7 @@ Please perform the swap and output the updated JSON.`;
     await db
       .update(blueprints)
       .set({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         diagramGraph: updatedGraph as any,
         updatedAt: new Date(),
       })
