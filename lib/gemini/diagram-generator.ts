@@ -129,6 +129,72 @@ You must output a JSON object mapping each node's "id" directly to its metadata:
 
 Do NOT output nodes array, edges array, coordinates, groups, or connectives. Output ONLY the JSON map matching this schema.`;
 
+/**
+ * Pass 1.5: Incremental Topology Update Prompt
+ * Used when the user requests a minor modification/swap.
+ * Instructs the model to preserve unmodified nodes and their coordinates.
+ */
+const DIAGRAM_INCREMENTAL_SYSTEM_PROMPT = `You are a system architecture topology incremental editor.
+Your job is to apply a specific modification request to an existing system architecture topology.
+
+CRITICAL RULES:
+1. Maintain continuity: Keep all unmodified nodes EXACTLY as they are (same id, same type, same position coordinates x/y, same parentId, same data.label, same data.category, and same metadata like why/free_tier/etc.).
+2. Precise changes: Only add, remove, or swap nodes and edges that are directly related to the user's latest request. Do NOT touch any other nodes.
+3. Coordinate Preservation: Do NOT re-calculate or change the coordinates of unmodified nodes.
+   - If swapping a node (e.g. Stripe for Lemon Squeezy), place the new node at the EXACT same coordinates (position x and y) as the old one.
+   - If adding a new node, place it at a coordinate close to the node(s) it connects to.
+4. Schema validation: Output the complete updated JSON topology containing all nodes (both modified and unmodified) and edges.
+
+PREFERRED NODE LABELS FOR ICON MATCHING:
+Always name node data.label EXACTLY as listed below if using these technologies (this guarantees the correct SVG logo matches):
+- Runtimes/SDKs: Bun, Node.js, Deno, Go, Rust, Python, TypeScript
+- Frontend/Frameworks: Next.js, React, Astro, SolidJS, Remix, Qwik, Vue, Svelte
+- Backend/Frameworks: Hono, Fastify, Express, FastAPI, Elysia, Django, Spring Boot, NestJS
+- Libraries: Zod, TanStack Query, React Hook Form, Tailwind CSS, tRPC, Framer Motion
+- ORMs/Drivers: Drizzle, Prisma, TypeORM, pg
+- Databases/Caches: PostgreSQL, MySQL, MongoDB, Redis, SQLite, Neon, PlanetScale, Supabase, Turso, Upstash, CockroachDB
+- Hosting/CDN: Vercel, Cloudflare, Cloudflare Workers, Cloudflare R2, Cloudflare CDN, Railway, Fly.io, Render, Heroku
+- Auth/OAuth: Better Auth, Clerk, Auth0, Google OAuth, GitHub OAuth
+- SaaS/APIs: Stripe, Lemon Squeezy, Resend, OpenAI, Anthropic, Mailgun, SendGrid, Twilio, Google Analytics
+- Observability: Sentry, PostHog, Datadog, Grafana, Prometheus
+
+JSON Topology Schema to output:
+{
+  "nodes": [
+    {
+      "id": "string (unique key)",
+      "type": "string ('customNode' or 'group')",
+      "parentId": "string (optional parent group id)",
+      "extent": "string (optional, set to 'parent' if parentId is defined)",
+      "position": { "x": number, "y": number },
+      "style": { "width": number, "height": number } (required for group nodes, omit for customNode),
+      "data": {
+        "label": "string (display name)",
+        "category": "string",
+        "why": "string (preserve existing value if unmodified)",
+        "free_tier": "string (preserve existing value if unmodified)",
+        "cost_at_scale": "string (preserve existing value if unmodified)",
+        "upgrade_signal": "string (preserve existing value if unmodified)",
+        "alternatives": ["string"] (preserve existing value if unmodified)
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "string",
+      "source": "node_id",
+      "target": "node_id",
+      "label": "string (connection type, e.g. Validates, Fetches, SQL, gRPC)",
+      "animated": boolean,
+      "data": {
+        "description": "string (1 sentence context on what flows)"
+      }
+    }
+  ]
+}
+
+Only return clean, valid JSON matching the schema. No markdown formatting except the JSON block. Ensure all nodes are connected logically and edges flow left-to-right.`;
+
 // ─── GEMINI INVOCATION WITH ROTATION & RETRY ─────────────────────────────────
 
 /**
@@ -189,9 +255,54 @@ export async function generateDiagramForBlueprint(blueprintId: string): Promise<
   const contextMapString = JSON.stringify(blueprint.contextMap, null, 2);
   const chatHistoryString = JSON.stringify(blueprint.chatHistory, null, 2);
 
-  // ─── PASS 1: GENERATE TOPOLOGY ───
-  console.log(`[DiagramGenerator] Starting PASS 1: Topology Generation for blueprint ${blueprintId}`);
-  const topologyPrompt = `Based on the context map and recommendation history below, generate the visual diagram topology.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const currentGraph = blueprint.diagramGraph as any;
+  const hasExistingDiagram = currentGraph && Array.isArray(currentGraph.nodes) && currentGraph.nodes.length > 0;
+
+  // Detect if the user is asking for a full layout redesign / regeneration
+  const lastUserMessage = blueprint.chatHistory && blueprint.chatHistory.length > 0
+    ? [...blueprint.chatHistory].reverse().find(msg => msg.role === 'user')?.content?.toLowerCase() || ''
+    : '';
+
+  const isFullRedesignRequested = lastUserMessage.includes('redesign') ||
+    lastUserMessage.includes('regenerate the entire') ||
+    lastUserMessage.includes('full rebuild') ||
+    lastUserMessage.includes('reorganize') ||
+    lastUserMessage.includes('better layout') ||
+    lastUserMessage.includes('generate from scratch') ||
+    lastUserMessage.includes('re-layout') ||
+    lastUserMessage.includes('reset layout') ||
+    lastUserMessage.includes('fresh layout');
+
+  const isIncremental = hasExistingDiagram && !isFullRedesignRequested;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let graph: any;
+
+  if (isIncremental) {
+    console.log(`[DiagramGenerator] Starting INCREMENTAL Topology Update for blueprint ${blueprintId}`);
+    const topologyPrompt = `You are applying an incremental edit to the existing diagram topology.
+User's Latest Request: "${lastUserMessage}"
+
+Existing Diagram Graph (Nodes and Edges):
+${JSON.stringify(currentGraph, null, 2)}
+
+Context Map:
+${contextMapString}
+
+Apply the requested modification (e.g. swapping Stripe for Lemon Squeezy, adding/removing a database, etc.) to the existing graph. Keep all other nodes and edges exactly as they are with the same coordinates. Output the complete updated JSON graph.`;
+
+    const topologyRaw = await generateTextWithRotation(DIAGRAM_INCREMENTAL_SYSTEM_PROMPT, topologyPrompt);
+    const cleanTopologyText = topologyRaw
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '');
+    
+    graph = JSON.parse(cleanTopologyText);
+  } else {
+    // ─── PASS 1: GENERATE TOPOLOGY (Full/Initial) ───
+    console.log(`[DiagramGenerator] Starting PASS 1: Topology Generation (Full/Initial) for blueprint ${blueprintId}`);
+    const topologyPrompt = `Based on the context map and recommendation history below, generate the visual diagram topology.
 Follow the rules in the system prompt. Draw all granular libraries, drivers, validators, servers, and external services.
 
 Context Map:
@@ -202,13 +313,14 @@ ${chatHistoryString}
 
 Generate the detailed architecture nodes and edges. Output JSON only.`;
 
-  const topologyRaw = await generateTextWithRotation(DIAGRAM_TOPOLOGY_SYSTEM_PROMPT, topologyPrompt);
-  const cleanTopologyText = topologyRaw
-    .trim()
-    .replace(/^```(?:json)?\s*/i, '')
-    .replace(/\s*```$/, '');
-  
-  const graph = JSON.parse(cleanTopologyText);
+    const topologyRaw = await generateTextWithRotation(DIAGRAM_TOPOLOGY_SYSTEM_PROMPT, topologyPrompt);
+    const cleanTopologyText = topologyRaw
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/, '');
+    
+    graph = JSON.parse(cleanTopologyText);
+  }
 
   // Validate basic graph schema
   if (!graph.nodes || !Array.isArray(graph.nodes)) {
@@ -217,10 +329,25 @@ Generate the detailed architecture nodes and edges. Output JSON only.`;
 
   // ─── PASS 2: METADATA HYDRATION ───
   console.log(`[DiagramGenerator] Starting PASS 2: Metadata Hydration for blueprint ${blueprintId}`);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mappedNodes = graph.nodes.map((n: any) => ({ id: n.id, label: n.data?.label, category: n.data?.category }));
+  
+  // Hydrate only new/modified nodes or all if it's a full generation
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const nodesToHydrate = graph.nodes.filter((node: any) => {
+    if (node.type === 'group' || node.data?.category === 'group') {
+      return false;
+    }
+    // If incremental, only hydrate if metadata is empty or missing
+    if (isIncremental) {
+      return !node.data?.why || !node.data?.free_tier;
+    }
+    return true;
+  });
 
-  const hydrationPrompt = `Based on the context map and recommendation history, populate details for the topology.
+  if (nodesToHydrate.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mappedNodes = nodesToHydrate.map((n: any) => ({ id: n.id, label: n.data?.label, category: n.data?.category }));
+
+    const hydrationPrompt = `Based on the context map and recommendation history, populate details for these new/updated nodes in the topology.
 
 Context Map:
 ${contextMapString}
@@ -228,48 +355,50 @@ ${contextMapString}
 Chat history:
 ${chatHistoryString}
 
-Topology Nodes:
+Topology Nodes to Hydrate:
 ${JSON.stringify(mappedNodes, null, 2)}
 
-Provide the detailed metadata (why, free_tier, cost_at_scale, upgrade_signal, alternatives) for each node ID. Output JSON only.`;
+Provide the detailed metadata (why, free_tier, cost_at_scale, upgrade_signal, alternatives) for each of these node IDs. Output JSON only.`;
 
-  try {
-    const hydrationRaw = await generateTextWithRotation(DIAGRAM_HYDRATION_SYSTEM_PROMPT, hydrationPrompt);
-    const cleanHydrationText = hydrationRaw
-      .trim()
-      .replace(/^```(?:json)?\s*/i, '')
-      .replace(/\s*```$/, '');
-    
-    const hydrationMap = JSON.parse(cleanHydrationText);
+    try {
+      const hydrationRaw = await generateTextWithRotation(DIAGRAM_HYDRATION_SYSTEM_PROMPT, hydrationPrompt);
+      const cleanHydrationText = hydrationRaw
+        .trim()
+        .replace(/^```(?:json)?\s*/i, '')
+        .replace(/\s*```$/, '');
+      
+      const hydrationMap = JSON.parse(cleanHydrationText);
 
-    // Merge metadata back into topology nodes
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    graph.nodes = graph.nodes.map((node: any) => {
-      // Group nodes don't need details
-      if (node.type === 'group' || node.data?.category === 'group') {
+      // Merge metadata back into topology nodes
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      graph.nodes = graph.nodes.map((node: any) => {
+        // Group nodes don't need details
+        if (node.type === 'group' || node.data?.category === 'group') {
+          return node;
+        }
+
+        const meta = hydrationMap[node.id];
+        if (meta) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              why: meta.why || '',
+              free_tier: meta.free_tier || '',
+              cost_at_scale: meta.cost_at_scale || '',
+              upgrade_signal: meta.upgrade_signal || '',
+              alternatives: Array.isArray(meta.alternatives) ? meta.alternatives : [],
+            },
+          };
+        }
         return node;
-      }
-
-      const meta = hydrationMap[node.id];
-      if (meta) {
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            why: meta.why || '',
-            free_tier: meta.free_tier || '',
-            cost_at_scale: meta.cost_at_scale || '',
-            upgrade_signal: meta.upgrade_signal || '',
-            alternatives: Array.isArray(meta.alternatives) ? meta.alternatives : [],
-          },
-        };
-      }
-      return node;
-    });
-    console.log(`[DiagramGenerator] Successfully completed PASS 2 Hydration for blueprint ${blueprintId}`);
-  } catch (hydrationError) {
-    // Robust fallback: if hydration fails, we still return the topology with empty fields rather than crashing
-    console.warn(`[DiagramGenerator] Pass 2 Hydration failed. Falling back to raw topology:`, hydrationError);
+      });
+      console.log(`[DiagramGenerator] Successfully completed PASS 2 Hydration for blueprint ${blueprintId}`);
+    } catch (hydrationError) {
+      console.warn(`[DiagramGenerator] Pass 2 Hydration failed. Falling back to raw topology:`, hydrationError);
+    }
+  } else {
+    console.log(`[DiagramGenerator] Skipping PASS 2 Hydration (all nodes already have metadata).`);
   }
 
   // Save the complete diagram graph to the database

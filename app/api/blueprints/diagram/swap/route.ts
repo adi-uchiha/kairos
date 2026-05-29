@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { generateText } from 'ai';
 import { geminiRegistry } from '@/lib/gemini';
+import { DIAGRAM_MODEL } from '@/lib/gemini/config';
 import { db } from '@/db';
 import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
@@ -57,16 +58,28 @@ ${JSON.stringify(blueprint.contextMap, null, 2)}
 
 Please perform the swap and output the updated JSON.`;
 
-    const currentKey = geminiRegistry.acquireKey();
-    const google = createGoogleGenerativeAI({ apiKey: currentKey.key });
+    let attempt = 0;
+    let responseText = '';
+    while (attempt < 5) {
+      attempt++;
+      const currentKey = geminiRegistry.acquireKey();
+      try {
+        const google = createGoogleGenerativeAI({ apiKey: currentKey.key });
+        const response = await generateText({
+          model: google(DIAGRAM_MODEL),
+          system: SWAP_SYSTEM_PROMPT,
+          prompt,
+        });
+        responseText = response.text;
+        break;
+      } catch (err) {
+        console.warn(`[Swap API] Key ${currentKey.label} failed on attempt ${attempt}:`, err);
+        if (attempt === 5) throw err;
+        await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+      }
+    }
 
-    const response = await generateText({
-      model: google('gemini-2.5-flash'),
-      system: SWAP_SYSTEM_PROMPT,
-      prompt,
-    });
-
-    const rawText = response.text
+    const rawText = responseText
       .trim()
       .replace(/^```(?:json)?\s*/i, '')
       .replace(/\s*```$/, '');

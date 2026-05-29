@@ -81,11 +81,17 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
 
   // ── Diagram state ───────────────────────────────────────────────────────────
   const [layoutDirection, setLayoutDirection] = useState<'LR' | 'TB'>('LR');
+  
+  const lastSavedDiagramRef = useRef<{ nodes: Node<ServiceNodeData>[]; edges: Edge[] }>({ nodes: [], edges: [] });
 
   const initialLaidOut = useMemo(() => {
     const rawNodes = blueprint.diagramGraph?.nodes?.map(formatDiagramNode) ?? [];
     const rawEdges = blueprint.diagramGraph?.edges ?? [];
     if (rawNodes.length === 0) return { nodes: [], edges: [] };
+    const hasCustomCoords = rawNodes.some(n => n.position && (n.position.x !== 100 || n.position.y !== 100));
+    if (hasCustomCoords) {
+      return { nodes: rawNodes, edges: rawEdges };
+    }
     return applyDagreLayout(rawNodes, rawEdges, { direction: 'LR' });
   }, [blueprint.diagramGraph]);
 
@@ -95,6 +101,11 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>(
     initialLaidOut.edges
   );
+  
+  useEffect(() => {
+    lastSavedDiagramRef.current = { nodes: initialLaidOut.nodes, edges: initialLaidOut.edges };
+  }, [initialLaidOut]);
+
   const [selectedNode, setSelectedNode] = useState<Node<ServiceNodeData> | null>(null);
   const [selectedLayer, setSelectedLayer] = useState<DiagramLayer>('all');
   const [showSwapModal, setShowSwapModal] = useState(false);
@@ -137,19 +148,16 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
             return prevNodes; // Preserve custom node positions
           }
         }
+        const hasCustomCoords = newNodes.some(n => n.position && (n.position.x !== 100 || n.position.y !== 100));
+        if (hasCustomCoords) {
+          lastSavedDiagramRef.current = { nodes: newNodes, edges: newEdges };
+          return newNodes;
+        }
         const { nodes: laidNodes } = applyDagreLayout(newNodes, newEdges, { direction: layoutDirection });
+        lastSavedDiagramRef.current = { nodes: laidNodes, edges: newEdges };
         return laidNodes;
       });
-      setEdges((prevEdges) => {
-        if (prevEdges.length === newEdges.length) {
-          const prevIds = prevEdges.map((e) => e.id).sort().join(',');
-          const newIds = newEdges.map((e) => e.id).sort().join(',');
-          if (prevIds === newIds) {
-            return prevEdges;
-          }
-        }
-        return newEdges;
-      });
+      setEdges(newEdges);
     },
   });
 
@@ -161,12 +169,60 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
     });
   }, [edges, setNodes]);
 
+  const handleSaveLayout = useCallback(async () => {
+    if (isReadOnly) return;
+    try {
+      const res = await fetch('/api/blueprints', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: blueprint.id,
+          diagramGraph: {
+            nodes: nodes.map(n => ({
+              id: n.id,
+              type: n.type,
+              position: n.position,
+              parentId: n.parentId,
+              extent: n.extent,
+              style: n.style,
+              data: n.data,
+            })),
+            edges: edges,
+          },
+        }),
+      });
+      if (res.ok) {
+        lastSavedDiagramRef.current = { nodes, edges };
+        toast.success('Diagram layout saved successfully');
+      } else {
+        toast.error('Failed to save layout');
+      }
+    } catch (err) {
+      console.error('Failed to save layout:', err);
+      toast.error('Error saving layout');
+    }
+  }, [blueprint.id, nodes, edges, isReadOnly]);
+
   const handleResetLayout = useCallback(() => {
+    if (lastSavedDiagramRef.current.nodes.length > 0) {
+      setNodes(lastSavedDiagramRef.current.nodes);
+      setEdges(lastSavedDiagramRef.current.edges);
+      toast.success('Diagram restored to last saved layout');
+    } else {
+      setNodes((prevNodes) => {
+        const { nodes: laidNodes } = applyDagreLayout(prevNodes, edges, { direction: layoutDirection });
+        return laidNodes;
+      });
+      toast.success('Diagram layout reset to auto-layout');
+    }
+  }, [edges, layoutDirection, setNodes, setEdges]);
+
+  const handleAutoLayout = useCallback(() => {
     setNodes((prevNodes) => {
       const { nodes: laidNodes } = applyDagreLayout(prevNodes, edges, { direction: layoutDirection });
       return laidNodes;
     });
-    toast.success('Diagram layout reset successfully');
+    toast.success('Diagram layout recalculated automatically');
   }, [edges, layoutDirection, setNodes]);
 
   // ── Blueprint name save ─────────────────────────────────────────────────────
@@ -469,6 +525,8 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
               onInputMessageChange={setDiagramInputMessage}
               onAskGeneral={diagramQA.handleAskGeneralDiagram}
               onResetLayout={handleResetLayout}
+              onSaveLayout={handleSaveLayout}
+              onAutoLayout={handleAutoLayout}
             />
           )}
         </main>

@@ -125,6 +125,8 @@ interface DiagramCanvasProps {
   onInputMessageChange: (value: string) => void;
   onAskGeneral: (question: string) => void;
   onResetLayout?: () => void;
+  onSaveLayout?: () => void;
+  onAutoLayout?: () => void;
 }
 
 function ViewportFitter({
@@ -183,6 +185,8 @@ function DiagramCanvasInner({
   onAskNode,
   onCloseGeneralPanel,
   onResetLayout,
+  onSaveLayout,
+  onAutoLayout,
 }: DiagramCanvasProps) {
   // ── Layer filtering (memoised and group-aware) ──────────────────────────────
   const filteredNodes = useMemo(() => {
@@ -442,15 +446,39 @@ function DiagramCanvasInner({
             ))}
           </div>
 
+          {onSaveLayout && !isReadOnly && (
+            <button
+              onClick={onSaveLayout}
+              className="px-2.5 py-1 border border-[#FF5500] bg-[var(--surface)] hover:bg-[#FF5500] hover:text-white text-[#FF5500] transition-all flex items-center gap-1.5 text-[10px] font-bold font-mono uppercase tracking-wider cursor-pointer"
+              style={{ borderRadius: 0 }}
+              title="Save custom node coordinates"
+            >
+              <MaterialIcon name="save" size={12} />
+              <span>Save Layout</span>
+            </button>
+          )}
+
           {onResetLayout && (
             <button
               onClick={onResetLayout}
               className="px-2.5 py-1 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)] text-[var(--text-muted)] transition-all flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider cursor-pointer"
               style={{ borderRadius: 0 }}
-              title="Reset Layout to Auto"
+              title="Revert to last saved layout"
             >
               <MaterialIcon name="refresh" size={12} />
               <span>Reset Layout</span>
+            </button>
+          )}
+
+          {onAutoLayout && (
+            <button
+              onClick={onAutoLayout}
+              className="px-2.5 py-1 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)] text-[var(--text-muted)] transition-all flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider cursor-pointer"
+              style={{ borderRadius: 0 }}
+              title="Recalculate automatic layout using Dagre"
+            >
+              <MaterialIcon name="bolt" size={12} />
+              <span>Auto Layout</span>
             </button>
           )}
         </div>
