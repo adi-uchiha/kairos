@@ -7,6 +7,8 @@ import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
+import { rateLimit, getClientIp, createRateLimitResponse } from '@/lib/rate-limit';
+
 export const runtime = 'nodejs';
 export const maxDuration = 120;
 
@@ -29,6 +31,12 @@ const ChatRequestSchema = z.object({
 // ─── Route Handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const limitRes = await rateLimit(ip, 'chat', 15, 60);
+  if (!limitRes.success) {
+    return createRateLimitResponse(limitRes.reset);
+  }
+
   let body: unknown;
   try {
     body = await req.json();

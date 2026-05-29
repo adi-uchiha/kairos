@@ -7,6 +7,8 @@ import { db } from '@/db';
 import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
 
+import { rateLimit, getClientIp, createRateLimitResponse } from '@/lib/rate-limit';
+
 export const runtime = 'nodejs';
 
 const SWAP_SYSTEM_PROMPT = `You are a system architecture layout designer.
@@ -26,6 +28,12 @@ Output JSON only in the identical graph schema:
 }`;
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const limitRes = await rateLimit(ip, 'diagram_swap', 10, 60);
+  if (!limitRes.success) {
+    return createRateLimitResponse(limitRes.reset);
+  }
+
   try {
     const body = await req.json();
     const { blueprintId, nodeId, replacement } = body;

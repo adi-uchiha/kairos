@@ -7,6 +7,8 @@ import { db } from '@/db';
 import { blueprints } from '@/db/schema/blueprints';
 import { eq } from 'drizzle-orm';
 
+import { rateLimit, getClientIp, createRateLimitResponse } from '@/lib/rate-limit';
+
 export const runtime = 'nodejs';
 
 const ASK_SYSTEM_PROMPT = `You are a senior system architect explaining a technology stack and system architecture to a developer.
@@ -24,6 +26,12 @@ Your response must be:
 - Explained like a senior engineer over coffee — concise, clear, and high-signal, avoiding fluff.`;
 
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  const limitRes = await rateLimit(ip, 'diagram_ask', 15, 60);
+  if (!limitRes.success) {
+    return createRateLimitResponse(limitRes.reset);
+  }
+
   try {
     const body = await req.json();
     const { blueprintId, nodeId, question } = body;
