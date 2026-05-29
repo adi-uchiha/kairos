@@ -9,6 +9,8 @@ function buildIconUrl(source: string, slug: string, variant?: string): string {
       return `${DEVICON_BASE}/${slug}/${slug}-${v}.svg`;
     case 'simpleicons':
       return `https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${slug}.svg`;
+    case 'local':
+      return slug.startsWith('http') ? slug : '';
     default:
       return '';
   }
@@ -20,7 +22,7 @@ async function testAll() {
   let succeeded = 0;
 
   for (const [key, entry] of Object.entries(ICON_REGISTRY)) {
-    if (entry.source === 'local') continue;
+    if (entry.source === 'local' && !entry.slug.startsWith('http')) continue;
     const url = buildIconUrl(entry.source, entry.slug, entry.variant);
     if (!url) continue;
 
