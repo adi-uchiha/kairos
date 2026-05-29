@@ -229,8 +229,8 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
 
           {blueprints.length === 0 ? (
             <div className="border border-[var(--border)] p-12 text-center bg-[var(--surface)] space-y-4">
-              <div className="w-12 h-12 border border-[var(--border)] flex items-center justify-center mx-auto text-xl font-mono text-[var(--text-muted)]">
-                !
+              <div className="w-12 h-12 border border-[var(--border)] flex items-center justify-center mx-auto">
+                <MaterialIcon name="schema" size={24} className="text-[var(--text-muted)]" />
               </div>
               <div className="space-y-1.5">
                 <h3 className="text-sm font-semibold text-[var(--text-primary)]">
@@ -243,9 +243,10 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
               </div>
               <Link
                 href="/app"
-                className="inline-block py-2 px-5 text-xs font-semibold uppercase tracking-wider border border-[var(--border)] hover:bg-[var(--surface-hover)] transition-all text-[var(--text-primary)]"
+                className="inline-flex items-center gap-1.5 py-2 px-5 text-xs font-semibold uppercase tracking-wider border border-[var(--border)] hover:bg-[var(--surface-hover)] transition-all text-[var(--text-primary)]"
                 style={{ borderRadius: 0 }}
               >
+                <MaterialIcon name="add" size={14} />
                 Launch Builder
               </Link>
             </div>
@@ -255,68 +256,39 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
                 const isEditing = editingId === bp.id;
                 const isDeleting = deletingId === bp.id;
 
+                // Pick a phase icon
+                const phaseIconMap: Record<string, string> = {
+                  project_discovery: 'explore',
+                  recommendation: 'recommend',
+                  diagram: 'schema',
+                  followup: 'forum',
+                  tech_philosophy: 'psychology',
+                };
+                const phaseIcon = phaseIconMap[bp.currentPhase] ?? 'pending';
+
                 return (
                   <div
                     key={bp.id}
-                    className="group border border-[var(--border)] p-5 sm:p-6 bg-[var(--surface)] hover:border-[#FF5500] hover:bg-[var(--surface-hover)] transition-all flex flex-col justify-between min-h-[180px]"
+                    className="group border border-[var(--border)] bg-[var(--surface)] hover:border-[#FF5500] transition-all flex flex-col"
                     style={{ borderRadius: 0 }}
                   >
-                    {/* Card top */}
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-start gap-2">
-                        <span className="font-mono text-[10px] text-[#FF5500] uppercase tracking-wider truncate">
-                          {bp.currentPhase || 'DISCOVERY'}
-                        </span>
-                        <div className="flex items-center gap-2 shrink-0">
-                          {/* Edit title button */}
-                          <button
-                            onClick={(e) => startEdit(bp, e)}
-                            title="Rename blueprint"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-[#FF5500] p-0.5"
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}
-                          >
-                            <MaterialIcon name="edit" size={14} />
-                          </button>
-
-                          {/* Delete button with AlertDialog */}
-                          <AlertDialog>
-                            <AlertDialogTrigger render={
-                              <button
-                                title="Delete blueprint"
-                                disabled={isDeleting}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-muted)] hover:text-red-500 p-0.5 disabled:opacity-40"
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {isDeleting ? (
-                                  <MaterialIcon name="sync" size={14} className="animate-spin" />
-                                ) : (
-                                  <MaterialIcon name="delete" size={14} />
-                                )}
-                              </button>
-                            } />
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete blueprint?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  <strong>&quot;{bp.name}&quot;</strong> will be permanently deleted along
-                                  with all messages and the generated architecture diagram. This action
-                                  cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(bp.id)}
-                                  className="bg-red-600 hover:bg-red-700 text-white"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-
-                          <span className="font-mono text-[9px] text-[var(--text-muted)]">
+                    {/* Card body */}
+                    <div className="p-5 flex-1 space-y-3">
+                      {/* Phase badge + date */}
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <MaterialIcon
+                            name={phaseIcon}
+                            size={13}
+                            className="text-[#FF5500]"
+                          />
+                          <span className="font-mono text-[10px] text-[#FF5500] uppercase tracking-wider">
+                            {bp.currentPhase || 'DISCOVERY'}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-[var(--text-muted)]">
+                          <MaterialIcon name="calendar_today" size={11} />
+                          <span className="font-mono text-[9px]">
                             {new Date(bp.createdAt).toLocaleDateString()}
                           </span>
                         </div>
@@ -346,9 +318,9 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
                             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                           >
                             {isSavingName ? (
-                              <MaterialIcon name="sync" size={14} className="animate-spin" />
+                              <MaterialIcon name="sync" size={15} className="animate-spin" />
                             ) : (
-                              <MaterialIcon name="check" size={14} />
+                              <MaterialIcon name="check" size={15} />
                             )}
                           </button>
                           <button
@@ -357,26 +329,84 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
                             className="text-[var(--text-muted)] hover:text-red-400 transition-colors p-0.5"
                             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
                           >
-                            <MaterialIcon name="close" size={14} />
+                            <MaterialIcon name="close" size={15} />
                           </button>
                         </div>
                       ) : (
-                        <h3 className="text-base font-semibold text-[var(--text-primary)] line-clamp-1">
+                        <h3 className="text-base font-semibold text-[var(--text-primary)] line-clamp-2 leading-snug">
                           {bp.name}
                         </h3>
                       )}
+
+                      {/* Message count */}
+                      <div className="flex items-center gap-1.5 text-[var(--text-muted)]">
+                        <MaterialIcon name="chat_bubble_outline" size={13} />
+                        <span className="font-mono text-[11px]">
+                          {bp.chatHistory?.length ?? 0} messages
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Card footer */}
-                    <div className="flex justify-between items-center pt-4 border-t border-[var(--border)] mt-4">
-                      <span className="text-xs text-[var(--text-muted)] font-mono">
-                        {(bp.chatHistory?.length ?? 0)} messages
-                      </span>
+                    {/* Card footer — always visible action row */}
+                    <div className="flex items-center justify-between px-5 py-3 border-t border-[var(--border)] bg-[var(--surface-hover)]">
+                      {/* Edit + Delete */}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => startEdit(bp, e)}
+                          title="Rename blueprint"
+                          className="flex items-center gap-1 px-2 py-1 text-[var(--text-muted)] hover:text-[#FF5500] hover:bg-[var(--surface)] transition-all text-[10px] font-mono uppercase"
+                          style={{ borderRadius: 0, border: 'none', background: 'none', cursor: 'pointer' }}
+                        >
+                          <MaterialIcon name="edit" size={13} />
+                          <span>Rename</span>
+                        </button>
+
+                        <AlertDialog>
+                          <AlertDialogTrigger render={
+                            <button
+                              title="Delete blueprint"
+                              disabled={isDeleting}
+                              className="flex items-center gap-1 px-2 py-1 text-[var(--text-muted)] hover:text-red-500 hover:bg-[var(--surface)] transition-all text-[10px] font-mono uppercase disabled:opacity-40"
+                              style={{ borderRadius: 0, border: 'none', background: 'none', cursor: 'pointer' }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {isDeleting ? (
+                                <MaterialIcon name="sync" size={13} className="animate-spin" />
+                              ) : (
+                                <MaterialIcon name="delete" size={13} />
+                              )}
+                              <span>Delete</span>
+                            </button>
+                          } />
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete blueprint?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                <strong>&quot;{bp.name}&quot;</strong> will be permanently deleted along
+                                with all messages and the generated architecture diagram. This action
+                                cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(bp.id)}
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+
+                      {/* Open Canvas */}
                       <Link
                         href={`/app?id=${bp.id}`}
-                        className="text-xs font-semibold text-[#FF5500] hover:underline"
+                        className="flex items-center gap-1 text-[11px] font-semibold text-[#FF5500] hover:underline"
                       >
-                        Open Canvas →
+                        <MaterialIcon name="open_in_new" size={13} />
+                        Open Canvas
                       </Link>
                     </div>
                   </div>
@@ -389,3 +419,4 @@ export function DashboardContent({ user, initialBlueprints }: DashboardContentPr
     </div>
   );
 }
+
