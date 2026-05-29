@@ -32,14 +32,14 @@ export const ICON_REGISTRY: Record<string, IconEntry> = {
   'Prisma': { source: 'devicon', slug: 'prisma' },
   'Vite': { source: 'devicon', slug: 'vitejs' },
   'Tailwind CSS': { source: 'devicon', slug: 'tailwindcss' },
-  'Hono': { source: 'devicon', slug: 'hono' },
+  'Hono': { source: 'simpleicons', slug: 'hono' },
   'Fastify': { source: 'devicon', slug: 'fastify' },
   'Express': { source: 'devicon', slug: 'express' },
   'Kafka': { source: 'devicon', slug: 'apachekafka' },
   'Elasticsearch': { source: 'devicon', slug: 'elasticsearch' },
 
   // Simple Icons
-  'Elysia': { source: 'simpleicons', slug: 'elysia' },
+  'Elysia': { source: 'devicon', slug: 'bun' },
   'tRPC': { source: 'simpleicons', slug: 'trpc' },
   'Zod': { source: 'simpleicons', slug: 'zod' },
   'Drizzle': { source: 'simpleicons', slug: 'drizzle' },
@@ -69,7 +69,7 @@ export const ICON_REGISTRY: Record<string, IconEntry> = {
   'Grafana': { source: 'simpleicons', slug: 'grafana' },
   'Prometheus': { source: 'simpleicons', slug: 'prometheus' },
   'Railway': { source: 'simpleicons', slug: 'railway' },
-  'Fly.io': { source: 'simpleicons', slug: 'flyio' },
+  'Fly.io': { source: 'simpleicons', slug: 'flydotio' },
   'Render': { source: 'simpleicons', slug: 'render' },
   'Heroku': { source: 'simpleicons', slug: 'heroku' },
   'Algolia': { source: 'simpleicons', slug: 'algolia' },
@@ -87,11 +87,11 @@ export const ICON_REGISTRY: Record<string, IconEntry> = {
   'Amazon RDS': { source: 'simpleicons', slug: 'amazonrds' },
   'Amazon DynamoDB': { source: 'simpleicons', slug: 'amazondynamodb' },
   'Amazon SQS': { source: 'simpleicons', slug: 'amazonsqs' },
-  'Amazon SES': { source: 'simpleicons', slug: 'amazonses' },
+  'Amazon SES': { source: 'simpleicons', slug: 'amazonsimpleemailservice' },
   'Amazon EC2': { source: 'simpleicons', slug: 'amazonec2' },
   'Amazon ECS': { source: 'simpleicons', slug: 'amazonecs' },
   'Amazon EKS': { source: 'simpleicons', slug: 'amazoneks' },
-  'Amazon CloudFront': { source: 'simpleicons', slug: 'amazoncloudfront' },
+  'Amazon CloudFront': { source: 'simpleicons', slug: 'amazonwebservices' },
   'Amazon API Gateway': { source: 'simpleicons', slug: 'amazonapigateway' },
   'Amazon Cognito': { source: 'simpleicons', slug: 'amazoncognito' },
   'Amazon Route 53': { source: 'simpleicons', slug: 'amazonroute53' },
@@ -137,7 +137,7 @@ function buildIconUrl(entry: IconEntry): string {
       const variant = entry.variant ?? 'original';
       return `${DEVICON_BASE}/${entry.slug}/${entry.slug}-${variant}.svg`;
     case 'simpleicons':
-      return `https://cdn.simpleicons.org/${entry.slug}`;
+      return `https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/${entry.slug}.svg`;
     case 'local':
       return entry.slug; // static public path
   }
