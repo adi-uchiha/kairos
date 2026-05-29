@@ -259,7 +259,67 @@ const BRAINSTORMED_TECH = [
   { name: 'Amplitude', terms: ['amplitude'] },
   { name: 'Segment', terms: ['segment'] },
   { name: 'Hotjar', terms: ['hotjar'] },
-  { name: 'Apollo GraphQL', terms: ['apollo'] }
+  { name: 'Apollo GraphQL', terms: ['apollo'] },
+
+  // 17. Edge Databases, Serverless & Knative Stacks
+  { name: 'SST', terms: ['sst'] },
+  { name: 'Serverless Framework', terms: ['serverless'] },
+  { name: 'OpenFaaS', terms: ['openfaas'] },
+  { name: 'Knative', terms: ['knative'] },
+  { name: 'EdgeDB', terms: ['edgedb'] },
+  { name: 'Fauna', terms: ['fauna', 'faunadb'] },
+
+  // 18. Data Pipelines, ETL & Modern Data Lakes
+  { name: 'Airbyte', terms: ['airbyte'] },
+  { name: 'Fivetran', terms: ['fivetran'] },
+  { name: 'dbt', terms: ['dbt'] },
+  { name: 'Prefect', terms: ['prefect'] },
+  { name: 'Dagster', terms: ['dagster'] },
+  { name: 'Apache Airflow', terms: ['airflow', 'apacheairflow'] },
+  { name: 'Debezium', terms: ['debezium'] },
+
+  // 19. Identity, Compliance & SSO Gateways
+  { name: 'WorkOS', terms: ['workos'] },
+  { name: 'Kinde', terms: ['kinde'] },
+  { name: 'SuperTokens', terms: ['supertokens'] },
+  { name: 'Ory', terms: ['ory'] },
+  { name: 'Logto', terms: ['logto'] },
+
+  // 20. Advanced AI, Agentic & Vector Platforms
+  { name: 'LlamaIndex', terms: ['llamaindex'] },
+  { name: 'Pinecone', terms: ['pinecone'] },
+  { name: 'Chroma', terms: ['chroma', 'chromadb'] },
+
+  // 21. Observability, Logging APMs & Collectors
+  { name: 'SigNoz', terms: ['signoz'] },
+  { name: 'Logstash', terms: ['logstash'] },
+  { name: 'Fluentd', terms: ['fluentd'] },
+  { name: 'Fluent Bit', terms: ['fluentbit'] },
+  { name: 'Graylog', terms: ['graylog'] },
+  { name: 'Splunk', terms: ['splunk'] },
+  { name: 'New Relic', terms: ['newrelic'] },
+  { name: 'Dynatrace', terms: ['dynatrace'] },
+
+  // 22. Service Mesh, Network Proxies & Advanced Brokers
+  { name: 'Istio', terms: ['istio'] },
+  { name: 'Linkerd', terms: ['linkerd'] },
+  { name: 'Apache APISIX', terms: ['apisix', 'apacheapisix'] },
+  { name: 'Redpanda', terms: ['redpanda'] },
+  { name: 'Apache ActiveMQ', terms: ['activemq', 'apacheactivemq'] },
+  { name: 'EMQX', terms: ['emqx'] },
+  { name: 'HiveMQ', terms: ['hivemq'] },
+  { name: 'Eclipse Mosquitto', terms: ['mosquitto', 'eclipsemosquitto'] },
+
+  // 23. ChatOps & Enterprise Collaboration
+  { name: 'Mattermost', terms: ['mattermost'] },
+  { name: 'Zulip', terms: ['zulip'] },
+  { name: 'Matrix', terms: ['matrix'] },
+  { name: 'Microsoft Teams', terms: ['teams', 'microsoftteams'] },
+
+  // 24. Serialization Formats & Structs
+  { name: 'Protocol Buffers', terms: ['protobuf', 'protocolbuffers'] },
+  { name: 'Apache Avro', terms: ['avro', 'apacheavro'] },
+  { name: 'Apache Parquet', terms: ['parquet', 'apacheparquet'] }
 ];
 
 async function testUrl(url: string): Promise<boolean> {
