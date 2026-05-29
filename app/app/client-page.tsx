@@ -268,6 +268,7 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
       if (userText !== '__KAIROS_OPEN__') {
         setMessages((prev) => [...prev, { role: 'user', content: userText }]);
       }
+      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
       try {
         const response = await fetch('/api/chat', {
@@ -282,6 +283,14 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
         });
 
         if (!response.ok) {
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant' && last.content === '') {
+              return prev.slice(0, -1);
+            }
+            return prev;
+          });
+
           let errData: Record<string, unknown> = {};
           try {
             errData = await response.json();
@@ -305,8 +314,6 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
         const reader = response.body?.getReader();
         const decoder = new TextDecoder();
         let assistantResponse = '';
-
-        setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
         while (true) {
           const { value, done } = await reader!.read();

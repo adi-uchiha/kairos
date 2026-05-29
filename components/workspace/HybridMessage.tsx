@@ -31,6 +31,27 @@ export function HybridMessage({
     return <span style={{ whiteSpace: 'pre-wrap' }}>{message.content}</span>;
   }
 
+  // Render a temporary "Thinking..." response while waiting for stream data
+  if (message.content === '') {
+    return (
+      <div className="flex items-center gap-2 py-1">
+        <span
+          className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
+          style={{ animationDelay: '0ms' }}
+        />
+        <span
+          className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
+          style={{ animationDelay: '150ms' }}
+        />
+        <span
+          className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
+          style={{ animationDelay: '300ms' }}
+        />
+        <span className="text-[var(--text-muted)] text-xs font-mono ml-1">Thinking...</span>
+      </div>
+    );
+  }
+
   // Parse assistant message content
   const { textContent, blocks } = parseMcqBlocks(message.content);
 
