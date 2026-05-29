@@ -22,12 +22,8 @@ function loadKeys(): GeminiKeyEntry[] {
     i++;
   }
 
-  if (keys.length === 0) {
-    throw new Error(
-      '[Gemini] No API keys found. Set GEMINI_KEY_1, GEMINI_KEY_2, ... in your .env.local file.'
-    );
-  }
-
+  // Do not throw at module load/build time to prevent Next.js compilation/prerendering failures
+  // when API keys are absent. The registry will enforce presence at runtime.
   return keys;
 }
 

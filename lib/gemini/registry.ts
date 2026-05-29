@@ -38,6 +38,11 @@ class GeminiKeyRegistry {
    * Throws if all keys are exhausted and none can be recovered.
    */
   acquireKey(): ManagedKey {
+    if (this.keys.length === 0) {
+      throw new Error(
+        '[GeminiRegistry] No API keys found. Set GEMINI_KEY_1, GEMINI_KEY_2, ... in your environment variables.'
+      );
+    }
     const now = Date.now();
 
     // First pass: try to find an immediately active key (round-robin)
