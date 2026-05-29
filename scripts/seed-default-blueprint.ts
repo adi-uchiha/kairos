@@ -44,11 +44,23 @@ async function seed() {
       const userId = user.id;
       const blueprintId = getDeterministicUuid(userId);
 
-      // Check if this default blueprint already exists
       const existing = await pool.query('SELECT id FROM blueprints WHERE id = $1', [blueprintId]);
       if (existing.rows.length > 0) {
         console.log(
-          `Default blueprint already exists for user ${user.email} (${userId}), skipping.`
+          `Default blueprint already exists for user ${user.email} (${userId}). Updating name/content...`
+        );
+        await pool.query(
+          `UPDATE blueprints 
+           SET name = $2, current_phase = $3, chat_history = $4, context_map = $5, diagram_graph = $6, updated_at = NOW() 
+           WHERE id = $1`,
+          [
+            blueprintId,
+            template.name || 'Enterprise Ecommerce (Example)',
+            template.current_phase || 'diagram',
+            JSON.stringify(template.chat_history || []),
+            JSON.stringify(template.context_map || {}),
+            JSON.stringify(template.diagram_graph || { nodes: [], edges: [] }),
+          ]
         );
         continue;
       }

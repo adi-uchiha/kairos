@@ -1,5 +1,5 @@
 export const DEFAULT_BLUEPRINT_TEMPLATE = {
-  name: 'Enterprise Ecommerce',
+  name: 'Enterprise Ecommerce (Example)',
   currentPhase: 'diagram',
   chatHistory: [
     {
