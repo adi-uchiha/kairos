@@ -56,12 +56,19 @@ export function ChatPanel({
   const isFreeTextPhase = ['project_discovery', 'recommendation', 'diagram', 'followup'].includes(currentPhase);
   const shouldHideInputBar = hasInteractiveBlocks && !isFreeTextPhase;
 
+  // Determine if we're in a "waiting for response to start" state (loading but last message content is empty)
+  const isWaitingForResponse = isLoading && messages.length > 0 && messages[messages.length - 1]?.content === '';
+
   return (
     <div
-      className={`flex flex-col overflow-hidden ${isFollowup ? 'w-[40%] border-r border-[var(--border)] bg-[var(--bg)]' : 'flex-1'}`}
+      className={`flex flex-col overflow-hidden ${
+        isFollowup
+          ? 'w-full md:w-[40%] border-b md:border-b-0 md:border-r border-[var(--border)] bg-[var(--bg)] max-h-[45vh] md:max-h-none'
+          : 'flex-1'
+      }`}
     >
       {/* CHAT LOG */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center text-center space-y-4 max-w-sm mx-auto">
             <MaterialIcon
@@ -105,7 +112,7 @@ export function ChatPanel({
           return (
             <div key={index} className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-[85%] px-5 py-3 text-[14px] leading-relaxed border ${
+                className={`max-w-[85%] px-4 md:px-5 py-3 text-[13px] md:text-[14px] leading-relaxed border ${
                   isUser
                     ? 'bg-[var(--surface-hover)] border-[var(--border)] text-[var(--text-primary)]'
                     : 'bg-[var(--surface)] border-[var(--orange-border)] text-[var(--text-primary)]'
@@ -124,36 +131,36 @@ export function ChatPanel({
           );
         })}
 
-        {/* Typing indicator */}
-        {isLoading && messages.length > 0 && messages[messages.length - 1]?.content === '' && (
+        {/* Thinking indicator — shown while waiting for the AI to start streaming */}
+        {isWaitingForResponse && (
           <div className="flex justify-start">
             <div
-              className="bg-[var(--surface)] border border-[var(--orange-border)] px-5 py-3 text-[14px] leading-relaxed"
+              className="bg-[var(--surface)] border border-[var(--orange-border)] px-5 py-3 text-[14px] leading-relaxed flex items-center gap-2"
               style={{ borderRadius: 0 }}
             >
-              <span className="flex items-center gap-2 text-[var(--text-muted)] text-xs font-mono">
-                <span
-                  className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
-                  style={{ animationDelay: '0ms' }}
-                />
-                <span
-                  className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
-                  style={{ animationDelay: '150ms' }}
-                />
-                <span
-                  className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
-                  style={{ animationDelay: '300ms' }}
-                />
-              </span>
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
+                style={{ animationDelay: '0ms' }}
+              />
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
+                style={{ animationDelay: '150ms' }}
+              />
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF5500] animate-bounce"
+                style={{ animationDelay: '300ms' }}
+              />
+              <span className="text-[var(--text-muted)] text-xs font-mono ml-1">Thinking...</span>
             </div>
           </div>
         )}
+
         <div ref={chatEndRef} />
       </div>
 
       {/* INPUT BAR */}
       {!shouldHideInputBar && (
-        <div className="p-4 border-t border-[var(--border)] shrink-0 bg-[var(--bg)]">
+        <div className="p-3 md:p-4 border-t border-[var(--border)] shrink-0 bg-[var(--bg)]">
           {currentPhase === 'recommendation' && !hasDiagram ? (
             <div className="flex justify-center p-2">
               <button
@@ -188,44 +195,52 @@ export function ChatPanel({
               }}
               className="flex gap-2 items-end"
             >
-              <textarea
-                value={inputMessage}
-                onChange={(e) => onInputChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    onSend();
+              <div className="flex-1 relative">
+                <textarea
+                  value={inputMessage}
+                  onChange={(e) => onInputChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      onSend();
+                    }
+                  }}
+                  placeholder={
+                    isLoading
+                      ? 'Waiting for response...'
+                      : hasDiagram
+                      ? 'Ask follow-up questions or changes about this architecture...'
+                      : 'Ask or reply to Kairos... (Shift+Enter for new line)'
                   }
-                }}
-                placeholder={
-                  hasDiagram
-                    ? 'Ask follow-up questions or changes about this architecture...'
-                    : 'Ask or reply to Kairos... (Shift+Enter for new line)'
-                }
-                disabled={isLoading}
-                rows={1}
-                className="flex-1 bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[14px] focus:outline-none focus:border-[#FF5500] resize-none"
-                style={{
-                  borderRadius: 0,
-                  minHeight: '48px',
-                  maxHeight: '160px',
-                  overflowY: 'auto',
-                  lineHeight: '1.5',
-                  height: 'auto',
-                }}
-                onInput={(e) => {
-                  const el = e.currentTarget;
-                  el.style.height = 'auto';
-                  el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-                }}
-              />
+                  disabled={isLoading}
+                  rows={1}
+                  className="w-full bg-[var(--surface)] border border-[var(--border)] px-4 py-3 text-[13px] md:text-[14px] focus:outline-none focus:border-[#FF5500] resize-none disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                  style={{
+                    borderRadius: 0,
+                    minHeight: '44px',
+                    maxHeight: '120px',
+                    overflowY: 'auto',
+                    lineHeight: '1.5',
+                    height: 'auto',
+                  }}
+                  onInput={(e) => {
+                    const el = e.currentTarget;
+                    el.style.height = 'auto';
+                    el.style.height = `${Math.min(el.scrollHeight, 120)}px`;
+                  }}
+                />
+              </div>
               <button
                 type="submit"
-                disabled={isLoading}
-                className="px-5 border border-[var(--border)] bg-[var(--surface-hover)] hover:border-[#FF5500] hover:text-[#FF5500] transition-all flex items-center justify-center"
-                style={{ borderRadius: 0, cursor: 'pointer', height: '48px', flexShrink: 0 }}
+                disabled={isLoading || !inputMessage.trim()}
+                className="px-4 md:px-5 border border-[var(--border)] bg-[var(--surface-hover)] hover:border-[#FF5500] hover:text-[#FF5500] transition-all flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ borderRadius: 0, cursor: 'pointer', height: '44px', flexShrink: 0 }}
               >
-                <MaterialIcon name="send" size={15} />
+                {isLoading ? (
+                  <MaterialIcon name="sync" size={15} className="animate-spin text-[#FF5500]" />
+                ) : (
+                  <MaterialIcon name="send" size={15} />
+                )}
               </button>
             </form>
           )}

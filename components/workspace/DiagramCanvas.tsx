@@ -405,7 +405,7 @@ function DiagramCanvasInner({
         </ReactFlow>
 
         {/* ── Layer Filter & Layout Toolbar (top-left) ── */}
-        <div className="absolute top-4 left-4 flex gap-2 z-10 flex-wrap max-w-[70%]">
+        <div className="absolute top-2 md:top-4 left-2 md:left-4 flex gap-1.5 md:gap-2 z-10 flex-wrap max-w-[calc(100%-120px)] md:max-w-[70%]">
           <div
             className="flex bg-[var(--surface)] border border-[var(--border)] p-0.5"
             style={{ borderRadius: 0 }}
@@ -414,7 +414,7 @@ function DiagramCanvasInner({
               <button
                 key={layer}
                 onClick={() => onLayerChange(layer)}
-                className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                className={`px-2 md:px-2.5 py-1 text-[9px] md:text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer ${
                   selectedLayer === layer
                     ? 'bg-[#FF5500] text-white font-bold'
                     : 'hover:bg-[var(--surface-hover)] text-[var(--text-muted)] hover:text-[var(--text)]'
@@ -434,14 +434,16 @@ function DiagramCanvasInner({
               <button
                 key={dir}
                 onClick={() => onLayoutDirectionChange(dir)}
-                className={`px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer ${
+                className={`px-2 md:px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer ${
                   layoutDirection === dir
                     ? 'bg-[#FF5500] text-white font-bold'
                     : 'hover:bg-[var(--surface-hover)] text-[var(--text-muted)] hover:text-[var(--text)]'
                 }`}
                 style={{ borderRadius: 0 }}
+                title={dir === 'LR' ? 'Horizontal layout' : 'Vertical layout'}
               >
-                {dir === 'LR' ? '→ Horizontal' : '↓ Vertical'}
+                <span className="hidden md:inline">{dir === 'LR' ? '→ Horizontal' : '↓ Vertical'}</span>
+                <span className="md:hidden">{dir === 'LR' ? '→' : '↓'}</span>
               </button>
             ))}
           </div>
@@ -449,42 +451,42 @@ function DiagramCanvasInner({
           {onSaveLayout && !isReadOnly && (
             <button
               onClick={onSaveLayout}
-              className="px-2.5 py-1 border border-[#FF5500] bg-[var(--surface)] hover:bg-[#FF5500] hover:text-white text-[#FF5500] transition-all flex items-center gap-1.5 text-[10px] font-bold font-mono uppercase tracking-wider cursor-pointer"
+              className="px-2 md:px-2.5 py-1 border border-[#FF5500] bg-[var(--surface)] hover:bg-[#FF5500] hover:text-white text-[#FF5500] transition-all flex items-center gap-1 md:gap-1.5 text-[10px] font-bold font-mono uppercase tracking-wider cursor-pointer"
               style={{ borderRadius: 0 }}
               title="Save custom node coordinates"
             >
               <MaterialIcon name="save" size={12} />
-              <span>Save Layout</span>
+              <span className="hidden md:inline">Save Layout</span>
             </button>
           )}
 
           {onResetLayout && (
             <button
               onClick={onResetLayout}
-              className="px-2.5 py-1 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)] text-[var(--text-muted)] transition-all flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider cursor-pointer"
+              className="px-2 md:px-2.5 py-1 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)] text-[var(--text-muted)] transition-all flex items-center gap-1 md:gap-1.5 text-[10px] font-mono uppercase tracking-wider cursor-pointer"
               style={{ borderRadius: 0 }}
               title="Revert to last saved layout"
             >
               <MaterialIcon name="refresh" size={12} />
-              <span>Reset Layout</span>
+              <span className="hidden md:inline">Reset Layout</span>
             </button>
           )}
 
           {onAutoLayout && (
             <button
               onClick={onAutoLayout}
-              className="px-2.5 py-1 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)] text-[var(--text-muted)] transition-all flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider cursor-pointer"
+              className="px-2 md:px-2.5 py-1 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] hover:text-[var(--text)] text-[var(--text-muted)] transition-all flex items-center gap-1 md:gap-1.5 text-[10px] font-mono uppercase tracking-wider cursor-pointer"
               style={{ borderRadius: 0 }}
               title="Recalculate automatic layout using Dagre"
             >
               <MaterialIcon name="bolt" size={12} />
-              <span>Auto Layout</span>
+              <span className="hidden md:inline">Auto Layout</span>
             </button>
           )}
         </div>
 
         {/* ── Export / Share Toolbar (top-right) ── */}
-        <div className="absolute top-4 right-4 flex gap-2 z-10">
+        <div className="absolute top-2 md:top-4 right-2 md:right-4 flex gap-1.5 md:gap-2 z-10">
           <button
             onClick={handleExportPNG}
             className="p-2 border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-hover)] transition-all flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
@@ -542,7 +544,7 @@ function DiagramCanvasInner({
         {/* ── Node Detail Drawer ── */}
         {selectedNode && (
           <div
-            className="absolute top-0 right-0 bottom-0 w-80 border-l border-[var(--border)] p-6 bg-[var(--surface)] z-20 flex flex-col justify-between overflow-y-auto"
+            className="absolute top-0 right-0 bottom-0 w-full sm:w-80 border-l border-[var(--border)] p-4 md:p-6 bg-[var(--surface)] z-20 flex flex-col justify-between overflow-y-auto"
             style={{ boxShadow: '-4px 0 24px rgba(0, 0, 0, 0.08)' }}
           >
             <div className="space-y-6">

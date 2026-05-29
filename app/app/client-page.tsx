@@ -464,15 +464,15 @@ export function ClientAppPage({ blueprint, user, isReadOnly = false }: ClientApp
 
       {/* Workspace layout */}
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Left sidebar */}
+        {/* Left sidebar — hidden on mobile */}
         <WorkspaceSidebar
           phases={WORKSPACE_PHASES}
           currentPhase={currentPhase}
           userName={user.name}
         />
 
-        {/* Centre content */}
-        <main className="flex-1 flex overflow-hidden relative">
+        {/* Centre content — stacks vertically on mobile, side-by-side on md+ */}
+        <main className={`flex-1 overflow-hidden relative flex ${nodes.length > 0 ? 'flex-col md:flex-row' : 'flex-col'}`}>
           <ChatPanel
             messages={messages}
             isLoading={isLoading}
