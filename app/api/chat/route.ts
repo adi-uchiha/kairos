@@ -32,7 +32,7 @@ const ChatRequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
-  const limitRes = await rateLimit(ip, 'chat', 15, 60);
+  const limitRes = await rateLimit(ip, 'chat', 8, 60);
   if (!limitRes.success) {
     return createRateLimitResponse(limitRes.reset);
   }

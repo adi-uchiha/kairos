@@ -27,7 +27,7 @@ Your response must be:
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
-  const limitRes = await rateLimit(ip, 'diagram_ask', 15, 60);
+  const limitRes = await rateLimit(ip, 'diagram_ask', 8, 60);
   if (!limitRes.success) {
     return createRateLimitResponse(limitRes.reset);
   }

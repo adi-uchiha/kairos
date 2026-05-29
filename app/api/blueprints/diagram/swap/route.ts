@@ -29,7 +29,7 @@ Output JSON only in the identical graph schema:
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
-  const limitRes = await rateLimit(ip, 'diagram_swap', 10, 60);
+  const limitRes = await rateLimit(ip, 'diagram_swap', 5, 60);
   if (!limitRes.success) {
     return createRateLimitResponse(limitRes.reset);
   }
