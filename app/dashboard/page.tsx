@@ -1,9 +1,7 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
-import { db } from '@/db';
-import { blueprints } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { getOrCreateUserBlueprints } from '@/lib/blueprints';
 import { DashboardContent } from './dashboard-content';
 
 export const metadata = {
@@ -24,11 +22,7 @@ export default async function DashboardPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let userBlueprints: any[] = [];
   try {
-    userBlueprints = await db
-      .select()
-      .from(blueprints)
-      .where(eq(blueprints.userId, session.user.id))
-      .orderBy(desc(blueprints.createdAt));
+    userBlueprints = await getOrCreateUserBlueprints(session.user.id);
   } catch (error) {
     console.error('Failed to fetch blueprints:', error);
     // Fall back to empty array if table migrations aren't pushed yet
