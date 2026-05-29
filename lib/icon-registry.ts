@@ -258,7 +258,7 @@ export const ICON_REGISTRY: Record<string, IconEntry> = {
   'Elasticsearch': { source: 'devicon', slug: 'elasticsearch' },
 
   // Simple Icons
-  'Elysia': { source: 'devicon', slug: 'bun' },
+  'Elysia': { source: 'svgl', slug: 'elysiajs' },
   'tRPC': { source: 'svgl', slug: 'trpc' },
   'Zod': { source: 'svgl', slug: 'zod' },
   'Drizzle': { source: 'simpleicons', slug: 'drizzle' },
@@ -346,6 +346,16 @@ export const ICON_REGISTRY: Record<string, IconEntry> = {
   'GCP Memorystore': { source: 'cloud', slug: 'gcp/memorystore/memorystore.svg' },
   'GCP Spanner': { source: 'cloud', slug: 'gcp/cloud_spanner/cloud_spanner.svg' },
   'GCP Secret Manager': { source: 'cloud', slug: 'gcp/secret_manager/secret_manager.svg' },
+
+  // Additional Essential Tools & Friendly Aliases
+  'ElysiaJS': { source: 'svgl', slug: 'elysiajs' },
+  'Google Analytics': { source: 'svgl', slug: 'google-analytics' },
+  'TanStack': { source: 'svgl', slug: 'tanstack' },
+  'TanStack Query': { source: 'svgl', slug: 'reactquery' },
+  'React Query': { source: 'svgl', slug: 'reactquery' },
+  'pgsql': { source: 'svgl', slug: 'postgresql' },
+  'pg': { source: 'svgl', slug: 'postgresql' },
+  'postgresql': { source: 'svgl', slug: 'postgresql' },
 };
 
 const DEVICON_BASE = 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons';
