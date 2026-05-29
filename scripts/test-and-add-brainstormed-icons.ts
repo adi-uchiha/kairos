@@ -209,7 +209,57 @@ const BRAINSTORMED_TECH = [
   { name: 'n8n', terms: ['n8n'] },
   { name: 'NocoDB', terms: ['nocodb'] },
   { name: 'Open WebUI', terms: ['open-webui'] },
-  { name: 'PocketBase', terms: ['pocketbase'] }
+  { name: 'PocketBase', terms: ['pocketbase'] },
+
+  // 12. Linters, Formatters, Bundlers & Testing
+  { name: 'Prettier', terms: ['prettier'] },
+  { name: 'ESLint', terms: ['eslint'] },
+  { name: 'Vitest', terms: ['vitest'] },
+  { name: 'Playwright', terms: ['playwright'] },
+  { name: 'Cypress', terms: ['cypress'] },
+  { name: 'Puppeteer', terms: ['puppeteer'] },
+  { name: 'Webpack', terms: ['webpack'] },
+  { name: 'Rollup', terms: ['rollup'] },
+  { name: 'Babel', terms: ['babel'] },
+  { name: 'PostCSS', terms: ['postcss'] },
+
+  // 13. Component Libraries & Design systems
+  { name: 'Radix UI', terms: ['radix-ui', 'radix'] },
+  { name: 'Chakra UI', terms: ['chakra-ui', 'chakra'] },
+  { name: 'Shadcn UI', terms: ['shadcn-ui', 'shadcn'] },
+  { name: 'Mantine', terms: ['mantine'] },
+  { name: 'Material UI', terms: ['materialui', 'mui'] },
+
+  // 14. CMS & Generators
+  { name: 'Webflow', terms: ['webflow'] },
+  { name: 'Gatsby', terms: ['gatsby'] },
+  { name: 'Hugo', terms: ['hugo'] },
+  { name: 'Jekyll', terms: ['jekyll'] },
+  { name: 'Eleventy', terms: ['eleventy', '11ty'] },
+  { name: 'Nuxt.js', terms: ['nuxt'] },
+
+  // 15. Scanners, DBs & Protocols
+  { name: 'Presto', terms: ['presto'] },
+  { name: 'Trino', terms: ['trino'] },
+  { name: 'ScyllaDB', terms: ['scylladb'] },
+  { name: 'ArangoDB', terms: ['arangodb'] },
+  { name: 'MQTT', terms: ['mqtt'] },
+  { name: 'ZeroMQ', terms: ['zeromq'] },
+  { name: 'Crystal', terms: ['crystal'] },
+  { name: 'Nim', terms: ['nim'] },
+  { name: 'Perl', terms: ['perl'] },
+  { name: 'F#', terms: ['fsharp'] },
+
+  // 16. SaaS Platforms
+  { name: 'Salesforce', terms: ['salesforce'] },
+  { name: 'HubSpot', terms: ['hubspot'] },
+  { name: 'Zendesk', terms: ['zendesk'] },
+  { name: 'Intercom', terms: ['intercom'] },
+  { name: 'Mixpanel', terms: ['mixpanel'] },
+  { name: 'Amplitude', terms: ['amplitude'] },
+  { name: 'Segment', terms: ['segment'] },
+  { name: 'Hotjar', terms: ['hotjar'] },
+  { name: 'Apollo GraphQL', terms: ['apollo'] }
 ];
 
 async function testUrl(url: string): Promise<boolean> {
@@ -241,7 +291,11 @@ function findBestSvglMatch(name: string, terms: string[]): string | null {
     'Trello': 'trello',
     'Bootstrap': 'bootstrap',
     'Git': 'git',
-    'Expo': 'expo'
+    'Expo': 'expo',
+    'Prettier': 'prettier-icon-dark',
+    'ESLint': 'eslint-icon-dark',
+    'Radix UI': 'radix-ui_dark',
+    'Shadcn UI': 'shadcn-ui_dark'
   };
 
   if (overrides[name]) {
